@@ -22,12 +22,97 @@ import BeeStage from '@/components/BeeStage';
 import TopBar from '@/components/TopBar';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
-const SAMPLES = [
-  { icon: '📍', text: '연남동에서 카페 열려는데 상권 어때?', hint: '입지' },
-  { icon: '💰', text: '창업자금 5천만원 대출 알아보고 있어요', hint: '자금' },
-  { icon: '🛡️', text: '대출 설명을 제대로 못 들었는데 이의제기 되나요?', hint: '권리' },
-  { icon: '🐝', text: '성수동 자리도 보고 자금도 같이 알아봐줘', hint: '한번에' },
+/**
+ * 다섯 가지 도움 — 첫 화면의 선택 배너.
+ *
+ * 빈 입력창 하나만 두면 "무엇을 물어도 되는지"를 사용자가 알아내야 합니다.
+ * 할 수 있는 일을 다섯 갈래로 펼쳐 두고, 하나를 고르면 그 갈래의 예시
+ * 질문이 바뀝니다. 고르는 행위 자체가 서비스의 범위를 가르쳐 줍니다.
+ */
+const MODES = [
+  {
+    key: 'location', icon: 'pin', label: '입지 진단',
+    desc: '이 자리, 괜찮을까',
+    placeholder: '동네와 업종을 말씀해 주세요 — 예) 연남동 카페',
+    samples: [
+      '연남동에서 카페 열려는데 상권 어때?',
+      '성수동 술집 자리 괜찮아?',
+      '부전동에서 미용실 하려는데 경쟁 심해?',
+    ],
+  },
+  {
+    key: 'gap', icon: 'compass', label: '기회 업종',
+    desc: '여기엔 뭐가 부족할까',
+    placeholder: '동네를 말씀해 주세요 — 무엇이 비어 있는지 찾아봅니다',
+    samples: [
+      '연남동에 어떤 업종이 부족해?',
+      '역삼동 상권에 빈 자리가 있을까?',
+      '우리 동네에서 뭘 하면 좋을까? 제주시 연동이야',
+    ],
+  },
+  {
+    key: 'policy', icon: 'coin', label: '자금 찾기',
+    desc: '정책자금·지원사업',
+    placeholder: '상황을 그대로 말씀하세요 — 제도 이름은 몰라도 됩니다',
+    samples: [
+      '장사가 안돼서 운영자금이 급해요',
+      '창업자금 5천만원 대출 알아보고 있어요',
+      '가게 인테리어 고치는 데 지원되는 게 있나요?',
+    ],
+  },
+  {
+    key: 'protection', icon: 'shield', label: '권리 지키기',
+    desc: '분쟁·부당한 일',
+    placeholder: '겪으신 일을 말씀해 주세요 — 절차와 근거 규정을 찾아 드립니다',
+    samples: [
+      '대출 설명을 제대로 못 들었는데 이의제기 되나요?',
+      '미리 갚는데 왜 수수료를 떼나요?',
+      '연체됐는데 독촉 전화가 너무 심해요',
+    ],
+  },
+  {
+    key: 'all', icon: 'bee', label: '한 번에',
+    desc: '자리도 돈도 같이',
+    placeholder: '여러 가지를 한 문장에 물어보셔도 됩니다',
+    samples: [
+      '성수동 자리도 보고 자금도 같이 알아봐줘',
+      '연남동에서 빵집 열 건데 상권이랑 지원사업 다 알려줘',
+      '홍대에서 치킨집, 자리 경쟁이랑 창업자금 어때?',
+    ],
+  },
 ];
+
+/** 배너 아이콘 — 이모지는 기기 글꼴에 따라 네모로 나오므로 SVG로 그립니다. */
+function ModeIcon({ name, on }: { name: string; on: boolean }) {
+  const c = on ? '#FFBC00' : 'rgba(255,255,255,.55)';
+  const p = { fill: 'none', stroke: c, strokeWidth: 1.8,
+              strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden>
+      {name === 'pin' && (<>
+        <path {...p} d="M12 21s-6.5-5.4-6.5-10a6.5 6.5 0 1 1 13 0c0 4.6-6.5 10-6.5 10Z" />
+        <circle {...p} cx="12" cy="10.5" r="2.4" />
+      </>)}
+      {name === 'compass' && (<>
+        <circle {...p} cx="12" cy="12" r="8.5" />
+        <path fill={c} d="m14.8 9.2-1.9 4.4-4.4 1.9 1.9-4.4z" />
+      </>)}
+      {name === 'coin' && (<>
+        <circle {...p} cx="12" cy="12" r="8.5" />
+        <path {...p} d="M12 7.5v9M9.2 9.8c.6-.9 1.6-1.4 2.8-1.4 1.7 0 2.9.8 2.9 2s-1 1.7-2.9 2.1c-1.9.4-2.9 1-2.9 2.1s1.2 2 2.9 2c1.2 0 2.2-.5 2.8-1.4" />
+      </>)}
+      {name === 'shield' && (<>
+        <path {...p} d="M12 3.5 5 6v5.2c0 4.3 2.9 7.6 7 9.3 4.1-1.7 7-5 7-9.3V6Z" />
+        <path {...p} d="m8.8 12 2.2 2.2 4.2-4.4" />
+      </>)}
+      {name === 'bee' && (<>
+        <ellipse {...p} cx="12" cy="13.5" rx="5.2" ry="6" />
+        <path {...p} d="M8.6 11.4h6.8M8.4 14h7.2M9 16.5h6M9.5 8.2 8 5.6M14.5 8.2 16 5.6" />
+        <path {...p} d="M6.8 12.5C4.6 12 3.4 10.6 3.8 9.3c.4-1.2 2.2-1.4 3.9-.3M17.2 12.5c2.2-.5 3.4-1.9 3-3.2-.4-1.2-2.2-1.4-3.9-.3" />
+      </>)}
+    </svg>
+  );
+}
 
 const AGENT_LABEL: Record<string, string> = {
   router: '길잡이', location: '상권 분석', policy: '자금 매칭',
@@ -43,6 +128,7 @@ export default function Page() {
   const [error, setError] = useState('');
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
   const [speech, setSpeech] = useState(GREETING);
+  const [mode, setMode] = useState(0);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const hero = !res && !loading;
@@ -120,39 +206,72 @@ export default function Page() {
                 실제 자료에서 찾아 드리고, 무엇이 그 결론을 만들었는지까지 보여 드려요.
               </motion.p>
 
+              {/* ── 다섯 가지 도움 — 선택 배너 ── */}
               <motion.div
-                layoutId="askbox" transition={SPRING}
-                className="mt-7 w-full max-w-[660px]"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 }}
+                className="mt-7 grid w-full max-w-[760px] grid-cols-5 gap-2"
               >
-                <AskBox value={input} onChange={setInput}
-                        onSubmit={() => { ask(input); setInput(''); }} loading={loading} />
+                {MODES.map((m, i) => {
+                  const on = i === mode;
+                  return (
+                    <button
+                      key={m.key}
+                      onClick={() => setMode(i)}
+                      aria-pressed={on}
+                      className={`group flex flex-col items-center gap-1 rounded-2xl px-2
+                                  pb-3 pt-3.5 ring-1 transition-all duration-200 ${
+                        on
+                          ? 'bg-kb-yellow/[.14] ring-kb-yellow/[.5] shadow-[0_8px_24px_-8px_rgba(255,188,0,.35)]'
+                          : 'bg-white/[.045] ring-white/[.09] hover:-translate-y-0.5 hover:bg-white/[.08]'}`}
+                    >
+                      <span className={`transition-transform duration-200 ${
+                        on ? 'scale-110' : 'group-hover:scale-105'}`}>
+                        <ModeIcon name={m.icon} on={on} />
+                      </span>
+                      <span className={`text-[12.5px] font-bold ${
+                        on ? 'text-kb-yellow' : 'text-white/[.78]'}`}>
+                        {m.label}
+                      </span>
+                      <span className={`hidden text-[10.5px] sm:block ${
+                        on ? 'text-white/60' : 'text-white/[.32]'}`}>
+                        {m.desc}
+                      </span>
+                    </button>
+                  );
+                })}
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.34 }}
-                className="mt-4 grid w-full max-w-[660px] grid-cols-1 gap-2.5 sm:grid-cols-2"
+                layoutId="askbox" transition={SPRING}
+                className="mt-4 w-full max-w-[760px]"
               >
-                {SAMPLES.map((s) => (
+                <AskBox value={input} onChange={setInput}
+                        placeholder={MODES[mode].placeholder}
+                        onSubmit={() => { ask(input); setInput(''); }} loading={loading} />
+              </motion.div>
+
+              {/* 고른 갈래의 예시 질문. 갈래를 바꾸면 예시도 바뀝니다 —
+                  "이런 것도 물을 수 있구나"를 예시가 가르칩니다. */}
+              <motion.div
+                key={MODES[mode].key}
+                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="mt-3 flex w-full max-w-[760px] flex-col gap-2"
+              >
+                {MODES[mode].samples.map((q) => (
                   <button
-                    key={s.text}
-                    onClick={() => ask(s.text)}
-                    className="group flex items-center gap-3 rounded-xl bg-white/[.05] px-4
-                               py-3.5 text-left ring-1 ring-white/[.10] transition
-                               hover:-translate-y-px hover:bg-kb-yellow/[.12]
-                               hover:ring-kb-yellow/[.35]"
+                    key={q}
+                    onClick={() => ask(q)}
+                    className="group flex items-center gap-2.5 rounded-xl bg-white/[.04]
+                               px-4 py-2.5 text-left ring-1 ring-white/[.07] transition
+                               hover:bg-kb-yellow/[.09] hover:ring-kb-yellow/[.3]"
                   >
-                    <span className="text-[17px]">{s.icon}</span>
-                    {/* 잘라 내지 않습니다. "…이의" 로 끝나면 무엇을 묻는
-                        예시인지 알 수 없어 눌러 볼 이유가 사라집니다. */}
-                    <span className="min-w-0 flex-1 text-[13px] leading-snug text-white/[.8]
-                                     group-hover:text-white">
-                      {s.text}
-                    </span>
-                    <span className="shrink-0 rounded-md bg-white/[.06] px-1.5 py-0.5
-                                     text-[10px] font-bold text-white/[.4]
-                                     group-hover:bg-kb-yellow/20 group-hover:text-kb-yellow">
-                      {s.hint}
+                    <span className="text-[12px] text-kb-yellow/50 transition
+                                     group-hover:text-kb-yellow">→</span>
+                    <span className="min-w-0 flex-1 text-[13px] leading-snug
+                                     text-white/[.72] group-hover:text-white">
+                      {q}
                     </span>
                   </button>
                 ))}
@@ -262,8 +381,9 @@ function summarize(d: ChatResponse): string {
 }
 
 /* ── 입력 ──────────────────────────────────────────────────────────────── */
-function AskBox({ value, onChange, onSubmit, loading }: {
-  value: string; onChange: (v: string) => void; onSubmit: () => void; loading: boolean;
+function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
+  value: string; onChange: (v: string) => void; onSubmit: () => void;
+  loading: boolean; placeholder?: string;
 }) {
   return (
     <div className="surface-3 flex items-center gap-2 p-2 transition
@@ -272,7 +392,7 @@ function AskBox({ value, onChange, onSubmit, loading }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit(); }}
-        placeholder="꿀비에게 물어보세요"
+        placeholder={placeholder ?? '꿀비에게 물어보세요'}
         disabled={loading}
         className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[14.5px] text-white
                    placeholder:text-white/[.38] focus:outline-none disabled:opacity-50"
