@@ -1,0 +1,311 @@
+{
+ "updated": "2026-08",
+ "note": "시연용 정리본. 실제 조건은 각 기관 공고를 따릅니다.",
+ "programs": [
+  {
+   "id": "sbc-startup",
+   "name": "소상공인 창업자금",
+   "provider": "소상공인시장진흥공단",
+   "category": "정책자금",
+   "limit_krw": 100000000,
+   "rate_pct": 2.5,
+   "period_months": 60,
+   "purposes": [
+    "창업",
+    "시설"
+   ],
+   "target_tags": [
+    "청년"
+   ],
+   "region": null,
+   "eligibility": [
+    "업력 3년 미만",
+    "상시근로자 5인 미만"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "임대차계약서",
+    "사업계획서",
+    "신분증"
+   ],
+   "apply_url": "https://ols.sbiz.or.kr"
+  },
+  {
+   "id": "sbc-operating",
+   "name": "소상공인 일반경영안정자금",
+   "provider": "소상공인시장진흥공단",
+   "category": "정책자금",
+   "limit_krw": 70000000,
+   "rate_pct": 3.0,
+   "period_months": 60,
+   "purposes": [
+    "운영"
+   ],
+   "target_tags": [],
+   "region": null,
+   "eligibility": [
+    "업력 무관",
+    "소상공인 확인서 보유"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "소상공인확인서",
+    "부가세과세표준증명",
+    "신분증"
+   ],
+   "apply_url": "https://ols.sbiz.or.kr"
+  },
+  {
+   "id": "sbc-reboot",
+   "name": "재도전 특별자금",
+   "provider": "소상공인시장진흥공단",
+   "category": "정책자금",
+   "limit_krw": 50000000,
+   "rate_pct": 2.0,
+   "period_months": 60,
+   "purposes": [
+    "위기",
+    "창업"
+   ],
+   "target_tags": [
+    "저신용"
+   ],
+   "region": null,
+   "eligibility": [
+    "폐업 후 재창업",
+    "재창업 교육 이수"
+   ],
+   "required_docs": [
+    "폐업사실증명원",
+    "재창업 교육수료증",
+    "사업계획서"
+   ],
+   "apply_url": "https://ols.sbiz.or.kr"
+  },
+  {
+   "id": "regional-credit",
+   "name": "지역신용보증재단 특례보증",
+   "provider": "지역신용보증재단",
+   "category": "보증",
+   "limit_krw": 80000000,
+   "rate_pct": null,
+   "period_months": 60,
+   "purposes": [
+    "운영",
+    "창업"
+   ],
+   "target_tags": [
+    "저신용"
+   ],
+   "region": null,
+   "eligibility": [
+    "해당 지역 사업장",
+    "신용등급 제한 완화"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "보증신청서",
+    "재무제표 또는 소득금액증명"
+   ],
+   "apply_url": "https://www.koreg.or.kr"
+  },
+  {
+   "id": "seoul-youth",
+   "name": "서울시 청년 소상공인 육성자금",
+   "provider": "서울신용보증재단",
+   "category": "정책자금",
+   "limit_krw": 50000000,
+   "rate_pct": 1.8,
+   "period_months": 60,
+   "purposes": [
+    "창업",
+    "운영"
+   ],
+   "target_tags": [
+    "청년"
+   ],
+   "region": "서울",
+   "eligibility": [
+    "만 39세 이하 대표",
+    "서울 소재 사업장"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "주민등록초본",
+    "임대차계약서"
+   ],
+   "apply_url": "https://www.seoulshinbo.co.kr"
+  },
+  {
+   "id": "kb-smart-loan",
+   "name": "KB 소상공인 스마트론",
+   "provider": "KB국민은행",
+   "category": "KB상품",
+   "limit_krw": 100000000,
+   "rate_pct": 4.2,
+   "period_months": 60,
+   "purposes": [
+    "운영",
+    "시설"
+   ],
+   "target_tags": [],
+   "region": null,
+   "eligibility": [
+    "사업자등록 6개월 이상",
+    "KB 거래실적 보유 시 우대"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "소득금액증명",
+    "부가세과세표준증명"
+   ],
+   "apply_url": "https://obank.kbstar.com/quics?page=C019327"
+  },
+  {
+   "id": "kb-guarantee-loan",
+   "name": "KB 소상공인 보증서담보대출",
+   "provider": "KB국민은행",
+   "category": "KB상품",
+   "limit_krw": 80000000,
+   "rate_pct": 3.6,
+   "period_months": 60,
+   "purposes": [
+    "운영",
+    "창업"
+   ],
+   "target_tags": [
+    "저신용"
+   ],
+   "region": null,
+   "eligibility": [
+    "신용보증서 발급 가능자"
+   ],
+   "required_docs": [
+    "신용보증서",
+    "사업자등록증",
+    "신분증"
+   ],
+   "apply_url": "https://obank.kbstar.com/quics?page=C019327"
+  },
+  {
+   "id": "kb-women",
+   "name": "KB 여성기업 우대대출",
+   "provider": "KB국민은행",
+   "category": "KB상품",
+   "limit_krw": 60000000,
+   "rate_pct": 3.4,
+   "period_months": 60,
+   "purposes": [
+    "운영",
+    "시설"
+   ],
+   "target_tags": [
+    "여성"
+   ],
+   "region": null,
+   "eligibility": [
+    "여성기업 확인서 보유"
+   ],
+   "required_docs": [
+    "여성기업확인서",
+    "사업자등록증",
+    "재무제표"
+   ],
+   "apply_url": "https://obank.kbstar.com/quics?page=C019327"
+  },
+  {
+   "id": "voucher-digital",
+   "name": "소상공인 디지털 전환 바우처",
+   "provider": "중소벤처기업부",
+   "category": "바우처",
+   "limit_krw": 5000000,
+   "rate_pct": null,
+   "period_months": null,
+   "purposes": [
+    "시설",
+    "운영"
+   ],
+   "target_tags": [],
+   "region": null,
+   "eligibility": [
+    "소상공인 확인서 보유",
+    "자부담 30%"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "소상공인확인서",
+    "견적서"
+   ],
+   "apply_url": "https://www.sbiz.or.kr"
+  },
+  {
+   "id": "export-voucher",
+   "name": "수출 바우처(소상공인)",
+   "provider": "중소벤처기업부",
+   "category": "바우처",
+   "limit_krw": 30000000,
+   "rate_pct": null,
+   "period_months": null,
+   "purposes": [
+    "수출"
+   ],
+   "target_tags": [],
+   "region": null,
+   "eligibility": [
+    "직수출 실적 보유 또는 계획"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "수출계획서"
+   ],
+   "apply_url": "https://www.exportvoucher.com"
+  },
+  {
+   "id": "consult-sbiz",
+   "name": "소상공인 경영컨설팅",
+   "provider": "소상공인시장진흥공단",
+   "category": "컨설팅",
+   "limit_krw": 3000000,
+   "rate_pct": null,
+   "period_months": null,
+   "purposes": [
+    "운영",
+    "위기"
+   ],
+   "target_tags": [],
+   "region": null,
+   "eligibility": [
+    "소상공인 확인서 보유"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "소상공인확인서"
+   ],
+   "apply_url": "https://www.sbiz.or.kr"
+  },
+  {
+   "id": "busan-local",
+   "name": "부산 소상공인 경영안정자금",
+   "provider": "부산신용보증재단",
+   "category": "정책자금",
+   "limit_krw": 50000000,
+   "rate_pct": 2.2,
+   "period_months": 60,
+   "purposes": [
+    "운영"
+   ],
+   "target_tags": [],
+   "region": "부산",
+   "eligibility": [
+    "부산 소재 사업장",
+    "업력 6개월 이상"
+   ],
+   "required_docs": [
+    "사업자등록증",
+    "임대차계약서",
+    "소득금액증명"
+   ],
+   "apply_url": "https://www.busansinbo.or.kr"
+  }
+ ]
+}
