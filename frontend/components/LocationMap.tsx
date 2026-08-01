@@ -28,6 +28,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MapPin } from '@/lib/types';
 
+/** leaflet.heat이 L.heatLayer를 전역 L에 붙입니다. 타입만 선언해 둡니다. */
+type HeatLayer = { addTo: (m: unknown) => unknown; remove: () => void };
+type LWithHeat = typeof import('leaflet') & {
+  heatLayer: (pts: [number, number, number?][], opts?: object) => HeatLayer;
+};
+
 interface Props {
   pins: MapPin[];
   dongCode?: string | null;
@@ -50,13 +56,23 @@ export default function LocationMap({
   const boxRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{ remove: () => void } | null>(null);
   const [shops, setShops] = useState<{ total: number; shown: number } | null>(null);
+  // 점 ↔ 열지도. 점은 "한 곳 한 곳이 어디"를, 열지도는 "어디가 뜨거운가"를
+  // 보여 줍니다. 점포가 수백 개면 점만으로는 밀집의 정도가 안 읽힙니다.
+  const [heat, setHeat] = useState(false);
+  const heatRef = useRef<HeatLayer | null>(null);
+  const pointsRef = useRef<[number, number][]>([]);
+  const LRef = useRef<LWithHeat | null>(null);
+  const mapObjRef = useRef<unknown>(null);
 
   useEffect(() => {
     if (!boxRef.current || !pins?.length) return;
     let disposed = false;
 
     (async () => {
-      const L = (await import('leaflet')).default;
+      const L = (await import('leaflet')).default as unknown as LWithHeat;
+      // 열지도 플러그인(MIT). L 전역에 heatLayer를 붙입니다.
+      await import('leaflet.heat');
+      LRef.current = L;
       if (disposed || !boxRef.current) return;
 
       // 같은 노드에 두 번 붙지 않게 합니다 (StrictMode에서 두 번 돕니다)
@@ -71,6 +87,7 @@ export default function LocationMap({
         scrollWheelZoom: false,
       });
       mapRef.current = map as unknown as { remove: () => void };
+      mapObjRef.current = map;
 
       // 어두운 타일을 씁니다. 밝은 지도 위에서는 노란 마커가 묻힙니다.
       L.tileLayer(
@@ -102,6 +119,7 @@ export default function LocationMap({
               }).addTo(layer);
             });
             if (data.points.length) fitted = data.points as [number, number][];
+            pointsRef.current = data.points as [number, number][];
           }
         } catch {
           // 점포를 못 받아도 비교 상권 지도는 떠야 합니다
@@ -139,17 +157,52 @@ export default function LocationMap({
 
     return () => {
       disposed = true;
+      heatRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
   }, [pins, dongCode, industryCode]);
 
+  // 열지도 켜고 끄기 — 지도를 다시 만들지 않고 층만 얹고 뗍니다.
+  useEffect(() => {
+    const L = LRef.current;
+    const map = mapObjRef.current;
+    if (!L || !map) return;
+    if (heat && pointsRef.current.length) {
+      heatRef.current = L.heatLayer(
+        pointsRef.current.map(([la, lo]) => [la, lo, 0.55]),
+        { radius: 22, blur: 26, maxZoom: 17,
+          gradient: { 0.3: '#3b2a12', 0.55: '#8a5a00', 0.75: '#ffbc00', 1: '#fff2c4' } });
+      heatRef.current.addTo(map);
+    } else {
+      heatRef.current?.remove();
+      heatRef.current = null;
+    }
+  }, [heat]);
+
   return (
     <div className="relative">
-      <div
-        ref={boxRef}
-        className="h-[320px] w-full overflow-hidden rounded-xl ring-1 ring-white/[.08]"
-      />
+      <div className="relative">
+        <div
+          ref={boxRef}
+          className="h-[320px] w-full overflow-hidden rounded-xl ring-1 ring-white/[.08]"
+        />
+        {shops && shops.total > 0 && (
+          <div className="absolute right-2.5 top-2.5 z-[500] flex overflow-hidden
+                          rounded-lg ring-1 ring-white/[.14]">
+            {([['점', false], ['열지도', true]] as const).map(([label, v]) => (
+              <button key={label}
+                onClick={() => setHeat(v)}
+                className={`px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                  heat === v
+                    ? 'bg-kb-yellow text-kb-ink'
+                    : 'bg-kb-ink/85 text-white/60 hover:text-white'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 색이 무엇을 뜻하는지 밝히지 않으면 지도가 장식이 됩니다 */}
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5

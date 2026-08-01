@@ -165,6 +165,15 @@ export default function Page() {
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
       setHistory((h) => [...h.slice(-7), { q, res: data }]);
+      // 좋은 소식은 몸으로도 알립니다. S·A등급이면 꿀색 종이가 잠깐 흩날립니다.
+      // 장난 같지만, 점수를 "받았다"는 감각을 만드는 것은 이런 2초입니다.
+      if (data.location && (data.location.grade === 'S' || data.location.grade === 'A')) {
+        import('canvas-confetti').then(({ default: confetti }) => {
+          confetti({ particleCount: 90, spread: 75, origin: { y: 0.3 },
+                     colors: ['#FFBC00', '#FFD35C', '#FFF2C4', '#544438'],
+                     disableForReducedMotion: true });
+        }).catch(() => {/* 효과가 없어도 답은 그대로 */});
+      }
       // 주소에 질문을 남깁니다. 지금 화면이 곧 공유 가능한 링크가 됩니다.
       window.history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
       setMood(data.character_motion);
