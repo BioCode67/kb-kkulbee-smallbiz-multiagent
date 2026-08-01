@@ -7,9 +7,14 @@
  "doc_vectors": "int8(ONNX)",
  "query_vectors": "int8(ONNX) — CPU",
  "precision_check": {
-  "reused": true
+  "probe_queries": 10,
+  "top10_overlap_mean": 0.53,
+  "top1_same": 0.4
  },
- "centering": {},
+ "centering": {
+  "spread_before": 0.0465,
+  "spread_after": 0.3038
+ },
  "docs": 900,
  "chunks": 3326,
  "dim": 384,

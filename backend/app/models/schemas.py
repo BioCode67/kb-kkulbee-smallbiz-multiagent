@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class CharacterMotion(str, Enum):
@@ -66,13 +66,19 @@ class FactorContribution(BaseModel):
     direction: Literal["up", "down", "flat"] = "flat"
     reason: str = Field(default="", description="왜 이 방향인지 한 줄")
 
-    @field_validator("direction", mode="before")
-    @classmethod
-    def _dir(cls, v, info):
-        if v in ("up", "down", "flat"):
-            return v
-        c = info.data.get("contribution", 0.0)
-        return "up" if c > 0.5 else "down" if c < -0.5 else "flat"
+    @model_validator(mode="after")
+    def _dir(self):
+        """방향은 기여에서 나옵니다. 따로 넘기는 값이 아닙니다.
+
+        처음에는 field_validator(mode="before")로 두었는데, 기본값 "flat"이
+        허용값 목록에 들어 있어 검증기 첫 줄에서 그대로 반환됐습니다. 그래서
+        기여가 -12.87인 요인도 direction이 flat으로 나갔습니다. 값이 틀린 게
+        아니라 계산 자체가 건너뛰어진 것이라 눈에 안 띄었습니다.
+        """
+        object.__setattr__(self, "direction",
+                           "up" if self.contribution > 0.5
+                           else "down" if self.contribution < -0.5 else "flat")
+        return self
 
 
 class LocationScore(BaseModel):
@@ -92,13 +98,20 @@ class LocationScore(BaseModel):
     data_source: Literal["public_api", "fallback"] = "fallback"
     note: str = ""
 
-    @field_validator("grade", mode="before")
-    @classmethod
-    def _grade(cls, v, info):
-        if v in ("S", "A", "B", "C", "D"):
-            return v
-        s = info.data.get("total_score", 50.0)
-        return "S" if s >= 85 else "A" if s >= 72 else "B" if s >= 58 else "C" if s >= 45 else "D"
+    @model_validator(mode="after")
+    def _grade(self):
+        """등급은 점수에서 나옵니다. 따로 넘기는 값이 아닙니다.
+
+        전에는 grade를 안 넘기면 기본값 "C"가 그대로 나갔습니다. 검증기가
+        "이미 올바른 값"으로 보고 통과시켰기 때문입니다. 86.5점짜리 상권이
+        화면에 C등급으로 찍히고 있었습니다.
+        """
+        s = self.total_score
+        object.__setattr__(
+            self, "grade",
+            "S" if s >= 85 else "A" if s >= 72 else "B" if s >= 58
+            else "C" if s >= 45 else "D")
+        return self
 
 
 class MapPin(BaseModel):

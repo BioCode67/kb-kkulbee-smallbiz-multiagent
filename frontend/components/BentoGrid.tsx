@@ -99,9 +99,12 @@ function ScoreCard({ s }: { s: LocationScore }) {
             <div className="absolute -top-1 h-3.5 w-0.5 bg-white/50"
                  style={{ left: `${Math.min(100, s.peer_median)}%` }} />
           </div>
+          {/* 50점은 전국 행정동의 한가운데입니다. 요인마다 백분위로 재고
+              중간값을 0점 기여로 맞춰 두었으므로, 중간 상권이 정확히 50점을
+              받습니다. 임의로 정한 기준선이 아닙니다. */}
           <p className="mt-2 text-[11px] text-white/40">
-            같은 업종 상권 중앙값 {s.peer_median}점
-            {s.total_score >= s.peer_median ? ' · 평균 이상' : ' · 평균 이하'}
+            전국 행정동 3,450곳의 한가운데가 {s.peer_median}점
+            {s.total_score >= s.peer_median ? ' · 중간 이상' : ' · 중간 이하'}
           </p>
         </div>
       )}
@@ -166,6 +169,20 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           );
         })}
       </ul>
+
+      {/* 재지 못한 것을 같은 자리에 적습니다.
+          유동인구·매출을 점수에 넣지 않았다는 사실을 다른 화면에서 찾아봐야
+          알 수 있게 두면 감춘 것이 됩니다. 예전에는 이 값들을 동네 이름
+          해시로 만들어 실측처럼 내보내고 있었습니다. */}
+      <div className="mt-3.5 rounded-lg bg-white/[.03] px-3 py-2.5 ring-1 ring-white/[.06]">
+        <p className="text-[10.5px] font-semibold text-white/50">
+          점수에 넣지 않은 것
+        </p>
+        <p className="mt-1 text-[10.5px] leading-relaxed text-white/[.33]">
+          유동인구 · 매출 · 폐업률 · 임대료 — 상가정보 자료에 없습니다.
+          추정해 채우지 않았습니다.
+        </p>
+      </div>
     </div>
   );
 }

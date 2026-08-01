@@ -106,20 +106,28 @@ def route(state: GraphState) -> GraphState:
 # ── 각 갈래 ───────────────────────────────────────────────────────────────
 async def run_location(state: GraphState) -> GraphState:
     req = state["request"]
-    region = req.region or _guess_region(req.message) or "서울 마포구 연남동"
-    industry = req.industry or "한식음식점"
+    region = req.region or req.message
+    industry = req.industry or _guess_industry(req.message)
 
     score = await location_agent.analyze_location(region, industry)
+    if score is None:
+        # 자료에 없는 동네에 점수를 지어내지 않습니다. 예전에는 이름만 있으면
+        # 난수로 채워 무엇이든 답했습니다.
+        return {"answer": ("어느 동네인지 못 알아들었습니다. '서울 마포구 연남동'처럼 "
+                           "시·군·구까지 적어 주시면 그 동네 점포 자료로 살펴보겠습니다."),
+                "motion": CharacterMotion.EXPLAINING.value,
+                "trace": [AgentKind.LOCATION.value]}
+
     pins = await location_agent.nearby_pins(score)
 
+    lead = (f"{score.region_name}의 {score.industry} 상권은 100점 만점에 "
+            f"{score.total_score}점({score.grade}등급)입니다. ")
     top = score.factors[0] if score.factors else None
-    lead = (f"{region}의 {industry} 상권 점수는 100점 만점에 {score.total_score}점"
-            f"({score.grade}등급)입니다. ")
     if top:
-        lead += (f"가장 크게 작용한 것은 {top.label}으로 {top.contribution:+.1f}점입니다. "
-                 f"{top.reason}")
+        lead += f"가장 크게 작용한 것은 {top.label}({top.contribution:+.1f}점)입니다. {top.reason}"
+
     return {"answer": lead, "location": score, "pins": pins,
-            "motion": (CharacterMotion.FLY_HAPPY.value if score.total_score >= 65
+            "motion": (CharacterMotion.FLY_HAPPY.value if score.total_score >= 60
                        else CharacterMotion.EXPLAINING.value),
             "trace": [AgentKind.LOCATION.value]}
 
@@ -237,20 +245,17 @@ def build_graph():
 
 GRAPH = build_graph()
 
-REGION_HINT = ["연남동", "역삼동", "성수동", "서면", "동성로", "홍대", "강남", "마포", "성동"]
-REGION_MAP = {
-    "연남동": "서울 마포구 연남동", "홍대": "서울 마포구 연남동", "마포": "서울 마포구 연남동",
-    "역삼동": "서울 강남구 역삼동", "강남": "서울 강남구 역삼동",
-    "성수동": "서울 성동구 성수동", "성동": "서울 성동구 성수동",
-    "서면": "부산 부산진구 서면", "동성로": "대구 중구 동성로",
-}
+def _guess_industry(text: str) -> str | None:
+    """질문에서 업종을 읽습니다. 못 읽으면 None — 임의로 정하지 않습니다.
 
+    예전에는 못 읽으면 '한식음식점'으로 두었습니다. 카페를 물은 분께 한식
+    기준으로 잰 경쟁 강도를 보여 주는 셈이었습니다. 업종을 모르면 업종에
+    딸린 요인(동종업종 경쟁, 같은 계열 집적)을 빼고 상권 자체만 잽니다.
+    """
+    from app.services import market_data
 
-def _guess_region(text: str) -> str | None:
-    for k in REGION_HINT:
-        if k in text:
-            return REGION_MAP.get(k)
-    return None
+    found = market_data.find_industry(text)
+    return found[1] if found else None
 
 
 # ── 화면 카드 조립 (Generative UI) ────────────────────────────────────────

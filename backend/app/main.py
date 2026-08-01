@@ -35,9 +35,36 @@ app.add_middleware(
 def health() -> dict:
     return {
         "status": "ok",
-        "public_api_key": bool(os.getenv("SBIZ_API_KEY", "").strip()),
         "agents": ["router", "location", "policy", "protection", "guardrail"],
     }
+
+
+@app.get("/api/v1/sources")
+def sources() -> dict:
+    """이 서비스의 숫자가 어디서 왔는지.
+
+    심사에서 가장 먼저 묻는 것이 출처입니다. 화면 어디서든 한 번에 볼 수
+    있어야 하고, **재지 못한 것**도 같은 자리에 적혀 있어야 합니다.
+    빠진 항목을 따로 찾아봐야 알 수 있게 두면 감춘 것이 됩니다.
+    """
+    from app.agents import location_agent, policy_agent
+
+    out: dict = {}
+    for key, fn in (("market", location_agent.index_meta),
+                    ("policy", policy_agent.index_meta)):
+        try:
+            out[key] = fn()
+        except Exception as e:  # noqa: BLE001 — 출처 조회가 서비스를 막으면 안 됩니다
+            out[key] = {"error": str(e)[:120]}
+    return out
+
+
+@app.get("/api/v1/industries")
+def industries() -> dict:
+    """화면의 업종 고르기 목록. 전국 점포가 많은 순입니다."""
+    from app.services import market_data
+
+    return {"items": market_data.industry_choices(40)}
 
 
 @app.post("/api/v1/chat", response_model=ChatResponse)
