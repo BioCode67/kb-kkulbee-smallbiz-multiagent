@@ -133,6 +133,19 @@ export default function Page() {
 
   const hero = !res && !loading;
 
+  // 딥링크 — ?q=연남동+카페 로 접속하면 그 질문이 바로 실행됩니다.
+  // 심사위원께 "이 링크를 여세요" 한 줄로 시연 장면을 보낼 수 있고,
+  // 사장님끼리 결과를 카톡으로 넘길 수 있습니다. 정적 내보내기라
+  // 서버 라우팅 없이 주소만 읽습니다.
+  const booted = useRef(false);
+  useEffect(() => {
+    if (booted.current) return;
+    booted.current = true;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q?.trim()) ask(q.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const ask = useCallback(async (q: string) => {
     if (!q.trim() || loading) return;
     setLoading(true);
@@ -148,6 +161,8 @@ export default function Page() {
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
       setRes(data);
+      // 주소에 질문을 남깁니다. 지금 화면이 곧 공유 가능한 링크가 됩니다.
+      window.history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
       setMood(data.character_motion);
       setSpeech(summarize(data));
     } catch (e) {
@@ -516,8 +531,25 @@ const INTENT_KO: Record<string, string> = { location: '상권', policy: '자금'
 function Answer({ res }: { res: ChatResponse }) {
   const { answer: text, elapsed_ms: elapsed, understood } = res;
   const [body, ...notes] = text.split('\n\n· ');
+  const [copied, setCopied] = useState(false);
+  const share = () => {
+    navigator.clipboard?.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
   return (
-    <div className="surface-2 p-5 sm:p-6">
+    <div className="surface-2 relative p-5 sm:p-6">
+      {/* 이 화면을 그대로 여는 링크. 질문이 주소에 실려 있어 받은 사람도
+          같은 답을 봅니다. */}
+      <button
+        onClick={share}
+        className="absolute right-4 top-4 rounded-lg bg-white/[.06] px-2.5 py-1.5
+                   text-[11px] text-white/55 ring-1 ring-white/[.09] transition
+                   hover:bg-white/[.1] hover:text-white"
+      >
+        {copied ? '복사됨 ✓' : '링크 복사'}
+      </button>
       {/* 서버가 어떻게 알아들었는지. 조용히 틀린 답을 주는 것이 가장 나쁩니다 —
           "성수2가3동 · 요리 주점"이라고 보여 주면 잘못 알아들었을 때 바로
           바로잡을 수 있습니다. */}
