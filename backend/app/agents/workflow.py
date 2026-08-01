@@ -45,19 +45,28 @@ def _merge(a: list, b: list) -> list:
     return (a or []) + (b or [])
 
 
-def _join(a: str, b: str) -> str:
-    """여러 갈래가 동시에 쓴 답을 이어 붙입니다.
+def _pick(a: dict, b: dict) -> dict:
+    """갈래별 문단을 각자 자기 칸에 담습니다.
 
-    갈래들은 병렬로 돌기 때문에 서로의 결과를 볼 수 없습니다. 각자 자기
-    문단만 내놓고, 합치는 일은 여기서 합니다. 가드레일은 마지막에 혼자
-    돌면서 합쳐진 전문을 다시 씁니다.
+    **처음에는 문자열 하나에 이어 붙였습니다.** 그런데 갈래들이 병렬로 돌아
+    먼저 끝난 쪽이 앞에 붙습니다. 그래서 "대출 설명을 제대로 안 해줬어요"에
+    분쟁 절차가 아니라 지원사업 목록이 먼저 나왔습니다. 대표 갈래는
+    protection으로 제대로 잡혔는데 읽는 순서만 뒤집힌 것입니다.
+
+    끝난 순서가 아니라 **갈래의 중요도 순서**로 읽혀야 합니다. 그래서
+    갈래마다 칸을 따로 두고, 합치는 일은 다 끝난 뒤 한 곳에서 합니다.
     """
-    a, b = (a or "").strip(), (b or "").strip()
-    if not a:
-        return b
-    if not b or b in a:
-        return a
-    return f"{a}\n\n{b}"
+    return {**(a or {}), **(b or {})}
+
+
+# 읽히는 순서. 라우터가 고른 순서와 같습니다 — 분쟁이 걸린 질문에는
+# 분쟁 절차가 먼저 와야 합니다.
+_ORDER = ("protection", "location", "policy", "general")
+
+
+def _assemble(parts: dict) -> str:
+    out = [parts[k].strip() for k in _ORDER if (parts.get(k) or "").strip()]
+    return "\n\n".join(out)
 
 
 # 밝은 쪽이 이깁니다. 좋은 소식이 하나라도 있으면 꿀비가 날아야 합니다.
@@ -79,7 +88,7 @@ class GraphState(TypedDict, total=False):
     industry: str | None
     routed_by: str
     composed_by: str
-    answer: Annotated[str, _join]
+    parts: Annotated[dict, _pick]
     location: object
     pins: list
     policies: list
@@ -120,8 +129,8 @@ async def run_location(state: GraphState) -> GraphState:
     if score is None:
         # 자료에 없는 동네에 점수를 지어내지 않습니다. 예전에는 이름만 있으면
         # 난수로 채워 무엇이든 답했습니다.
-        return {"answer": ("어느 동네인지 못 알아들었습니다. '서울 마포구 연남동'처럼 "
-                           "시·군·구까지 적어 주시면 그 동네 점포 자료로 살펴보겠습니다."),
+        return {"parts": {"location": ("어느 동네인지 못 알아들었습니다. '서울 마포구 연남동'처럼 "
+                           "시·군·구까지 적어 주시면 그 동네 점포 자료로 살펴보겠습니다.")},
                 "motion": CharacterMotion.EXPLAINING.value,
                 "trace": [AgentKind.LOCATION.value]}
 
@@ -133,7 +142,7 @@ async def run_location(state: GraphState) -> GraphState:
     if top:
         lead += f"가장 크게 작용한 것은 {top.label}({top.contribution:+.1f}점)입니다. {top.reason}"
 
-    return {"answer": lead, "location": score, "pins": pins,
+    return {"parts": {"location": lead}, "location": score, "pins": pins,
             "motion": (CharacterMotion.FLY_HAPPY.value if score.total_score >= 60
                        else CharacterMotion.EXPLAINING.value),
             "trace": [AgentKind.LOCATION.value]}
@@ -159,7 +168,7 @@ def run_policy(state: GraphState) -> GraphState:
         # 사장님이 그것을 읽어 보는 데 시간을 씁니다.
         text = ("기업마당 공고 900건을 뒤졌는데 조건에 바로 맞는 것이 없었습니다. "
                 "지역이나 업종, 필요하신 금액을 알려 주시면 다시 찾아보겠습니다.")
-        return {"answer": text, "policies": [],
+        return {"parts": {"policy": text}, "policies": [],
                 "motion": CharacterMotion.EXPLAINING.value,
                 "trace": [AgentKind.POLICY.value]}
 
@@ -179,7 +188,7 @@ def run_policy(state: GraphState) -> GraphState:
             f"가장 가까운 것은 {best.provider}의 「{best.name}」입니다{detail}. "
             f"{best.match_reasons[0] if best.match_reasons else ''}")
 
-    return {"answer": text, "policies": matches,
+    return {"parts": {"policy": text}, "policies": matches,
             "motion": CharacterMotion.FLY_HAPPY.value,
             "trace": [AgentKind.POLICY.value]}
 
@@ -189,7 +198,7 @@ def run_protection(state: GraphState) -> GraphState:
     pack = guardrail_agent.build_protection(q, q)
     text = (f"{pack.dispute_summary} 아래에 4단계 절차와 준비 서류를 정리했습니다. "
             f"근거 규정은 {', '.join(pack.applicable_rules[:2])}입니다.")
-    return {"answer": text, "protection": pack,
+    return {"parts": {"protection": text}, "protection": pack,
             "motion": CharacterMotion.EXPLAINING.value,
             "trace": [AgentKind.PROTECTION.value]}
 
@@ -200,7 +209,7 @@ def run_general(state: GraphState) -> GraphState:
             "· 자금을 어떻게 — 정책자금·KB 상품 매칭\n"
             "· 억울한 일이 생겼을 때 — 분쟁 절차와 서류\n"
             "예를 들어 “연남동에서 카페 열려는데 상권 어때?”처럼 물어봐 주세요.")
-    return {"answer": text, "motion": CharacterMotion.FLY_HAPPY.value,
+    return {"parts": {"general": text}, "motion": CharacterMotion.FLY_HAPPY.value,
             "trace": []}
 
 
@@ -218,7 +227,7 @@ async def run_guardrail(state: GraphState) -> GraphState:
     따라붙습니다. 그래서 검사 결과를 따로 담고, 최종 조립은 run()에서
     이 값으로 갈아 끼웁니다.
     """
-    raw = state.get("answer", "")
+    raw = _assemble(state.get("parts") or {})
     text = await composer.compose(state["request"].message, dict(state), raw)
     composed = "llm" if text != raw else "template"
 
@@ -339,7 +348,7 @@ async def run(req: ChatRequest) -> ChatResponse:
     return ChatResponse(
         session_id=req.session_id or uuid.uuid4().hex[:12],
         intent=Intent(intents[0]),
-        answer=state.get("safe_answer") or state.get("answer", ""),
+        answer=state.get("safe_answer") or _assemble(state.get("parts") or {}),
         character_motion=CharacterMotion(state.get("motion",
                                                    CharacterMotion.EXPLAINING.value)),
         cards=_cards(state),
