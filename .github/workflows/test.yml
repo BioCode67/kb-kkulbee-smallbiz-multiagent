@@ -1,0 +1,25 @@
+# 밀 때마다 시험이 돕니다. 시험은 외부(LLM·네트워크)에 기대지 않으므로
+# 키 없이, 한도 걱정 없이 돕니다.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 의존성
+        run: |
+          cd backend
+          pip install -r requirements.txt pytest
+      - name: 시험 31개
+        run: |
+          cd backend
+          python -m pytest tests/ -q
