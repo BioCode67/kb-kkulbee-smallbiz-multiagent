@@ -272,6 +272,29 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
             )}
           </div>
 
+          {/* 공고가 밝힌 지원대상·지원내용. 예전에는 이 칸이 늘 비어 있었습니다
+              — 900건 전부에 ☞로 적혀 있는데 뽑아 쓰지 않았습니다. */}
+          {(m.eligibility.length > 0 || m.required_docs.length > 0) && (
+            <dl className="mt-2.5 space-y-1.5 rounded-lg bg-black/25 px-3 py-2.5">
+              {m.eligibility.length > 0 && (
+                <div className="flex gap-2">
+                  <dt className="shrink-0 text-[10.5px] font-bold text-white/40">대상</dt>
+                  <dd className="text-[11.5px] leading-snug text-white/[.72]">
+                    {m.eligibility[0]}
+                  </dd>
+                </div>
+              )}
+              {m.required_docs.slice(0, 2).map((d, i) => (
+                <div key={i} className="flex gap-2">
+                  <dt className="shrink-0 text-[10.5px] font-bold text-white/40">
+                    {i === 0 ? '내용' : '\u00a0\u00a0\u00a0\u00a0'}
+                  </dt>
+                  <dd className="text-[11.5px] leading-snug text-white/[.72]">{d}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
           {/* 추천 이유 — 왜 이걸 골랐는지 밝히지 않으면 근거가 없습니다 */}
           {m.match_reasons.length > 0 && (
             <ul className="mt-2.5 space-y-1">

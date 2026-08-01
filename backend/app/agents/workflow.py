@@ -30,6 +30,7 @@ from app.agents import (
     policy_agent,
     router_agent,
 )
+from app.services import session_store
 from app.models.schemas import (
     AgentKind,
     BentoCard,
@@ -87,6 +88,7 @@ class GraphState(TypedDict, total=False):
     region: str | None
     industry: str | None
     routed_by: str
+    carry: str
     composed_by: str
     parts: Annotated[dict, _pick]
     location: object
@@ -111,9 +113,22 @@ async def route(state: GraphState) -> GraphState:
     값이 있으면 그쪽이 우선입니다.
     """
     req = state["request"]
+    # 직전 대화에서 지역·업종을 이어받습니다. "연남동 카페 상권 어때?" 다음에
+    # "그럼 자금은?"이라고 하면 어느 동네인지가 그대로 살아 있어야 합니다.
+    prev = session_store.context(req.session_id)
     r = await router_agent.route(req.message, req.region, req.industry)
+    # 짧은 후속 질문은 그 자체로는 검색이 안 됩니다. "그럼 자금은?"에는
+    # 업종도 지역도 없어 '자금'만 남고, 그러면 블록체인 API 개발자금 같은
+    # 것이 1위로 올라옵니다. 사람은 앞말을 이어 듣습니다. 검색어에도
+    # 직전 질문을 얹습니다.
+    carry = ""
+    if len(req.message.strip()) <= 16 and prev.get("turns"):
+        carry = prev["turns"][-1]["question"]
+
     return {"intents": r["intents"],
-            "region": r.get("region"), "industry": r.get("industry"),
+            "region": r.get("region") or prev.get("region"),
+            "industry": r.get("industry") or prev.get("industry"),
+            "carry": carry,
             "routed_by": r.get("by", "rules"),
             "motion": CharacterMotion.THINKING.value,
             "trace": [AgentKind.ROUTER.value]}
@@ -161,7 +176,8 @@ def run_policy(state: GraphState) -> GraphState:
     req = state["request"]
     region = req.region or state.get("region")
     industry = req.industry or state.get("industry")
-    matches = policy_agent.match(req.message, region, industry)
+    q = f"{state.get('carry', '')} {req.message}".strip()
+    matches = policy_agent.match(q, region, industry)
 
     if not matches:
         # 못 찾았으면 못 찾았다고 합니다. 관련 없는 공고를 채워 넣으면
@@ -350,10 +366,18 @@ async def run(req: ChatRequest) -> ChatResponse:
     state = await GRAPH.ainvoke({"request": req, "trace": []})
 
     intents = state.get("intents", [Intent.GENERAL.value])
+    sid = req.session_id or uuid.uuid4().hex[:12]
+    answer = state.get("safe_answer") or _assemble(state.get("parts") or {})
+
+    # 이번 턴을 남깁니다. 다음 질문이 이 맥락을 이어받습니다.
+    session_store.remember(
+        sid, req.message, intents,
+        state.get("region"), state.get("industry"), answer)
+
     return ChatResponse(
-        session_id=req.session_id or uuid.uuid4().hex[:12],
+        session_id=sid,
         intent=Intent(intents[0]),
-        answer=state.get("safe_answer") or _assemble(state.get("parts") or {}),
+        answer=answer,
         character_motion=CharacterMotion(state.get("motion",
                                                    CharacterMotion.EXPLAINING.value)),
         cards=_cards(state),

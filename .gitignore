@@ -42,3 +42,4 @@ frontend/out/
 
 # 상가정보 원본 zip 342MB. build_market_index.py가 다시 받습니다.
 backend/.cache/market/
+backend/app/data/sessions.db*

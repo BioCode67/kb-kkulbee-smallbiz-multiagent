@@ -33,6 +33,8 @@ def _to_match(d: dict) -> PolicyMatch:
         apply_deadline=d.get("apply_end"),
         open_status=d.get("open_status", "unknown"),
         summary=(d.get("summary") or "")[:400],
+        eligibility=d.get("eligibility", []),
+        required_docs=d.get("support", []),
         match_score=d.get("match_score", 0.0),
         match_reasons=d.get("match_reasons", []),
         apply_url=d.get("apply_site") or d.get("source_url", ""),

@@ -73,6 +73,28 @@ def clean(text: str) -> str:
     return "\n".join(lines)
 
 
+# 기업마당 공고는 사업개요 안에 ☞로 시작하는 줄을 둡니다. 관례상 첫 줄이
+# '누가 신청할 수 있는지', 둘째 줄이 '무엇을 얼마나 주는지'입니다.
+# 900건 전부에 있고 총 1,800줄입니다. 이걸 안 쓰고 자격·지원내용 칸을
+# 빈 채로 내보내고 있었습니다.
+#
+# '지원대상' 같은 머리말로 찾으려 해 봤지만 189건뿐이었고, 그나마 대부분이
+# "지원대상 공고문 참조"라 쓸모가 없었습니다. ☞ 쪽이 실제 내용을 담습니다.
+_BULLET = re.compile(r"☞\s*(.+)")
+
+
+def bullets(summary: str) -> list[str]:
+    out = []
+    for line in (summary or "").split("\n"):
+        m = _BULLET.search(line)
+        if not m:
+            continue
+        t = m.group(1).strip(" -·\t")
+        if len(t) >= 6:
+            out.append(t[:220])
+    return out[:4]
+
+
 def hashtags(raw: str) -> list[str]:
     """공고에 달린 해시태그. 작성자가 직접 고른 낱말이라 제목보다 정확할 때가 있습니다."""
     seen, out = set(), []
@@ -249,6 +271,7 @@ def build_docs(raw: list[dict], today: date) -> list[dict]:
         summary = clean(r.get("summary", ""))[:1800]
         how = clean(r.get("how_to_apply", ""))[:500]
         tags = hashtags(r.get("raw_text", ""))
+        bl = bullets(r.get("summary", ""))
         start, end, kind = read_period(r.get("apply_period", ""))
         amount, basis = read_amount(r.get("raw_text", ""))
         regions = read_region(r.get("title", ""))
@@ -290,6 +313,10 @@ def build_docs(raw: list[dict], today: date) -> list[dict]:
             "amount_basis": basis,
             "rate_pct": read_rate(r.get("raw_text", "")),
             "tags": tags,
+            # 첫 줄이 대상, 둘째 줄부터가 지원내용입니다. 규칙이 어긋나는
+            # 공고도 있으므로 '공고가 이렇게 적었다'는 뜻으로만 씁니다.
+            "eligibility": bl[:1],
+            "support": bl[1:3],
             "text": body,
         })
     return docs

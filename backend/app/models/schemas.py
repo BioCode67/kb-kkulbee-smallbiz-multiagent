@@ -159,8 +159,10 @@ class PolicyMatch(BaseModel):
     apply_deadline: str | None = Field(default=None, description="마감일 (YYYY-MM-DD)")
     open_status: Literal["open", "rolling", "upcoming", "closed", "unknown"] = "unknown"
     summary: str = Field(default="", description="사업개요 발췌")
-    eligibility: list[str] = Field(default_factory=list)
-    required_docs: list[str] = Field(default_factory=list)
+    eligibility: list[str] = Field(
+        default_factory=list, description="공고가 밝힌 지원대상 (☞ 첫 줄)")
+    required_docs: list[str] = Field(
+        default_factory=list, description="공고가 밝힌 지원내용 (☞ 둘째 줄부터)")
     match_score: float = Field(default=0.0, ge=0, le=100)
     match_reasons: list[str] = Field(default_factory=list, description="왜 추천했는지 (XAI)")
     apply_url: str = ""
