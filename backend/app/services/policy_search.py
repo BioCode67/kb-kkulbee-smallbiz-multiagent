@@ -195,6 +195,24 @@ def region_of(text: str | None) -> str | None:
 
 _MONEY_WORDS = ("자금", "대출", "융자", "보증", "금리", "빌리", "돈", "한도", "이자", "상환")
 
+# "갚는 돈 말고 주는 돈만" — 자금 성격을 좁혀 달라는 말들.
+#
+# 제안 칩이 이 문장을 만들어 놓고 정작 검색은 성격을 몰라서, "주는
+# 지원금만 보여줘"에 융자·이차보전이 그대로 나왔습니다. 칩이 거짓말이
+# 된 셈입니다. 질문에서 성격 제약을 읽어 결과를 거릅니다.
+_WANT_GRANT = ("주는 돈", "주는 지원", "갚지 않", "안 갚아", "무상", "보조금만",
+               "상환 없", "갚는 돈 말고", "그냥 주는")
+_WANT_LOAN = ("빌리", "융자만", "대출만", "낮은 금리로", "빌려주")
+
+
+def _funding_filter(q: str):
+    """질문이 자금 성격을 좁히면 (허용 집합, 이유 문구)를 돌려줍니다."""
+    if any(w in q for w in _WANT_GRANT):
+        return {"보조금", "바우처"}, "갚지 않는 지원만 골랐습니다"
+    if any(w in q for w in _WANT_LOAN):
+        return {"융자", "이차보전", "보증"}, "빌리는 쪽(융자·보증)만 골랐습니다"
+    return None, None
+
 
 def _amount_wanted(q: str) -> int | None:
     m = re.search(r"(\d[\d,]*(?:\.\d+)?)\s*(억|천만|백만|만)\s*원?", q.replace(" ", ""))
@@ -236,6 +254,7 @@ def search(question: str, region: str | None = None, industry: str | None = None
 
     want = _amount_wanted(question)
     asks_money = any(w in question for w in _MONEY_WORDS)
+    allow_funding, funding_why = _funding_filter(question)
     user_sido = region_of(region) or region_of(question)
 
     scored = []
@@ -247,6 +266,9 @@ def search(question: str, region: str | None = None, industry: str | None = None
             continue
         # 이미 끝난 공고는 뺍니다.
         if d["open_status"] == "closed":
+            continue
+        # "주는 돈만"처럼 성격을 좁혔으면 그 밖은 뺍니다.
+        if allow_funding is not None and d.get("funding_type") not in allow_funding:
             continue
 
         # 관련도(RRF)와 적합도(사전확률)를 **곱합니다.**
@@ -261,6 +283,8 @@ def search(question: str, region: str | None = None, industry: str | None = None
         prior = 1.0
         why: list[str] = []
 
+        if funding_why:
+            why.append(funding_why)
         matched = sorted(hits.get(doc_i, set()), key=len, reverse=True)[:3]
         if matched:
             why.append(f"공고 본문에 '{' · '.join(matched)}'이(가) 그대로 나옵니다")

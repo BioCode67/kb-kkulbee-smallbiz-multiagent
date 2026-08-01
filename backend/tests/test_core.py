@@ -204,3 +204,35 @@ class TestPolicySearch:
         for d in res:
             assert d["match_reasons"]
             assert d["source_url"].startswith("https://www.bizinfo.go.kr")
+
+
+# ── 자금 성격 제약 ────────────────────────────────────────────────────────
+class TestFundingFilter:
+    """제안 칩이 만든 문장("주는 지원금만")이 실제로 그렇게 검색되는가.
+
+    칩을 만들어 놓고 검색이 성격을 모르면 칩이 거짓말이 됩니다 — 실제로
+    "주는 지원금만 보여줘"에 융자·이차보전이 나오고 있었습니다.
+    """
+
+    def _types(self, q):
+        import json
+
+        from app.services import policy_search
+        with open(os.path.join(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))), "app", "data", "policy_index",
+                "docs.json"), encoding="utf-8") as f:
+            by = {x["id"]: x for x in json.load(f)}
+        return {by[r["id"]]["funding_type"]
+                for r in policy_search.search(q, k=6)}
+
+    def test_주는_돈만(self):
+        got = self._types("갚는 돈 말고 그냥 주는 지원금만 보여줘")
+        assert got and got <= {"보조금", "바우처"}, got
+
+    def test_빌리는_쪽만(self):
+        got = self._types("낮은 금리로 빌릴 수 있는 자금")
+        assert got and got <= {"융자", "이차보전", "보증"}, got
+
+    def test_제약_없으면_안_거른다(self):
+        got = self._types("소상공인 지원사업 알려줘")
+        assert len(got) >= 2, got
