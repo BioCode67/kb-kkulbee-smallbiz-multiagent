@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: dark; }
+
+  html, body {
+    @apply bg-kb-ink text-white antialiased;
+    /* 한글은 어절 중간에서 끊기면 읽기 흐름이 깨진다 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  /* 배경 — 단색이면 화면이 비어 보인다. 벌집 결과 빛무리를 겹친다 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    @apply bg-honey;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: .04;
+    background-image:
+      linear-gradient(30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%),
+      linear-gradient(-30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%);
+    background-size: 46px 80px;
+  }
+
+  ::selection { @apply bg-kb-yellow/30; }
+
+  /* 스크롤바도 화면의 일부다 */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/[.12];
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+}
+
+@layer components {
+  .glass {
+    @apply rounded-2xl bg-white/[.045] shadow-glass ring-1 ring-white/10 backdrop-blur-xl;
+  }
+  .chip {
+    @apply rounded-full bg-white/[.07] px-3 py-1.5 text-[12px] text-white/70
+           ring-1 ring-white/[.08] transition hover:bg-kb-yellow/[.15]
+           hover:text-kb-yellow hover:ring-kb-yellow/30;
+  }
+}
+
+/* Leaflet 툴팁을 어두운 화면에 맞춘다 */
+.kb-tip {
+  background: rgba(28,24,20,.94) !important;
+  border: 1px solid rgba(255,188,0,.25) !important;
+  color: #fff !important;
+  font-size: 11.5px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
+}
+.kb-tip::before { border-top-color: rgba(255,188,0,.25) !important; }
+.leaflet-container { background: #14110E !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
