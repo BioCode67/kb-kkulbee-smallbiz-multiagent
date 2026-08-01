@@ -97,6 +97,7 @@ class GraphState(TypedDict, total=False):
     protection: object
     guardrail: object
     safe_answer: str
+    bank_rates: dict | None
     motion: Annotated[str, _brighter]
     trace: Annotated[list, _merge]
 
@@ -229,6 +230,21 @@ def run_general(state: GraphState) -> GraphState:
             "trace": []}
 
 
+async def attach_bank_rates(state: GraphState) -> dict | None:
+    """융자·보증·이차보전이 결과에 있으면 은행 공시 금리를 붙입니다.
+
+    키(FINLIFE_API_KEY)가 없으면 None — 카드가 조용히 빠질 뿐, 아무것도
+    멈추지 않습니다. 키가 나오는 날 환경변수 하나로 켜집니다.
+    """
+    from app.services import finlife
+
+    pols = state.get("policies") or []
+    loanish = {"융자", "보증", "이차보전"}
+    if not any(p.funding_type in loanish for p in pols):
+        return None
+    return await finlife.bank_rates()
+
+
 async def run_guardrail(state: GraphState) -> GraphState:
     """마지막 관문. 여기를 거치지 않고 나가는 문장은 없습니다.
 
@@ -244,6 +260,7 @@ async def run_guardrail(state: GraphState) -> GraphState:
     이 값으로 갈아 끼웁니다.
     """
     raw = _assemble(state.get("parts") or {})
+    state["bank_rates"] = await attach_bank_rates(state)  # 키 없으면 None
     text = await composer.compose(state["request"].message, dict(state), raw)
     composed = "llm" if text != raw else "template"
 
@@ -344,6 +361,11 @@ def _cards(state: GraphState) -> list[BentoCard]:
                      "industry_code": getattr(loc, "industry_code", None),
                      "industry": getattr(loc, "industry", None),
                      "same_industry_count": getattr(loc, "same_industry_count", None)}))
+    if state.get("bank_rates"):
+        cards.append(BentoCard(
+            id="rates", kind=BentoCardKind.RATES, title="은행권 공시 금리",
+            subtitle="융자·보증은 결국 은행 창구에서 실행됩니다", span=3,
+            accent="yellow", payload=state["bank_rates"]))
     if state.get("policies"):
         cards.append(BentoCard(
             id="policy", kind=BentoCardKind.POLICY, title="맞는 지원사업",

@@ -98,6 +98,7 @@ function CardBody({ card }: { card: BentoCard }) {
     case 'notice': return <NoticeCard r={p as unknown as GuardrailReport} />;
     case 'gaps': return <GapsCard gaps={p.gaps as unknown as IndustryGap[]}
                                   crowded={p.crowded as unknown as IndustryGap[]} />;
+    case 'rates': return <RatesCard d={p as unknown as BankRates} />;
     default: return null;
   }
 }
@@ -322,6 +323,60 @@ function GapsCard({ gaps, crowded }: { gaps: IndustryGap[]; crowded: IndustryGap
         점포 수가 비슷한 전국 동네들과 견준 값입니다. 적다고 해서 반드시 기회는
         아닙니다 — 임대료나 상권 성격 때문에 안 들어온 것일 수도 있습니다.
         무엇을 알아볼지 정하는 출발점으로 보시면 됩니다.
+      </p>
+    </div>
+  );
+}
+
+/* ── 은행권 공시 금리 ──────────────────────────────────────────────────
+ *
+ * 융자·보증·이차보전은 결국 은행 창구에서 실행됩니다. 그 옆에 지금 은행권
+ * 공시 금리를 놓으면 사장님이 조건을 가늠할 수 있습니다. 값은 금감원
+ * 「금융상품 한눈에」 공시라 우리가 지어낼 여지가 없고, KB국민은행은
+ * 실행 창구 안내 흐름이라 따로 표시합니다.
+ */
+interface BankRates {
+  banks: { bank: string; rate_avg: number }[];
+  kb: { bank: string; rate_avg: number } | null;
+  low: number | null; high: number | null; n_banks: number; note: string;
+}
+
+function RatesCard({ d }: { d: BankRates }) {
+  const max = Math.max(...d.banks.map((b) => b.rate_avg), 1);
+  return (
+    <div>
+      {d.low != null && (
+        <p className="mb-3 text-[13px] text-white/70">
+          은행권 평균 <b className="text-white">{d.low}% ~ {d.high}%</b>
+          <span className="ml-1.5 text-[11px] text-white/35">({d.n_banks}개 은행)</span>
+        </p>
+      )}
+      <ul className="space-y-1.5">
+        {d.banks.map((b) => {
+          const isKb = b.bank.includes('국민');
+          return (
+            <li key={b.bank} className="flex items-center gap-2.5">
+              <span className={`w-[96px] shrink-0 truncate text-[12px] ${
+                isKb ? 'font-bold text-kb-yellow' : 'text-white/[.72]'}`}>
+                {b.bank}
+              </span>
+              <div className="h-[6px] flex-1 rounded-full bg-white/[.07]">
+                <div className={`h-full rounded-full ${
+                  isKb ? 'bg-kb-yellow' : 'bg-white/[.28]'}`}
+                     style={{ width: `${(b.rate_avg / max) * 100}%` }} />
+              </div>
+              <span className={`w-[52px] shrink-0 text-right text-[12px]
+                                [font-variant-numeric:tabular-nums] ${
+                isKb ? 'font-bold text-kb-yellow' : 'text-white/60'}`}>
+                {b.rate_avg}%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[10.5px]
+                    leading-relaxed text-amber-200/70">
+        {d.note}
       </p>
     </div>
   );

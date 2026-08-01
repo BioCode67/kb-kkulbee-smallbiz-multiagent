@@ -247,6 +247,7 @@ class BentoCardKind(str, Enum):
     PROCEDURE = "procedure"
     NOTICE = "notice"
     GAPS = "gaps"
+    RATES = "rates"
 
 
 class BentoCard(BaseModel):

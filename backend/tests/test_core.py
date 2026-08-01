@@ -236,3 +236,29 @@ class TestFundingFilter:
     def test_제약_없으면_안_거른다(self):
         got = self._types("소상공인 지원사업 알려줘")
         assert len(got) >= 2, got
+
+
+# ── finlife 요약 (키 없이, 고정 표본으로) ─────────────────────────────────
+class TestFinlife:
+    ROWS = [
+        {"bank": "국민은행", "type": "대출금리", "rate_900": 4.2, "rate_avg": 5.1},
+        {"bank": "국민은행", "type": "당좌대출", "rate_900": 5.0, "rate_avg": 6.2},
+        {"bank": "가상은행", "type": "대출금리", "rate_900": 3.9, "rate_avg": 4.8},
+        {"bank": "무명은행", "type": "대출금리", "rate_900": None, "rate_avg": None},
+    ]
+
+    def test_은행별_최저_유형으로_접힌다(self):
+        from app.services.finlife import summarize
+
+        out = summarize(self.ROWS)
+        kb = out["kb"]
+        assert kb and kb["rate_avg"] == 5.1          # 6.2가 아니라 유리한 유형
+        assert out["low"] == 4.8 and out["n_banks"] == 2
+        assert "사업자대출 조건과 다릅니다" in out["note"]
+
+    def test_키가_없으면_카드가_빠진다(self):
+        import asyncio
+
+        from app.services import finlife
+        os.environ.pop("FINLIFE_API_KEY", None)
+        assert asyncio.run(finlife.bank_rates()) is None
