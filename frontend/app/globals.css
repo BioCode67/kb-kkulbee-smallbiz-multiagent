@@ -46,20 +46,26 @@
     z-index: -1;
     @apply bg-honey;
   }
-  /* 벌집 결. 화면 위쪽에만 옅게 깔고 아래로 갈수록 사라집니다.
-     전면에 균일하게 깔면 글자 뒤에서 어른거려 읽기를 방해합니다. */
+  /* 점 그리드 — 위쪽에만 옅게 깔고 아래로 사라집니다. 대각선 벌집 무늬는
+     글자 뒤에서 어른거렸는데, 점은 정적이라 조용합니다. */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
-    opacity: .05;
-    background-image:
-      linear-gradient(30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%),
-      linear-gradient(-30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%);
-    background-size: 46px 80px;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 62%);
-    mask-image: linear-gradient(to bottom, #000 0%, transparent 62%);
+    opacity: .35;
+    background-image: radial-gradient(rgba(255,255,255,.11) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 55%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 55%);
+  }
+
+  /* 히어로 글로우 — 꿀비 뒤에서 노란 빛이 은은하게 퍼집니다.
+     캐릭터가 배경에 붙어 보이지 않게 떼어 놓는 역할입니다. */
+  .hero-glow {
+    background:
+      radial-gradient(560px 420px at 50% 30%, rgba(255,188,0,.13), transparent 65%),
+      radial-gradient(900px 500px at 50% 12%, rgba(255,188,0,.05), transparent 70%);
   }
 
   ::selection { @apply bg-kb-yellow/30; }

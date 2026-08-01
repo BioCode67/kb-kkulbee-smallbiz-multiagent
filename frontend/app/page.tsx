@@ -177,9 +177,20 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center
-                         justify-center py-4"
+              className="hero-glow flex min-h-[calc(100vh-3.5rem)] flex-col
+                         items-center justify-center py-4"
             >
+              {/* 배지 필 — 화면이 무엇인지 한 줄. 헤드라인보다 먼저 읽히는
+                  가장 작은 활자입니다. */}
+              <motion.span
+                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-1 inline-flex items-center gap-1.5 rounded-full
+                           border border-kb-yellow/[.25] bg-kb-yellow/[.07] px-3.5
+                           py-1.5 text-[11.5px] font-medium text-kb-yellow/90"
+              >
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-kb-yellow" />
+                실측 자료로만 답하는 소상공인 AI 비서
+              </motion.span>
               {/* 꿀비가 먼저 눈에 들어와야 합니다. 캔버스 안에서 실제 몸이
                   차지하는 넓이가 6할쯤이라, 보이는 크기를 맞추려면 320은
                   되어야 합니다. 260이면 제목에 눌려 장식처럼 보였습니다. */}
@@ -222,8 +233,8 @@ export default function Page() {
                       className={`group flex flex-col items-center gap-1 rounded-2xl px-2
                                   pb-3 pt-3.5 ring-1 transition-all duration-200 ${
                         on
-                          ? 'bg-kb-yellow/[.14] ring-kb-yellow/[.5] shadow-[0_8px_24px_-8px_rgba(255,188,0,.35)]'
-                          : 'bg-white/[.045] ring-white/[.09] hover:-translate-y-0.5 hover:bg-white/[.08]'}`}
+                          ? 'bg-kb-yellow/[.1] ring-kb-yellow/[.45] shadow-[0_10px_30px_-10px_rgba(255,188,0,.3)]'
+                          : 'bg-white/[.025] ring-white/[.07] hover:-translate-y-0.5 hover:bg-white/[.05] hover:ring-white/[.14]'}`}
                     >
                       <span className={`transition-transform duration-200 ${
                         on ? 'scale-110' : 'group-hover:scale-105'}`}>
