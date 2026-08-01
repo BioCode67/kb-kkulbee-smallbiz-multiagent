@@ -83,6 +83,14 @@ def stores(dong: str, industry: str | None = None, limit: int = 1200) -> dict:
     return market_data.store_points(dong, industry, min(limit, 3000))
 
 
+@app.get("/api/v1/integrations")
+def integrations() -> dict:
+    """외부 연동 상태. 키를 넣은 뒤 여기서 켜졌는지 확인합니다."""
+    from app.services import integrations as integ
+
+    return {"items": integ.status()}
+
+
 @app.get("/api/v1/industries")
 def industries() -> dict:
     """화면의 업종 고르기 목록. 전국 점포가 많은 순입니다."""
