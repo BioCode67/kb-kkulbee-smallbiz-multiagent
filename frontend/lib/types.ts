@@ -166,6 +166,10 @@ export interface ChatResponse {
   policies: PolicyMatch[];
   protection: ProtectionPack | null;
   guardrail: GuardrailReport | null;
+  /** 서버가 질문을 어떻게 알아들었는지 — 지역·업종·갈래 */
+  understood: { region?: string | null; industry?: string | null; intents?: Intent[] };
+  /** 다음에 물을 만한 것. 누르면 그대로 질문됩니다 */
+  suggestions: string[];
   agent_trace: AgentKind[];
   elapsed_ms: number;
   generated_at: string;

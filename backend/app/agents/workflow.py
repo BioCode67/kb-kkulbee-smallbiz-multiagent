@@ -370,6 +370,45 @@ def _cards(state: GraphState) -> list[BentoCard]:
     return cards
 
 
+def _suggest(state: GraphState) -> list[str]:
+    """다음에 물을 만한 것 — 이번 답에서 자연스럽게 이어지는 질문.
+
+    상담은 한 번의 답으로 끝나지 않습니다. 상권을 봤으면 자금이 궁금해지고,
+    융자를 찾았으면 서류가 궁금해집니다. 그 다음 걸음을 칩으로 놓아 두면
+    사용자가 문장을 지어낼 필요가 없습니다. 세션이 맥락을 기억하므로
+    "그럼 자금은?"만 눌러도 동네·업종이 이어집니다.
+    """
+    got = set(state.get("intents") or [])
+    loc = state.get("location")
+    pols = state.get("policies") or []
+    out: list[str] = []
+
+    if "location" in got and loc is not None:
+        if "policy" not in got:
+            out.append("그럼 여기서 받을 수 있는 지원자금은?")
+        if getattr(loc, "gaps", None):
+            g = loc.gaps[0]
+            out.append(f"{g.name}이(가) 왜 부족한지 더 알려줘")
+        out.append("바로 옆 동네랑 비교하면 어때?")
+
+    if "policy" in got and pols:
+        kinds = {p.funding_type for p in pols}
+        if "융자" in kinds or "보증" in kinds:
+            out.append("갚는 돈 말고 그냥 주는 지원금만 보여줘")
+        out.append("신청하려면 뭐부터 하면 돼?")
+        if "location" not in got:
+            out.append("우리 동네 상권도 봐줘")
+
+    if "protection" in got:
+        out.append("금융감독원에는 어떻게 신청해?")
+        out.append("준비할 서류를 정리해줘")
+
+    if not out:
+        out = ["연남동에서 카페 열려는데 상권 어때?",
+               "장사가 안돼서 운영자금이 급해요"]
+    return out[:3]
+
+
 async def run(req: ChatRequest) -> ChatResponse:
     t0 = time.perf_counter()
     state = await GRAPH.ainvoke({"request": req, "trace": []})
@@ -383,8 +422,16 @@ async def run(req: ChatRequest) -> ChatResponse:
         sid, req.message, intents,
         state.get("region"), state.get("industry"), answer)
 
+    ind = state.get("industry")
     return ChatResponse(
         session_id=sid,
+        understood={
+            "region": (state["location"].region_name
+                       if state.get("location") else state.get("region")),
+            "industry": ind,
+            "intents": intents,
+        },
+        suggestions=_suggest(state),
         intent=Intent(intents[0]),
         answer=answer,
         character_motion=CharacterMotion(state.get("motion",

@@ -352,8 +352,28 @@ export default function Page() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="mt-6 space-y-5"
                   >
-                    <Answer text={res.answer} elapsed={res.elapsed_ms} />
+                    <Answer res={res} />
                     <BentoGrid cards={res.cards} />
+
+                    {/* 다음 걸음 — 상담은 한 번의 답으로 끝나지 않습니다.
+                        세션이 맥락을 기억하므로 누르기만 하면 이어집니다. */}
+                    {res.suggestions.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="text-[11.5px] text-white/35">이어서 물어보기</span>
+                        {res.suggestions.map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => ask(q)}
+                            className="rounded-full bg-kb-yellow/[.09] px-3.5 py-1.5
+                                       text-[12.5px] text-kb-yellow/90 ring-1
+                                       ring-kb-yellow/[.28] transition
+                                       hover:bg-kb-yellow/[.18] hover:text-kb-yellow"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </div>
@@ -480,10 +500,36 @@ function Thinking() {
 }
 
 /* ── 답 ────────────────────────────────────────────────────────────────── */
-function Answer({ text, elapsed }: { text: string; elapsed: number }) {
+const INTENT_KO: Record<string, string> = { location: '상권', policy: '자금', protection: '권리', general: '안내' };
+
+function Answer({ res }: { res: ChatResponse }) {
+  const { answer: text, elapsed_ms: elapsed, understood } = res;
   const [body, ...notes] = text.split('\n\n· ');
   return (
     <div className="surface-2 p-5 sm:p-6">
+      {/* 서버가 어떻게 알아들었는지. 조용히 틀린 답을 주는 것이 가장 나쁩니다 —
+          "성수2가3동 · 요리 주점"이라고 보여 주면 잘못 알아들었을 때 바로
+          바로잡을 수 있습니다. */}
+      {(understood?.region || understood?.industry) && (
+        <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
+                        border-white/[.06] pb-3">
+          <span className="text-[10.5px] text-white/30">이렇게 알아들었어요</span>
+          {understood.region && (
+            <span className="rounded-md bg-white/[.07] px-2 py-0.5 text-[11.5px]
+                             font-medium text-white/75">📍 {understood.region}</span>
+          )}
+          {understood.industry && (
+            <span className="rounded-md bg-white/[.07] px-2 py-0.5 text-[11.5px]
+                             font-medium text-white/75">{understood.industry}</span>
+          )}
+          {(understood.intents ?? []).map((i) => (
+            <span key={i} className="rounded-md bg-kb-yellow/[.12] px-2 py-0.5
+                                     text-[11px] font-semibold text-kb-yellow/90">
+              {INTENT_KO[i] ?? i}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="space-y-2.5">
         {body.split('\n').filter(Boolean).map((line, i) => (
           <p key={i} className="text-[14.5px] leading-[1.8] text-white/[.9]">{line}</p>

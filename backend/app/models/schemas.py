@@ -296,6 +296,13 @@ class ChatResponse(BaseModel):
     protection: ProtectionPack | None = None
     guardrail: GuardrailReport | None = None
 
+    # 서버가 질문을 어떻게 알아들었는지. 화면이 이것을 보여 주면 사용자가
+    # 잘못 알아들었을 때 바로 알 수 있습니다 — 조용히 틀린 답을 주는 것이
+    # 가장 나쁩니다.
+    understood: dict = Field(default_factory=dict, description="지역·업종·갈래")
+    # 다음에 물을 만한 것. 상담은 한 번의 답으로 끝나지 않습니다.
+    suggestions: list[str] = Field(default_factory=list)
+
     agent_trace: list[AgentKind] = Field(default_factory=list, description="거쳐 간 에이전트")
     elapsed_ms: int = 0
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
