@@ -205,6 +205,32 @@ _WANT_GRANT = ("주는 돈", "주는 지원", "갚지 않", "안 갚아", "무�
 _WANT_LOAN = ("빌리", "융자만", "대출만", "낮은 금리로", "빌려주")
 
 
+# 창업 준비 중인지, 이미 운영 중인지 — Pick 3 명세가 "창업 및 운영
+# 단계에 필요한 금융 상품"을 부릅니다. 단계가 다르면 필요한 공고가
+# 다릅니다. 창업 전이면 교육·창업자금이, 운영 중이면 경영안정·시설개선이
+# 맞습니다. 확실할 때만 살짝 밀고, 애매하면 안 건드립니다.
+_STAGE_OPEN = ("열려", "열 건데", "창업", "개업", "오픈", "시작하려", "차리려",
+               "준비 중", "해보려")
+_STAGE_RUN = ("운영", "장사가", "장사하", "하고 있", "월세", "매출", "손님",
+              "단골", "가게를 하", "년째", "운영 중")
+
+
+def _stage_of(q: str) -> str | None:
+    o = any(w in q for w in _STAGE_OPEN)
+    r = any(w in q for w in _STAGE_RUN)
+    if o and not r:
+        return "open"
+    if r and not o:
+        return "run"
+    return None
+
+
+_STAGE_BOOST = {
+    "open": {"창업": 1.25, "금융": 1.1},
+    "run": {"경영": 1.2, "금융": 1.15, "내수": 1.1},
+}
+
+
 def _funding_filter(q: str):
     """질문이 자금 성격을 좁히면 (허용 집합, 이유 문구)를 돌려줍니다."""
     if any(w in q for w in _WANT_GRANT):
@@ -255,6 +281,7 @@ def search(question: str, region: str | None = None, industry: str | None = None
     want = _amount_wanted(question)
     asks_money = any(w in question for w in _MONEY_WORDS)
     allow_funding, funding_why = _funding_filter(question)
+    stage = _stage_of(question)
     user_sido = region_of(region) or region_of(question)
 
     scored = []
@@ -310,6 +337,13 @@ def search(question: str, region: str | None = None, industry: str | None = None
         if asks_money and d["is_finance"]:
             prior *= 1.15
             why.append("자금·융자·보증에 해당하는 사업입니다")
+
+        if stage:
+            boost = _STAGE_BOOST[stage].get(d.get("category", ""), 1.0)
+            prior *= boost
+            if boost > 1.15:
+                why.append("창업 준비 단계에 맞는 분야입니다" if stage == "open"
+                           else "운영 중인 가게에 맞는 분야입니다")
 
         if d["open_status"] == "open" and d["apply_end"]:
             left = (datetime.strptime(d["apply_end"], "%Y-%m-%d").date() - today).days

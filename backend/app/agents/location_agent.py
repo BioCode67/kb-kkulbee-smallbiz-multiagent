@@ -58,6 +58,11 @@ FACTORS = {
         "up": "좁은 범위에 점포가 붙어 있어 걸어서 여러 곳을 들릅니다.",
         "down": "점포가 흩어져 있어 걸어서 옮겨 다니기 어렵습니다.",
     },
+    "infra": {
+        "label": "생활 인프라", "unit": "종", "weight": 6.0,
+        "up": "약국·편의점·의원 같은 생활 시설이 갖춰져 있어 평일에도 사람이 오가는 동네입니다.",
+        "down": "생활 시설이 옅어 특정 시간대에만 사람이 몰리는 동네일 수 있습니다.",
+    },
 }
 
 # 이 자료로는 못 재는 것들. 감추지 않고 그대로 내보냅니다.
@@ -149,7 +154,17 @@ def analyze(region: str, industry: str | None = None) -> LocationScore | None:
     p = market_data.percentile(nat["diversity_dist"], d["diversity"])
     factors.append(_pct_factor("diversity", d["diversity"], p))
 
-    # 5. 점포 밀집도
+    # 5. 생활 인프라 — 약국·편의점·의원 밀도. Pick 2 명세가 부르는
+    #    '생활 인프라'를 이미 가진 점포 자료로 셉니다.
+    infra = market_data.infra_of(d["code"])
+    if infra:
+        factors.append(_pct_factor(
+            "infra", infra["coverage"], infra["pct"],
+            f"약국·편의점·의원 등 아홉 종 중 {infra['coverage']}종이 있습니다"
+            + (f" (없는 것: {'·'.join(infra['missing'][:3])})."
+               if infra["missing"] else " — 다 갖춰져 있습니다.")))
+
+    # 6. 점포 밀집도
     if d.get("density"):
         p = market_data.percentile(nat["density_dist"], d["density"])
         factors.append(_pct_factor(

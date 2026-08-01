@@ -287,6 +287,57 @@ def store_points(dong_code: str, industry_code: str | None = None,
             "capped": total > len(out)}
 
 
+# ── 생활 인프라 ───────────────────────────────────────────────────────────
+#
+# 대회 Pick 2 명세가 "유동인구, 상권, 교통, 생활 인프라, 부동산 시세"를
+# 나란히 부릅니다. 유동인구·시세는 자료가 없어 안 넣었다고 밝혔지만,
+# **생활 인프라는 이미 가진 자료로 셀 수 있는데 안 세고 있었습니다.**
+# 약국·편의점·병원·세탁소가 곧 인프라입니다.
+#
+# 장사 자리에서 인프라가 중요한 이유는 두 가지입니다 — 동네에 생활
+# 시설이 갖춰져 있으면 사람이 '살러' 오는 동네라 평일 낮에도 발길이
+# 있고, 사장님 본인도 은행·약국·인쇄소를 끼고 일하게 됩니다.
+_INFRA_CODES = {
+    "G21301": "약국", "G20405": "편의점", "G20404": "슈퍼마켓",
+    "S20801": "세탁소", "G20508": "정육점", "S20701": "미용실",
+    "Q10210": "일반의원", "G21801": "문구점", "G20509": "반찬가게",
+}
+
+
+def infra_of(code: str) -> dict | None:
+    """한 동네의 생활 인프라 — 아홉 종 중 몇 종이 갖춰졌는가.
+
+    처음에는 '1천 점포당 인프라 비중'으로 쟀습니다. 그랬더니 연남동이
+    -6.5점을 받았습니다 — 카페가 워낙 많아 비중이 옅어질 뿐, 약국·편의점·
+    의원이 다 있는 동네인데도요. 상업 중심지일수록 벌점을 받는 자였습니다.
+
+    '인프라가 갖춰졌다'는 말의 뜻은 비중이 아니라 **없는 것이 없다**입니다.
+    아홉 종 중 몇 종이 있는지(coverage)로 잽니다. 다 있으면 어디를 열든
+    생활이 되고, 병원도 세탁소도 없는 동네는 밤이나 주말에 비는 곳일
+    가능성이 큽니다.
+    """
+    ix = _load()
+    me = ix["dong"].get(code)
+    if not me:
+        return None
+
+    dist = ix.get("_infra_dist")
+    if dist is None:
+        # 전국 분포(갖춘 종 수)를 한 번만 계산합니다. 3,450곳 × 9종이라 수 ms.
+        dist = ix["_infra_dist"] = sorted(
+            sum(1 for c in _INFRA_CODES if v["small"].get(c, 0))
+            for v in ix["dong"].values())
+
+    have = [name for c, name in _INFRA_CODES.items() if me["small"].get(c, 0) > 0]
+    missing = [name for c, name in _INFRA_CODES.items() if not me["small"].get(c, 0)]
+    count = sum(me["small"].get(c, 0) for c in _INFRA_CODES)
+    return {
+        "count": count, "coverage": len(have), "total_kinds": len(_INFRA_CODES),
+        "pct": percentile(dist, len(have) + 0.5),   # 동률이 많아 반 칸 위로
+        "have": have, "missing": missing,
+    }
+
+
 # ── 기회 업종 ─────────────────────────────────────────────────────────────
 # 소상공인이 여는 업종의 대분류 — 음식 · 소매 · 수리/개인서비스.
 # 나머지(과학기술·부동산·보건의료·시설관리)는 자격이나 자본이 다른 영역입니다.
