@@ -67,6 +67,7 @@ def status() -> dict:
         "available_now": available(),
         "calls": _state["calls"],
         "fails": _state["fails"],
+        "last_error": _state["last_error"] or None,
     }
 
 

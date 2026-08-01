@@ -30,9 +30,14 @@ REPO = "intfloat/multilingual-e5-small"
 BASE = f"https://huggingface.co/{REPO}/resolve/main"
 
 # 받을 것만 받습니다. fp32 본체(470MB)와 O4(235MB)는 건드리지 않습니다.
+#
+# tokenizer.json(17MB)이 아니라 sentencepiece 원본(5MB)을 받습니다.
+# 배포를 앞두고 재 보니 tokenizer.json을 올리는 데 메모리 280MB가 들었고,
+# 같은 일을 sentencepiece로 하면 70MB였습니다. 두 방식의 토큰 번호가
+# 완전히 같은 것을 대조해 확인한 뒤 바꿨습니다.
 FILES = {
     "model.onnx": ("onnx/model_qint8_avx512_vnni.onnx", 118_346_824),
-    "tokenizer.json": ("onnx/tokenizer.json", 17_082_730),
+    "sentencepiece.bpe.model": ("onnx/sentencepiece.bpe.model", 5_069_051),
     "config.json": ("onnx/config.json", 653),
 }
 

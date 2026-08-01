@@ -1,0 +1,29 @@
+# Render 무료 등급은 15분 놀면 잠듭니다. 깨어나는 데 40~60초가 걸립니다.
+#
+# 심사위원이 링크를 눌렀을 때 흰 화면을 1분 보게 되면, 그 1분이 이 서비스에
+# 대한 첫인상이 됩니다. 10분마다 한 번 두드려 깨워 둡니다.
+#
+# 헬스체크만 부릅니다. 이 자리는 파일이 있는지만 보고 색인이나 인코더를
+# 올리지 않으므로, 깨우는 값이 싸고 메모리도 건드리지 않습니다.
+name: keep-awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 헬스체크 두드리기
+        run: |
+          URL="${{ vars.SERVICE_URL || 'https://kb-kkulbee.onrender.com' }}/api/v1/health"
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 90 "$URL" || echo 000)
+            echo "시도 $i — HTTP $code"
+            if [ "$code" = "200" ]; then cat /tmp/body; exit 0; fi
+            sleep 20
+          done
+          echo "깨우지 못했습니다. 서비스가 내려가 있을 수 있습니다."
+          exit 1

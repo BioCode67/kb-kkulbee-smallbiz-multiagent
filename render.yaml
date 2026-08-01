@@ -1,0 +1,30 @@
+# Render 블루프린트 — main에 push하면 자동으로 다시 배포됩니다.
+#
+# 서비스를 하나만 둡니다. 화면과 API가 같은 주소에서 나와야 심사에서
+# 헷갈리지 않고, 프로세스가 하나여야 무료 등급 512MB 안에 들어갑니다.
+services:
+  - type: web
+    name: kb-kkulbee
+    runtime: docker
+    plan: free
+    region: singapore          # 한국에서 가장 가까운 무료 지역
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+
+    envVars:
+      # Gemini 키. 저장소에 넣지 않습니다 — Render 대시보드에서 직접 넣습니다.
+      # 없어도 서비스는 돕니다. 라우터는 낱말 규칙으로, 답은 문장 틀로
+      # 물러섭니다. 화면이 비지는 않습니다.
+      - key: GEMINI_API_KEY
+        sync: false
+      # 무료 등급에서 gemini-2.5-flash는 분당 5회입니다. 대화 한 번에 두 번
+      # 부르므로 분당 2.5명이면 막힙니다. flash-lite는 8회 연속을 받았습니다.
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite
+      # 화면을 같은 프로세스가 내보내므로 교차 출처 요청이 없습니다.
+      # 그래도 열어 두면 남의 페이지에서 이 API를 부를 수 있어 좁혀 둡니다.
+      - key: CORS_ORIGINS
+        value: https://kb-kkulbee.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"

@@ -71,21 +71,55 @@ SCHEMA = {
 
 
 def _by_words(q: str) -> dict:
-    """낱말 규칙. LLM이 없을 때 여기로 돌아옵니다."""
+    """낱말 규칙. LLM이 없을 때, 또는 규칙이 확실할 때 씁니다.
+
+    **순서가 뜻을 갖습니다.** 화면의 대표 갈래는 첫 번째 것으로 정해지고,
+    답도 그 순서로 이어 붙습니다.
+
+    소비자보호를 맨 앞에 둔 것은 그쪽 낱말이 더 구체적이기 때문입니다.
+    "대출 설명을 제대로 안 해줬어요"에는 '대출'과 '설명'이 함께 있는데,
+    이 분께 필요한 것은 지원사업 목록이 아니라 분쟁 절차입니다. 자금
+    낱말은 어디에나 섞여 들어오므로 맨 뒤에 둡니다.
+    """
     picked = []
+    if any(w in q for w in PROTECT_WORDS):
+        picked.append(Intent.PROTECTION.value)
     if any(w in q for w in LOCATION_WORDS):
         picked.append(Intent.LOCATION.value)
     if any(w in q for w in POLICY_WORDS):
         picked.append(Intent.POLICY.value)
-    if any(w in q for w in PROTECT_WORDS):
-        picked.append(Intent.PROTECTION.value)
     return {"intents": picked or [Intent.GENERAL.value], "by": "rules"}
 
 
 async def route(question: str, region: str | None = None,
                 industry: str | None = None) -> dict:
-    """갈래와 조건을 읽습니다. 실패해도 예외 없이 규칙 결과를 돌려줍니다."""
+    """갈래와 조건을 읽습니다. 실패해도 예외 없이 규칙 결과를 돌려줍니다.
+
+    **규칙이 확실하면 LLM을 부르지 않습니다.** 무료 등급은 분당 20회이고
+    대화 한 번에 두 번(갈래 + 문장) 부르면 분당 열 분이 한도입니다. 그런데
+    "연남동 카페 상권 어때?"처럼 낱말이 분명한 질문에까지 LLM을 쓸 이유가
+    없습니다. 지역·업종도 색인에서 직접 찾을 수 있습니다.
+
+    LLM은 규칙이 general로 떨어졌을 때 — 즉 무슨 말인지 모를 때 — 만
+    부릅니다. 그 결과 대화 대부분이 LLM을 한 번만 쓰고, 같은 한도에서
+    두 배를 받습니다.
+    """
+    from app.services import market_data
+
     fallback = _by_words(question)
+
+    if fallback["intents"] != [Intent.GENERAL.value]:
+        found_ind = market_data.find_industry(question)
+        dong = market_data.find_dong(region or question)
+        return {
+            "intents": fallback["intents"],
+            "region": region or (f"{dong['sido']} {dong['sgg']} {dong['dong']}"
+                                 if dong else None),
+            "industry": industry or (found_ind[1] if found_ind else None),
+            "amount_krw": None,
+            "situation": "",
+            "by": "rules",
+        }
 
     out = await llm.generate(
         f"사장님 질문: {question}", SYSTEM, schema=SCHEMA,

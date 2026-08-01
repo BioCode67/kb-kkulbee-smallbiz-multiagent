@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/out
+**/.venv
+**/__pycache__
+**/*.pyc
+backend/.cache
+backend/models
+backend/web
+.git
+.github
+*.md

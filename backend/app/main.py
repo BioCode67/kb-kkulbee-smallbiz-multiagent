@@ -96,3 +96,39 @@ def guardrail_check(payload: dict) -> dict:
     text = str(payload.get("text", ""))
     safe, report = guardrail_agent.apply(text)
     return {"original": text, "safe": safe, "report": report.model_dump(mode="json")}
+
+
+# ── 화면 서빙 ─────────────────────────────────────────────────────────────
+#
+# 배포본에서는 프런트엔드도 이 프로세스가 내보냅니다. 주소가 하나여야
+# 심사에서 헷갈리지 않고, Node 프로세스를 따로 안 띄우므로 Render 무료
+# 등급 512MB 안에 여유가 생깁니다.
+#
+# 개발 중에는 이 디렉터리가 없으므로 아래가 통째로 건너뜁니다. Next 개발
+# 서버가 3000에서 따로 돕니다.
+_WEB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
+
+if os.path.isdir(_WEB):
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/_next", StaticFiles(directory=os.path.join(_WEB, "_next")),
+              name="next-assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa(full_path: str):
+        """정적 파일이 있으면 그것을, 없으면 index.html을 돌려줍니다.
+
+        /api로 시작하는 길은 위에서 이미 잡혔으므로 여기 오지 않습니다.
+        경로 안에 '..'가 들어오면 거부합니다 — 이 자리를 통해 서버 파일을
+        읽어 갈 수 있으면 안 됩니다.
+        """
+        if ".." in full_path:
+            return FileResponse(os.path.join(_WEB, "index.html"))
+        target = os.path.normpath(os.path.join(_WEB, full_path))
+        if target.startswith(_WEB) and os.path.isfile(target):
+            return FileResponse(target)
+        html = os.path.join(_WEB, full_path.rstrip("/") + ".html")
+        if os.path.isfile(html):
+            return FileResponse(html)
+        return FileResponse(os.path.join(_WEB, "index.html"))
