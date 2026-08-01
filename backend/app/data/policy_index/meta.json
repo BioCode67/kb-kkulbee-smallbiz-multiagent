@@ -1,0 +1,27 @@
+{
+ "built_at": "2026-08-01T07:27:30+00:00",
+ "built_for_date": "2026-08-01",
+ "source": "중소벤처기업부 기업마당 (bizinfo.go.kr)",
+ "collected_at": "2026-08-01T06:08:38.608637+00:00",
+ "model": "intfloat/multilingual-e5-small",
+ "doc_vectors": "int8(ONNX)",
+ "query_vectors": "int8(ONNX) — CPU",
+ "precision_check": {
+  "reused": true
+ },
+ "centering": {},
+ "docs": 900,
+ "chunks": 3326,
+ "dim": 384,
+ "open_status": {
+  "open": 501,
+  "rolling": 319,
+  "upcoming": 14,
+  "closed": 36,
+  "unknown": 30
+ },
+ "with_amount": 250,
+ "with_rate": 10,
+ "smallbiz_positive": 161,
+ "finance": 269
+}

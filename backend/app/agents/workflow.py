@@ -124,22 +124,46 @@ async def run_location(state: GraphState) -> GraphState:
             "trace": [AgentKind.LOCATION.value]}
 
 
+def _won(v: int) -> str:
+    if v >= 100_000_000:
+        n = v / 100_000_000
+        return f"{n:.0f}억원" if n == int(n) else f"{n:.1f}억원"
+    if v >= 10_000_000:
+        return f"{v // 10_000_000}천만원"
+    return f"{v // 10_000:,}만원"
+
+
 def run_policy(state: GraphState) -> GraphState:
     req = state["request"]
     matches = policy_agent.match(req.message, req.region, req.industry)
-    if matches:
-        best = matches[0]
-        limit = f"최대 {best.limit_krw // 10_000_000}천만원" if best.limit_krw else "한도 별도"
-        rate = f", 금리 {best.rate_pct}%" if best.rate_pct is not None else ""
-        text = (f"조건에 맞는 지원사업 {len(matches)}건을 찾았습니다. "
-                f"가장 가까운 것은 {best.provider}의 「{best.name}」으로 {limit}{rate}입니다. "
-                f"{best.match_reasons[0] if best.match_reasons else ''}")
-    else:
-        text = ("입력하신 조건에 바로 맞는 사업을 찾지 못했습니다. 지역이나 업력 조건을 "
-                "알려 주시면 다시 찾아보겠습니다.")
+
+    if not matches:
+        # 못 찾았으면 못 찾았다고 합니다. 관련 없는 공고를 채워 넣으면
+        # 사장님이 그것을 읽어 보는 데 시간을 씁니다.
+        text = ("기업마당 공고 900건을 뒤졌는데 조건에 바로 맞는 것이 없었습니다. "
+                "지역이나 업종, 필요하신 금액을 알려 주시면 다시 찾아보겠습니다.")
+        return {"answer": text, "policies": [],
+                "motion": CharacterMotion.EXPLAINING.value,
+                "trace": [AgentKind.POLICY.value]}
+
+    best = matches[0]
+    bits = []
+    if best.limit_krw:
+        bits.append(f"{best.amount_basis or '금액'} {_won(best.limit_krw)}")
+    if best.rate_pct is not None:
+        bits.append(f"금리 {best.rate_pct}%")
+    if best.open_status == "open" and best.apply_deadline:
+        bits.append(f"{best.apply_deadline}까지 접수")
+    elif best.apply_period:
+        bits.append(f"접수 {best.apply_period}")
+
+    detail = f" — {', '.join(bits)}" if bits else ""
+    text = (f"기업마당 실제 공고에서 {len(matches)}건을 찾았습니다. "
+            f"가장 가까운 것은 {best.provider}의 「{best.name}」입니다{detail}. "
+            f"{best.match_reasons[0] if best.match_reasons else ''}")
+
     return {"answer": text, "policies": matches,
-            "motion": (CharacterMotion.FLY_HAPPY.value if matches
-                       else CharacterMotion.EXPLAINING.value),
+            "motion": CharacterMotion.FLY_HAPPY.value,
             "trace": [AgentKind.POLICY.value]}
 
 

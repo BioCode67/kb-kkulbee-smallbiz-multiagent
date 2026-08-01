@@ -114,20 +114,39 @@ class MapPin(BaseModel):
 
 # ── Pick 3. 정책자금 ──────────────────────────────────────────────────────
 class PolicyMatch(BaseModel):
-    """찾아낸 지원사업 하나."""
+    """찾아낸 지원사업 하나 — 기업마당 실제 공고에서 옵니다.
+
+    처음에는 category를 '정책자금·보증·KB상품·바우처·컨설팅' 다섯으로 못
+    박아 두었습니다. 손으로 적은 열두 건일 때는 맞았지만, 실제 공고 900건은
+    중소벤처기업부의 분야 구분(금융·경영·기술·수출·내수·인력·창업)을 씁니다.
+    화면에 보이라고 남의 자료를 우리 분류에 억지로 끼워 넣으면 그때부터
+    출처와 화면이 어긋납니다. 그래서 원 분류를 그대로 싣습니다.
+
+    limit_krw도 마찬가지입니다. 예전 수집기는 본문에서 찾은 **가장 큰 금액**을
+    한도라고 적었습니다. 그래서 "총사업비 4,000억원"이 한도로 나갔습니다.
+    지금은 '한도·최대·이내' 같은 말이 곁에 있을 때만 읽고, 무엇을 근거로
+    읽었는지 amount_basis에 남깁니다. 모르면 비웁니다.
+    """
 
     program_id: str
     name: str
     provider: str = Field(description="주관 기관")
-    category: Literal["정책자금", "보증", "KB상품", "바우처", "컨설팅"] = "정책자금"
-    limit_krw: int | None = Field(default=None, description="한도 (원)")
+    category: str = Field(default="기타", description="기업마당 지원분야")
+    limit_krw: int | None = Field(default=None, description="한도 (원). 근거가 확실할 때만")
+    amount_basis: str | None = Field(default=None, description="그 금액을 무엇으로 읽었는지")
     rate_pct: float | None = Field(default=None, description="금리 (%)")
     period_months: int | None = None
+    regions: list[str] = Field(default_factory=list, description="지역 한정. 비면 전국")
+    apply_period: str = Field(default="", description="공고에 적힌 접수기간 원문")
+    apply_deadline: str | None = Field(default=None, description="마감일 (YYYY-MM-DD)")
+    open_status: Literal["open", "rolling", "upcoming", "closed", "unknown"] = "unknown"
+    summary: str = Field(default="", description="사업개요 발췌")
     eligibility: list[str] = Field(default_factory=list)
     required_docs: list[str] = Field(default_factory=list)
     match_score: float = Field(default=0.0, ge=0, le=100)
     match_reasons: list[str] = Field(default_factory=list, description="왜 추천했는지 (XAI)")
     apply_url: str = ""
+    source_url: str = Field(default="", description="기업마당 원문")
 
 
 # ── Pick 4. 소비자보호 ────────────────────────────────────────────────────

@@ -1,125 +1,56 @@
-"""
-Pick 3 — 정책자금·KB 상품 찾기
+"""Pick 3 — 정책자금·지원사업 찾기
 
-임베딩 검색을 붙일 자리지만, 지금은 키워드와 조건 매칭으로 갑니다. 이유가
-둘입니다. 하나는 지원사업이 서른 개 남짓이라 의미 검색의 이득이 크지 않다는
-것이고, 다른 하나는 심사에서 "왜 이걸 추천했나"에 답할 수 있어야 한다는
-것입니다. 벡터 유사도 0.87은 근거가 되지 못합니다.
+중소벤처기업부 기업마당에서 받아 둔 **실제 공고 900건**에서 찾습니다.
+검색은 `services/policy_search.py`가 하고, 이 파일은 그 결과를 화면 계약
+(PolicyMatch)에 맞춰 옮기는 일만 합니다.
 
-그래서 매칭 점수를 요소별로 쪼개 두고, 어느 조건이 몇 점을 보탰는지
-match_reasons에 담아 내보냅니다. 화면이 그대로 보여 줍니다.
+전에는 손으로 적은 열두 건에 낱말이 들어 있는지 보는 방식이었습니다.
+데모로는 돌아갔지만 "이 목록은 어디서 왔습니까"에 답할 것이 없었고, 사장님이
+실제로 신청할 수 있는 공고도 아니었습니다. 지금은 공고 번호와 원문 주소가
+결과마다 함께 나갑니다.
 
-Supabase pgvector나 ChromaDB를 붙일 때는 embed() 자리만 갈아 끼우면 됩니다.
+추천 이유는 계속 내보냅니다. 유사도 0.87은 근거가 못 됩니다. 어느 낱말이
+걸렸는지, 지역이 맞는지, 언제까지 접수하는지 — 사람이 읽고 판단할 수 있는
+것만 이유로 씁니다.
 """
 from __future__ import annotations
 
-import json
-import os
-import re
-
 from app.models.schemas import PolicyMatch
-
-DATA = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "policies.json")
-
-
-def _load() -> list[dict]:
-    with open(DATA, encoding="utf-8") as f:
-        return json.load(f)["programs"]
+from app.services import policy_search
 
 
-# 질문에서 상황을 읽어 내는 단서들
-SIGNALS = {
-    "창업": ["창업", "개업", "시작", "오픈", "신규"],
-    "운영": ["운영", "운전", "재료비", "임대료", "인건비", "생활"],
-    "시설": ["시설", "인테리어", "설비", "장비", "리모델링"],
-    "위기": ["폐업", "어렵", "힘들", "연체", "적자", "위기", "재기"],
-    "청년": ["청년", "20대", "30대"],
-    "여성": ["여성", "여사장"],
-    "저신용": ["신용", "저신용", "등급", "점수 낮"],
-    "수출": ["수출", "해외", "온라인 진출"],
-}
-
-AMOUNT = re.compile(r"(\d[\d,]*)\s*(억|천만|백만|만)?\s*원?")
-
-
-def _read_amount(text: str) -> int | None:
-    """'5천만원', '3억' 같은 표현에서 금액을 읽습니다."""
-    m = AMOUNT.search(text.replace(" ", ""))
-    if not m:
-        return None
-    n = int(m.group(1).replace(",", ""))
-    unit = m.group(2)
-    mult = {"억": 100_000_000, "천만": 10_000_000, "백만": 1_000_000, "만": 10_000}.get(unit, 1)
-    return n * mult
-
-
-def _signals(text: str) -> set[str]:
-    return {k for k, words in SIGNALS.items() if any(w in text for w in words)}
+def _to_match(d: dict) -> PolicyMatch:
+    return PolicyMatch(
+        program_id=d["id"],
+        name=d["title"],
+        provider=d.get("agency") or d.get("ministry") or "기업마당",
+        category=d.get("category", "기타"),
+        limit_krw=d.get("amount_krw"),
+        amount_basis=d.get("amount_basis"),
+        rate_pct=d.get("rate_pct"),
+        regions=d.get("regions", []),
+        apply_period=d.get("apply_period_text", ""),
+        apply_deadline=d.get("apply_end"),
+        open_status=d.get("open_status", "unknown"),
+        summary=(d.get("summary") or "")[:400],
+        match_score=d.get("match_score", 0.0),
+        match_reasons=d.get("match_reasons", []),
+        apply_url=d.get("apply_site") or d.get("source_url", ""),
+        source_url=d.get("source_url", ""),
+    )
 
 
 def match(question: str, region: str | None = None, industry: str | None = None,
           k: int = 4) -> list[PolicyMatch]:
-    """질문과 조건에 맞는 지원사업을 고릅니다.
+    """질문에 맞는 지원사업을 고릅니다. 없으면 빈 목록입니다.
 
-    점수는 네 갈래로 나눠 매깁니다 — 목적, 대상, 지역, 금액. 어느 갈래에서
-    몇 점을 받았는지 이유로 남겨야 추천을 설명할 수 있습니다.
+    빈 목록을 돌려주는 경우가 실제로 있습니다. 900건 안에 답이 없으면
+    억지로 채우지 않습니다 — 관련 없는 공고 넷을 보여 주는 것보다
+    "못 찾았습니다"가 낫습니다.
     """
-    programs = _load()
-    sig = _signals(question)
-    want = _read_amount(question)
-    out: list[PolicyMatch] = []
+    return [_to_match(d) for d in policy_search.search(question, region, industry, k=k)]
 
-    for p in programs:
-        score, reasons = 0.0, []
 
-        hit = sig & set(p.get("purposes", []))
-        if hit:
-            score += 34 * min(len(hit), 2) / 2
-            reasons.append(f"{'·'.join(sorted(hit))} 목적에 맞는 사업입니다")
-
-        tags = set(p.get("target_tags", []))
-        thit = sig & tags
-        if thit:
-            score += 22
-            reasons.append(f"{'·'.join(sorted(thit))} 대상 우대가 있습니다")
-        elif not tags:
-            score += 10
-            reasons.append("대상 제한이 없어 누구나 신청할 수 있습니다")
-
-        pr = p.get("region")
-        if pr is None:
-            score += 12
-            reasons.append("전국에서 신청할 수 있습니다")
-        elif region and pr in region:
-            score += 20
-            reasons.append(f"{pr} 지역 사업이라 해당됩니다")
-        else:
-            continue          # 지역이 안 맞으면 아예 뺍니다
-
-        if want and p.get("limit_krw"):
-            if p["limit_krw"] >= want:
-                score += 16
-                reasons.append(f"필요하신 {want // 10_000_000}천만원을 한도 안에서 다룰 수 있습니다")
-            else:
-                score -= 8
-                reasons.append(f"한도가 {p['limit_krw'] // 10_000_000}천만원이라 요청액에 못 미칩니다")
-
-        if p.get("rate_pct") is not None and p["rate_pct"] <= 3.0:
-            score += 8
-            reasons.append(f"금리 {p['rate_pct']}%로 시중보다 낮습니다")
-
-        if score <= 0:
-            continue
-        out.append(PolicyMatch(
-            program_id=p["id"], name=p["name"], provider=p["provider"],
-            category=p.get("category", "정책자금"),
-            limit_krw=p.get("limit_krw"), rate_pct=p.get("rate_pct"),
-            period_months=p.get("period_months"),
-            eligibility=p.get("eligibility", []),
-            required_docs=p.get("required_docs", []),
-            match_score=round(min(score, 100.0), 1),
-            match_reasons=reasons[:4],
-            apply_url=p.get("apply_url", ""),
-        ))
-
-    return sorted(out, key=lambda m: -m.match_score)[:k]
+def index_meta() -> dict:
+    """색인이 무엇으로 언제 만들어졌는지. 화면 하단 출처 표기에 씁니다."""
+    return policy_search.meta()

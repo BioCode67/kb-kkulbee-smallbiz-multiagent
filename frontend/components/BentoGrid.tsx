@@ -171,22 +171,53 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
 }
 
 /* ── 지원사업 ──────────────────────────────────────────────────────────── */
+
+/** 접수 상태를 한 눈에. 마감이 가까우면 색이 달라집니다. */
+function StatusChip({ m }: { m: PolicyMatch }) {
+  const days = m.apply_deadline
+    ? Math.ceil(
+        (new Date(m.apply_deadline + 'T23:59:59').getTime() - Date.now()) / 86_400_000,
+      )
+    : null;
+
+  const [text, tone] =
+    m.open_status === 'open' && days != null
+      ? days <= 7
+        ? [`마감 ${days}일 전`, 'bg-red-500/[.16] text-red-300 ring-red-400/25']
+        : [`${m.apply_deadline}까지`, 'bg-emerald-500/[.14] text-emerald-300 ring-emerald-400/20']
+      : m.open_status === 'rolling'
+        ? [m.apply_period || '상시 접수', 'bg-sky-500/[.13] text-sky-300 ring-sky-400/20']
+        : m.open_status === 'upcoming'
+          ? [`${m.apply_period} 예정`, 'bg-amber-500/[.13] text-amber-300 ring-amber-400/20']
+          : [m.apply_period || '기간 미기재', 'bg-white/[.06] text-white/50 ring-white/10'];
+
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-medium ring-1 ${tone}`}>
+      {text}
+    </span>
+  );
+}
+
 function PolicyCard({ items }: { items: PolicyMatch[] }) {
-  const won = (v: number | null) =>
-    v == null ? '한도 별도'
-    : v >= 100_000_000 ? `${(v / 100_000_000).toFixed(v % 100_000_000 ? 1 : 0)}억원`
-    : `${Math.round(v / 10_000_000)}천만원`;
+  const won = (v: number) =>
+    v >= 100_000_000
+      ? `${(v / 100_000_000).toFixed(v % 100_000_000 ? 1 : 0)}억원`
+      : v >= 10_000_000
+        ? `${Math.round(v / 10_000_000)}천만원`
+        : `${Math.round(v / 10_000).toLocaleString()}만원`;
 
   return (
     <ul className="space-y-3">
       {items.map((m) => (
         <li key={m.program_id}
-            className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/[.07]">
+            className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/[.07]
+                       transition hover:ring-white/[.14]">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-semibold text-white">{m.name}</p>
-              <p className="mt-0.5 text-[11px] text-white/[.45]">
+              <p className="text-[13.5px] font-semibold leading-snug text-white">{m.name}</p>
+              <p className="mt-1 text-[11px] text-white/[.45]">
                 {m.provider} · {m.category}
+                {m.regions.length > 0 ? ` · ${m.regions.join('·')}` : ' · 전국'}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-kb-yellow/[.15] px-2 py-0.5
@@ -196,12 +227,19 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
             </span>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-white/[.65]">
-            <span>한도 <b className="text-white/90">{won(m.limit_krw)}</b></span>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5
+                          text-[11.5px] text-white/[.65]">
+            <StatusChip m={m} />
+            {/* 금액은 근거가 있을 때만 씁니다. 예전에는 본문에서 찾은 가장 큰
+                금액을 '한도'라고 적어 총사업비가 한도로 둔갑했습니다. */}
+            {m.limit_krw != null && (
+              <span>
+                {m.amount_basis ?? '금액'} <b className="text-white/90">{won(m.limit_krw)}</b>
+              </span>
+            )}
             {m.rate_pct != null && (
               <span>금리 <b className="text-white/90">{m.rate_pct}%</b></span>
             )}
-            {m.period_months && <span>최장 {m.period_months / 12}년</span>}
           </div>
 
           {/* 추천 이유 — 왜 이걸 골랐는지 밝히지 않으면 근거가 없습니다 */}
@@ -215,13 +253,23 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
             </ul>
           )}
 
-          {m.apply_url && (
-            <a href={m.apply_url} target="_blank" rel="noreferrer"
-               className="mt-2.5 inline-block text-[11px] font-semibold text-kb-yellow
-                          underline-offset-2 hover:underline">
-              신청 안내 보기 →
-            </a>
-          )}
+          <div className="mt-2.5 flex items-center gap-3">
+            {m.apply_url && (
+              <a href={m.apply_url} target="_blank" rel="noreferrer"
+                 className="text-[11px] font-semibold text-kb-yellow
+                            underline-offset-2 hover:underline">
+                신청 안내 보기 →
+              </a>
+            )}
+            {/* 원문 링크는 반드시 둡니다. 우리가 요약한 것을 사장님이
+                직접 대조하실 수 있어야 합니다. */}
+            {m.source_url && m.source_url !== m.apply_url && (
+              <a href={m.source_url} target="_blank" rel="noreferrer"
+                 className="text-[11px] text-white/40 underline-offset-2 hover:underline">
+                기업마당 공고 원문
+              </a>
+            )}
+          </div>
         </li>
       ))}
     </ul>

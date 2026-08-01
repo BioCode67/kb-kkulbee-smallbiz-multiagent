@@ -48,20 +48,36 @@ export interface MapPin {
   is_target: boolean;
 }
 
+/** 접수 상태. 날짜가 안 적힌 공고가 900건 중 385건이라 rolling·unknown이 필요합니다 */
+export type OpenStatus = 'open' | 'rolling' | 'upcoming' | 'closed' | 'unknown';
+
 export interface PolicyMatch {
   program_id: string;
   name: string;
   provider: string;
-  category: '정책자금' | '보증' | 'KB상품' | '바우처' | '컨설팅';
+  /** 기업마당 지원분야 — 금융·경영·기술·수출·내수·인력·창업·기타 */
+  category: string;
+  /** 한도. '한도·최대·이내' 같은 말이 곁에 있을 때만 채워집니다 */
   limit_krw: number | null;
+  /** 그 금액을 무엇으로 읽었는지. null이면 금액을 못 읽은 것입니다 */
+  amount_basis: string | null;
   rate_pct: number | null;
   period_months: number | null;
+  /** 지역 한정. 비어 있으면 전국 */
+  regions: string[];
+  /** 공고에 적힌 접수기간 원문 — '예산 소진시까지' 같은 것이 그대로 옵니다 */
+  apply_period: string;
+  apply_deadline: string | null;
+  open_status: OpenStatus;
+  summary: string;
   eligibility: string[];
   required_docs: string[];
   match_score: number;
   /** 왜 추천했는지 — 화면에 그대로 보여 줍니다 */
   match_reasons: string[];
   apply_url: string;
+  /** 기업마당 원문. 사장님이 직접 확인하실 수 있어야 합니다 */
+  source_url: string;
 }
 
 export interface TermEntry {
