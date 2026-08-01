@@ -38,13 +38,13 @@
     overflow-wrap: break-word;
   }
 
-  /* 배경 — 단색이면 화면이 비어 보인다. 벌집 결과 빛무리를 겹친다 */
+  /* 배경 — 거의 검정 단색. 빛무리는 히어로에만 둡니다(.hero-glow). */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
-    @apply bg-honey;
+    background: #0A0A0B;
   }
   /* 점 그리드 — 위쪽에만 옅게 깔고 아래로 사라집니다. 대각선 벌집 무늬는
      글자 뒤에서 어른거렸는데, 점은 정적이라 조용합니다. */
@@ -64,8 +64,13 @@
      캐릭터가 배경에 붙어 보이지 않게 떼어 놓는 역할입니다. */
   .hero-glow {
     background:
-      radial-gradient(560px 420px at 50% 30%, rgba(255,188,0,.13), transparent 65%),
-      radial-gradient(900px 500px at 50% 12%, rgba(255,188,0,.05), transparent 70%);
+      radial-gradient(620px 380px at 50% 22%, rgba(255,188,0,.1), transparent 62%),
+      radial-gradient(1100px 520px at 50% 0%, rgba(255,188,0,.04), transparent 70%);
+  }
+  /* 앱을 담는 창 틀 — v0 목업의 브라우저 프레임 문법 */
+  .app-frame {
+    @apply overflow-hidden rounded-2xl border border-white/[.1]
+           bg-[#0E0E10] shadow-[0_40px_120px_-40px_rgba(0,0,0,.9)];
   }
 
   ::selection { @apply bg-kb-yellow/30; }
@@ -88,17 +93,15 @@
    * 세 단으로 나눕니다 — 바탕에 가까울수록 어둡고, 손이 닿는 것일수록
    * 밝고 테두리가 또렷합니다.
    */
+  /* v0 계열의 표면 — 그림자보다 1px 보더가 형태를 만듭니다. */
   .surface-1 {
-    @apply rounded-2xl bg-white/[.035] ring-1 ring-white/[.07]
-           shadow-[0_1px_0_rgba(255,255,255,.05)_inset,0_10px_30px_-12px_rgba(0,0,0,.6)];
+    @apply rounded-2xl border border-white/[.07] bg-white/[.02];
   }
   .surface-2 {
-    @apply rounded-2xl bg-white/[.06] ring-1 ring-white/[.11]
-           shadow-[0_1px_0_rgba(255,255,255,.08)_inset,0_18px_44px_-16px_rgba(0,0,0,.7)];
+    @apply rounded-2xl border border-white/[.1] bg-white/[.035];
   }
   .surface-3 {
-    @apply rounded-2xl bg-white/[.09] ring-1 ring-white/[.16]
-           shadow-[0_1px_0_rgba(255,255,255,.12)_inset,0_24px_60px_-20px_rgba(0,0,0,.8)];
+    @apply rounded-2xl border border-white/[.14] bg-white/[.05];
   }
   .glass {
     @apply rounded-2xl bg-white/[.045] shadow-glass ring-1 ring-white/10 backdrop-blur-xl;

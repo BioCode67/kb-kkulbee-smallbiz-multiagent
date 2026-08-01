@@ -34,47 +34,51 @@ export default function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/[.06]
-                       bg-kb-ink/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-[1240px] items-center gap-3 px-5 lg:px-8">
+                       bg-kb-ink/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center px-5 lg:px-8">
         <a href="/" className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kkulbee.svg" alt="" width={26} height={30} className="shrink-0" />
-          <span className="text-[15px] font-extrabold tracking-tight text-white">꿀비</span>
-          <span className="hidden text-[12px] text-white/40 sm:inline">
-            사장님 곁의 AI 비서
-          </span>
+          <img src="/kkulbee.svg" alt="" width={24} height={28} className="shrink-0" />
+          <span className="text-[15px] font-bold tracking-tight text-white">꿀비</span>
         </a>
 
-        <div className="ml-auto flex items-center gap-2">
-          {stores && docs && (
-            <button
-              onClick={() => setOpen((v) => !v)}
-              className="hidden items-center gap-2 rounded-full bg-white/[.06] px-3 py-1.5
-                         text-[11.5px] text-white/60 ring-1 ring-white/[.09] transition
-                         hover:bg-white/[.11] hover:text-white md:flex"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              실측 자료 {(stores / 10000).toFixed(0)}만 점포 · 공고 {docs}건
-              <span className="text-white/30">{open ? '▲' : '▼'}</span>
-            </button>
-          )}
-          {/* Pick 4를 직접 눌러 볼 자리 — 용어 사전과 진짜 가드레일 검사기 */}
-          <button
-            onClick={() => setDrawer(true)}
-            className="rounded-full bg-white/[.06] px-3 py-1.5 text-[11.5px]
-                       text-white/60 ring-1 ring-white/[.09] transition
-                       hover:bg-white/[.11] hover:text-white"
-          >
-            🛡 소비자 보호
+        {/* 가운데 링크 — v0 네비의 문법. 링크는 셋이면 충분합니다. */}
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1
+                        md:flex">
+          <button onClick={() => setOpen((v) => !v)}
+                  className="rounded-lg px-3 py-1.5 text-[13px] text-white/55
+                             transition hover:text-white">
+            데이터 출처
           </button>
-          <a
-            href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
-            target="_blank" rel="noreferrer"
-            className="rounded-full px-3 py-1.5 text-[11.5px] text-white/45
-                       transition hover:text-white"
-          >
-            소스코드
+          <button onClick={() => setDrawer(true)}
+                  className="rounded-lg px-3 py-1.5 text-[13px] text-white/55
+                             transition hover:text-white">
+            소비자 보호
+          </button>
+          <a href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
+             target="_blank" rel="noreferrer"
+             className="rounded-lg px-3 py-1.5 text-[13px] text-white/55
+                        transition hover:text-white">
+            GitHub
           </a>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-2.5">
+          {stores && docs && (
+            <span className="hidden items-center gap-1.5 text-[11.5px] text-white/40
+                             lg:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              {(stores / 10000).toFixed(0)}만 점포 · {docs}건 실측
+            </span>
+          )}
+          {/* 주 CTA — 입력창으로 데려갑니다 */}
+          <button
+            onClick={() => document.querySelector<HTMLInputElement>('input')?.focus()}
+            className="rounded-full bg-kb-yellow px-4 py-1.5 text-[13px] font-bold
+                       text-kb-ink transition hover:brightness-105"
+          >
+            물어보기
+          </button>
         </div>
       </div>
 

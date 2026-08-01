@@ -208,137 +208,190 @@ export default function Page() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
               className="hero-glow flex min-h-[calc(100vh-3.5rem)] flex-col
-                         items-center justify-center py-4"
+                         items-center pt-14"
             >
-              {/* 배지 필 — 화면이 무엇인지 한 줄. 헤드라인보다 먼저 읽히는
-                  가장 작은 활자입니다. */}
+              {/* v0 랜딩의 순서 그대로 — 배지, 헤드라인, 서브, CTA, 그 아래
+                  제품. 다른 점 하나: 제품 스크린샷 자리에 **살아 있는 앱**을
+                  프레임에 넣어 앉혔습니다. 목업이 아니라 그 자리에서 바로
+                  물어볼 수 있습니다. */}
               <motion.span
                 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                className="mb-1 inline-flex items-center gap-1.5 rounded-full
-                           border border-kb-yellow/[.25] bg-kb-yellow/[.07] px-3.5
-                           py-1.5 text-[11.5px] font-medium text-kb-yellow/90"
+                className="inline-flex items-center gap-1.5 rounded-full
+                           border border-white/[.12] bg-white/[.03] px-3.5 py-1.5
+                           text-[12px] text-white/60"
               >
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-kb-yellow" />
-                실측 자료로만 답하는 소상공인 AI 비서
+                <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
+                전국 점포 272만 개 실측으로 답하는 소상공인 AI
               </motion.span>
-              {/* 꿀비가 먼저 눈에 들어와야 합니다. 캔버스 안에서 실제 몸이
-                  차지하는 넓이가 6할쯤이라, 보이는 크기를 맞추려면 320은
-                  되어야 합니다. 260이면 제목에 눌려 장식처럼 보였습니다. */}
-              <motion.div layoutId="bee" transition={SPRING} className="-mb-2">
-                <BeeStage motion={mood} size={296} speech={speech} />
-              </motion.div>
 
               <motion.h1
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.14 }}
-                className="text-center text-[32px] font-extrabold leading-[1.18]
-                           tracking-[-.02em] text-white sm:text-[44px]"
+                transition={{ delay: 0.08 }}
+                className="mt-5 text-center text-[38px] font-extrabold leading-[1.12]
+                           tracking-[-.03em] text-white sm:text-[56px]"
               >
-                어디에 열지, 자금은 어떻게,<br />
-                <span className="text-kb-yellow">억울한 일이 생기면 어떻게.</span>
+                사장님의 세 가지 고민,
+                <br />
+                <span className="bg-gradient-to-r from-kb-yellow to-[#FFDF7E]
+                                 bg-clip-text text-transparent">
+                  한 번에 물어보세요
+                </span>
               </motion.h1>
+
               <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ delay: 0.22 }}
-                className="mt-3.5 max-w-[58ch] text-center text-[14.5px] leading-[1.7]
-                           text-white/[.62]"
+                transition={{ delay: 0.16 }}
+                className="mt-5 max-w-[54ch] text-center text-[15.5px] leading-[1.75]
+                           text-white/50"
               >
-                제도 이름을 몰라도 괜찮습니다. 처한 상황을 그대로 말씀하시면
-                실제 자료에서 찾아 드리고, 무엇이 그 결론을 만들었는지까지 보여 드려요.
+                어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
+                제도 이름을 몰라도 괜찮습니다 — 처한 상황을 그대로 말씀하시면
+                실제 자료에서 찾아 근거까지 보여 드립니다.
               </motion.p>
 
-              {/* ── 다섯 가지 도움 — 선택 배너 ── */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.28 }}
-                className="mt-7 grid w-full max-w-[760px] grid-cols-5 gap-2"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22 }}
+                className="mt-7 flex items-center gap-3"
               >
-                {MODES.map((m, i) => {
-                  const on = i === mode;
-                  return (
-                    <button
-                      key={m.key}
-                      onClick={() => setMode(i)}
-                      aria-pressed={on}
-                      className={`group flex flex-col items-center gap-1 rounded-2xl px-2
-                                  pb-3 pt-3.5 ring-1 transition-all duration-200 ${
-                        on
-                          ? 'bg-kb-yellow/[.1] ring-kb-yellow/[.45] shadow-[0_10px_30px_-10px_rgba(255,188,0,.3)]'
-                          : 'bg-white/[.025] ring-white/[.07] hover:-translate-y-0.5 hover:bg-white/[.05] hover:ring-white/[.14]'}`}
-                    >
-                      <span className={`transition-transform duration-200 ${
-                        on ? 'scale-110' : 'group-hover:scale-105'}`}>
-                        <ModeIcon name={m.icon} on={on} />
-                      </span>
-                      <span className={`text-[12.5px] font-bold ${
-                        on ? 'text-kb-yellow' : 'text-white/[.78]'}`}>
-                        {m.label}
-                      </span>
-                      <span className={`hidden text-[10.5px] sm:block ${
-                        on ? 'text-white/60' : 'text-white/[.32]'}`}>
-                        {m.desc}
-                      </span>
-                    </button>
-                  );
-                })}
+                <button
+                  onClick={() => document.querySelector<HTMLInputElement>('#ask input')?.focus()}
+                  className="rounded-full bg-kb-yellow px-6 py-3 text-[14.5px] font-bold
+                             text-kb-ink transition hover:brightness-105
+                             active:translate-y-px"
+                >
+                  지금 물어보기
+                </button>
+                <a
+                  href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
+                  target="_blank" rel="noreferrer"
+                  className="rounded-full border border-white/[.14] px-6 py-3
+                             text-[14.5px] font-semibold text-white/70 transition
+                             hover:border-white/[.3] hover:text-white"
+                >
+                  소스코드 보기
+                </a>
               </motion.div>
 
-              <motion.div
-                layoutId="askbox" transition={SPRING}
-                className="mt-4 w-full max-w-[760px]"
-              >
-                <AskBox value={input} onChange={setInput}
-                        placeholder={MODES[mode].placeholder}
-                        onSubmit={() => { ask(input); setInput(''); }} loading={loading} />
+              {/* 꿀비 — 프레임 위에 살짝 걸쳐 앉습니다 */}
+              <motion.div layoutId="bee" transition={SPRING}
+                          className="z-10 -mb-10 mt-8">
+                <BeeStage motion={mood} size={210} speech={speech} />
               </motion.div>
 
-              {/* 고른 갈래의 예시 질문. 갈래를 바꾸면 예시도 바뀝니다 —
-                  "이런 것도 물을 수 있구나"를 예시가 가르칩니다. */}
+              {/* ── 앱 프레임 — 목업 대신 진짜 ── */}
               <motion.div
-                key={MODES[mode].key}
-                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-                className="mt-3 flex w-full max-w-[760px] flex-col gap-2"
+                initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="app-frame w-full max-w-[880px]"
               >
-                {MODES[mode].samples.map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => ask(q)}
-                    className="group flex items-center gap-2.5 rounded-xl bg-white/[.04]
-                               px-4 py-2.5 text-left ring-1 ring-white/[.07] transition
-                               hover:bg-kb-yellow/[.09] hover:ring-kb-yellow/[.3]"
+                <div className="flex items-center gap-2 border-b border-white/[.07]
+                                px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+                  <span className="mx-auto rounded-md bg-white/[.05] px-8 py-1
+                                   text-[11px] text-white/35">
+                    kkulbee — 사장님 곁의 AI 비서
+                  </span>
+                </div>
+
+                <div className="p-5 sm:p-7">
+                  <div className="grid grid-cols-5 gap-2">
+                    {MODES.map((m, i) => {
+                      const on = i === mode;
+                      return (
+                        <button
+                          key={m.key}
+                          onClick={() => setMode(i)}
+                          aria-pressed={on}
+                          className={`group flex flex-col items-center gap-1 rounded-xl
+                                      px-2 pb-2.5 pt-3 transition-all duration-200 ${
+                            on
+                              ? 'border border-kb-yellow/50 bg-kb-yellow/[.08]'
+                              : 'border border-white/[.07] bg-transparent hover:border-white/[.16] hover:bg-white/[.03]'}`}
+                        >
+                          <ModeIcon name={m.icon} on={on} />
+                          <span className={`text-[12px] font-semibold ${
+                            on ? 'text-kb-yellow' : 'text-white/70'}`}>
+                            {m.label}
+                          </span>
+                          <span className={`hidden text-[10px] sm:block ${
+                            on ? 'text-white/50' : 'text-white/25'}`}>
+                            {m.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <motion.div layoutId="askbox" transition={SPRING}
+                              id="ask" className="mt-4">
+                    <AskBox value={input} onChange={setInput}
+                            placeholder={MODES[mode].placeholder}
+                            onSubmit={() => { ask(input); setInput(''); }}
+                            loading={loading} />
+                  </motion.div>
+
+                  <motion.div
+                    key={MODES[mode].key}
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="mt-3 flex flex-col gap-1.5"
                   >
-                    <span className="text-[12px] text-kb-yellow/50 transition
-                                     group-hover:text-kb-yellow">→</span>
-                    <span className="min-w-0 flex-1 text-[13px] leading-snug
-                                     text-white/[.72] group-hover:text-white">
-                      {q}
-                    </span>
-                  </button>
-                ))}
+                    {MODES[mode].samples.map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => ask(q)}
+                        className="group flex items-center gap-2.5 rounded-lg
+                                   border border-transparent px-3 py-2 text-left
+                                   transition hover:border-white/[.09]
+                                   hover:bg-white/[.03]"
+                      >
+                        <span className="text-[11px] text-kb-yellow/40 transition
+                                         group-hover:text-kb-yellow">→</span>
+                        <span className="text-[13px] text-white/50
+                                         group-hover:text-white/85">{q}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                </div>
               </motion.div>
 
-              {/* 신뢰 띠 — 'Pick 2·3·4' 같은 대회 용어를 적어 두었었는데,
-                  사장님께는 아무 뜻이 없고 심사위원께는 이미 아는 말입니다.
-                  대신 이 서비스가 무엇을 딛고 서 있는지를 숫자로 놓습니다. */}
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ delay: 0.42 }}
-                className="mt-7 grid w-full max-w-[660px] grid-cols-3 gap-px overflow-hidden
-                           rounded-2xl bg-white/[.07] ring-1 ring-white/[.08]"
-              >
+              {/* ── 신뢰 숫자 ── */}
+              <div className="mt-14 grid w-full max-w-[880px] grid-cols-3
+                              divide-x divide-white/[.07] border-y
+                              border-white/[.07] py-6">
                 {[
-                  ['272만', '전국 점포 실측', '소상공인시장진흥공단'],
-                  ['900건', '정부 지원사업 공고', '중소벤처기업부 기업마당'],
-                  ['3,450', '행정동 백분위 비교', '전국 어디든'],
-                ].map(([n, l, s2]) => (
-                  <div key={l} className="bg-kb-ink/60 px-3 py-4 text-center">
-                    <p className="text-[19px] font-extrabold tracking-tight text-kb-yellow">{n}</p>
-                    <p className="mt-1 text-[11.5px] font-medium text-white/[.72]">{l}</p>
-                    <p className="mt-0.5 text-[10px] text-white/[.32]">{s2}</p>
+                  ['2,725,318', '전국 점포 실측 좌표'],
+                  ['900', '정부 지원사업 공고'],
+                  ['3,450', '행정동 백분위 비교'],
+                ].map(([n, l]) => (
+                  <div key={l} className="px-4 text-center">
+                    <p className="text-[24px] font-extrabold tracking-tight text-white
+                                  [font-variant-numeric:tabular-nums]">{n}</p>
+                    <p className="mt-1 text-[11.5px] text-white/40">{l}</p>
                   </div>
                 ))}
-              </motion.div>
+              </div>
+
+              {/* ── 무엇이 다른가 ── */}
+              <div className="mb-20 mt-14 grid w-full max-w-[880px] gap-3
+                              sm:grid-cols-3">
+                {[
+                  ['지어내지 않습니다',
+                   '없는 자료는 없다고 화면에 적습니다. 모르는 동네에는 점수를 주지 않고, 추천마다 공고 원문 링크가 붙습니다.'],
+                  ['멀티에이전트가 정말 돕니다',
+                   '한 질문에 입지·자금·권리 갈래가 동시에 켜지고, 어떤 에이전트가 돌았는지 화면에 그대로 남습니다.'],
+                  ['금소법 가드레일이 마지막에',
+                   'LLM이 쓴 문장까지 예외 없이 검사를 거칩니다. 상단의 검사기에서 아무 문장이나 직접 시험해 보세요.'],
+                ].map(([t, d]) => (
+                  <div key={t} className="surface-1 p-5">
+                    <p className="text-[14px] font-bold text-white">{t}</p>
+                    <p className="mt-2 text-[12.5px] leading-[1.7] text-white/45">{d}</p>
+                  </div>
+                ))}
+              </div>
             </motion.section>
           )}
         </AnimatePresence>

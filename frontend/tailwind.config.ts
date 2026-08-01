@@ -9,9 +9,12 @@ const config: Config = {
         kb: {
           yellow: '#FFBC00',
           yellowSoft: '#FFD35C',
-          brown: '#544438',
-          brownDeep: '#3B3028',
-          ink: '#1C1814',
+          // v0 계열로 전면 개편 — 갈색 톤을 버리고 뉴트럴 블랙.
+          // 따뜻한 갈색은 아늑했지만 '제품'보다 '카페 홈페이지'로 읽혔습니다.
+          // 검정에 가까운 중립 배경 + 액센트 하나가 그 계열의 문법입니다.
+          brown: '#26262B',
+          brownDeep: '#18181B',
+          ink: '#0A0A0B',
         },
         glass: 'rgba(255,255,255,0.06)',
       },
