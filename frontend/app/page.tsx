@@ -123,7 +123,11 @@ const GREETING = '안녕하세요 사장님! 무엇이 궁금하세요?';
 
 export default function Page() {
   const [input, setInput] = useState('');
-  const [res, setRes] = useState<ChatResponse | null>(null);
+  // 대화는 쌓입니다. 새 질문이 이전 답을 지우면 "그럼 자금은?"이라고
+  // 물은 뒤 방금 본 상권 점수를 다시 볼 수 없습니다 — 상담이 아니라
+  // 검색창입니다. 질문과 답의 쌍을 차례로 남깁니다.
+  const [history, setHistory] = useState<{ q: string; res: ChatResponse }[]>([]);
+  const res = history.length ? history[history.length - 1].res : null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
@@ -160,7 +164,7 @@ export default function Page() {
       });
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
-      setRes(data);
+      setHistory((h) => [...h.slice(-7), { q, res: data }]);
       // 주소에 질문을 남깁니다. 지금 화면이 곧 공유 가능한 링크가 됩니다.
       window.history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
       setMood(data.character_motion);
@@ -175,10 +179,12 @@ export default function Page() {
   }, [loading, res?.session_id]);
 
   useEffect(() => {
-    if (res && resultRef.current) {
-      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (history.length && resultRef.current) {
+      // 마지막 문답의 시작으로. 목록 맨 위로 올리면 방금 답이 안 보입니다.
+      const last = resultRef.current.lastElementChild;
+      (last ?? resultRef.current).scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [res]);
+  }, [history.length, loading]);
 
   return (
     <LayoutGroup>
@@ -337,7 +343,7 @@ export default function Page() {
                   <BeeStage motion={mood} size={132} speech={speech} />
                 </motion.div>
                 <button
-                  onClick={() => { setRes(null); setMood('fly_happy'); setSpeech(GREETING); }}
+                  onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
                   className="mt-4 w-full rounded-lg bg-white/[.06] py-2 text-[11.5px]
                              text-white/[.55] transition hover:bg-white/[.11] hover:text-white"
                 >
@@ -370,38 +376,48 @@ export default function Page() {
                 )}
               </AnimatePresence>
 
-              {loading && <Thinking />}
-
-              <div ref={resultRef}>
-                {res && !loading && (
+              <div ref={resultRef} className="space-y-10">
+                {history.map(({ q, res: r }, i) => (
                   <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    key={r.session_id + i}
+                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                     className="mt-6 space-y-5"
                   >
-                    <Answer res={res} />
-                    <BentoGrid cards={res.cards} />
+                    {/* 사장님이 물은 말. 오른쪽 정렬 말풍선 — 대화의 흐름이
+                        위에서 아래로 읽힙니다. */}
+                    <div className="flex justify-end">
+                      <p className="max-w-[75%] rounded-2xl rounded-br-md
+                                    bg-kb-yellow/[.14] px-4 py-2.5 text-[13.5px]
+                                    leading-relaxed text-kb-yellow ring-1
+                                    ring-kb-yellow/[.25]">
+                        {q}
+                      </p>
+                    </div>
+                    <Answer res={r} />
+                    <BentoGrid cards={r.cards} />
 
-                    {/* 다음 걸음 — 상담은 한 번의 답으로 끝나지 않습니다.
-                        세션이 맥락을 기억하므로 누르기만 하면 이어집니다. */}
-                    {res.suggestions.length > 0 && (
+                    {/* 다음 걸음 — 마지막 답에만 답니다. 지나간 답의 칩은
+                        지금 맥락과 어긋날 수 있습니다. */}
+                    {i === history.length - 1 && !loading && r.suggestions.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <span className="text-[11.5px] text-white/35">이어서 물어보기</span>
-                        {res.suggestions.map((q) => (
+                        {r.suggestions.map((sq) => (
                           <button
-                            key={q}
-                            onClick={() => ask(q)}
+                            key={sq}
+                            onClick={() => ask(sq)}
                             className="rounded-full bg-kb-yellow/[.09] px-3.5 py-1.5
                                        text-[12.5px] text-kb-yellow/90 ring-1
                                        ring-kb-yellow/[.28] transition
                                        hover:bg-kb-yellow/[.18] hover:text-kb-yellow"
                           >
-                            {q}
+                            {sq}
                           </button>
                         ))}
                       </div>
                     )}
                   </motion.div>
-                )}
+                ))}
+                {loading && <Thinking />}
               </div>
             </section>
           </div>
