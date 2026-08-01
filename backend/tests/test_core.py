@@ -1,0 +1,206 @@
+"""핵심 동작이 실제로 도는지 — 외부 의존 없이 도는 시험들.
+
+무엇을 시험하는가를 골랐습니다. 함수가 호출되는지가 아니라, **이 서비스가
+약속한 것**이 지켜지는지입니다.
+
+  · 가드레일 — 단정 표현이 정말 고쳐져 나가는가
+  · 라우터(규칙) — 사장님 말투가 맞는 갈래로 가는가
+  · 분쟁 판별 — 제도 용어 없이도 유형이 잡히는가
+  · 자금 성격 — 융자가 보조금으로 둔갑하지 않는가
+  · 동네 찾기 — 부르는 이름(성수동·홍대)이 행정동으로 가는가
+  · 파생값 — 등급·방향이 점수에서 계산되는가 (한 번 조용히 깨졌던 자리)
+
+LLM·네트워크는 부르지 않습니다. 시험이 외부에 기대면 CI에서 한도·장애로
+깨지고, 깨지는 시험은 곧 무시됩니다.
+
+실행:  cd backend && .venv/bin/python -m pytest tests/ -q
+"""
+from __future__ import annotations
+
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# LLM이 켜져 있으면 라우터가 네트워크를 부릅니다. 시험은 규칙 경로만 봅니다.
+os.environ.pop("GEMINI_API_KEY", None)
+
+
+# ── 가드레일 ──────────────────────────────────────────────────────────────
+class TestGuardrail:
+    def test_확정_표현은_고쳐진다(self):
+        from app.agents.guardrail_agent import apply
+
+        safe, report = apply("사장님은 연 2.5%로 5천만원을 확실히 받으실 수 있습니다.")
+        assert not report.passed
+        assert report.rewritten
+        assert "확실히" not in safe
+
+    def test_안전한_문장은_그대로_나간다(self):
+        from app.agents.guardrail_agent import apply
+
+        text = "공고 기준 한도는 5천만원이며, 실제 조건은 심사 결과에 따라 달라집니다."
+        safe, report = apply(text)
+        assert report.passed
+        assert safe.startswith(text)
+
+    def test_고친_기록이_남는다(self):
+        """무엇을 왜 고쳤는지가 응답에 남아야 심사에서 증명이 됩니다."""
+        from app.agents.guardrail_agent import apply
+
+        _, report = apply("무조건 승인됩니다. 지금 바로 대출받으세요.")
+        assert report.violations
+        assert report.original_excerpt
+
+
+# ── 라우터 (규칙 경로) ────────────────────────────────────────────────────
+class TestRouter:
+    @pytest.mark.parametrize("q,expect", [
+        ("연남동에서 카페 열려는데 상권 어때?", "location"),
+        ("장사가 안돼서 운영자금이 급해요", "policy"),
+        ("요즘 통 손님이 없어서 월세도 빠듯해요", "policy"),
+        ("대출 설명을 제대로 안 해줬어요", "protection"),
+        ("미리 갚는데 왜 수수료를 떼나요", "protection"),
+        ("오늘 날씨 어때?", "general"),
+    ])
+    def test_말투가_맞는_갈래로_간다(self, q, expect):
+        from app.agents.router_agent import _by_words
+
+        assert _by_words(q)["intents"][0] == expect
+
+    def test_복합_질문은_여러_갈래가_켜진다(self):
+        from app.agents.router_agent import _by_words
+
+        got = _by_words("성수동 자리도 보고 자금도 알아봐줘")["intents"]
+        assert "location" in got and "policy" in got
+
+    def test_분쟁이_자금보다_앞선다(self):
+        """'대출'과 '설명'이 함께 있으면 분쟁 절차가 먼저 읽혀야 합니다."""
+        from app.agents.router_agent import _by_words
+
+        got = _by_words("대출 설명을 제대로 못 들었는데 이의제기 되나요")["intents"]
+        assert got[0] == "protection"
+
+
+# ── 분쟁 유형 판별 ────────────────────────────────────────────────────────
+class TestDispute:
+    @pytest.mark.parametrize("q,rule_part", [
+        ("설명을 제대로 안 해줬어요", "제19조"),
+        ("미리 갚는데 왜 수수료를 떼나요", "제20조"),
+        ("독촉 전화가 너무 심해요", "추심"),
+        ("대출해 준다면서 보험 가입을 강요했어요", "제21조"),
+    ])
+    def test_사장님_말로_유형이_잡힌다(self, q, rule_part):
+        from app.agents.guardrail_agent import build_protection
+
+        pack = build_protection(q, q)
+        assert any(rule_part in r for r in pack.applicable_rules), pack.applicable_rules
+
+    def test_모르면_지어내지_않는다(self):
+        from app.agents.guardrail_agent import build_protection
+
+        pack = build_protection("그냥 궁금해서요", "그냥 궁금해서요")
+        assert "분쟁조정" in pack.dispute_summary
+
+
+# ── 자금 성격 ─────────────────────────────────────────────────────────────
+class TestFunding:
+    def _read(self, title, support="", summary=""):
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "scripts"))
+        from build_policy_index import read_funding
+
+        return read_funding(title, support, summary)[0]
+
+    def test_제목의_융자가_본문의_보증을_이긴다(self):
+        """실제로 두 번 틀렸던 자리입니다 — 본문에 '보증서'가 스치면
+        「○○자금 융자 계획」이 보증으로 둔갑했습니다."""
+        assert self._read(
+            "2026년 소상공인시장진흥자금 융자 계획 공고",
+            summary="신청 시 보증서 발급이 필요할 수 있습니다 보증 보증") == "융자"
+
+    def test_이차보전이_융자보다_먼저다(self):
+        assert self._read("소상공인 이차보전 융자 지원") == "이차보전"
+
+    def test_모르면_기타다(self):
+        assert self._read("2026년 참여기업 모집") == "기타"
+
+
+# ── 파생값 (조용히 깨졌던 자리) ───────────────────────────────────────────
+class TestDerived:
+    def test_등급은_점수에서_나온다(self):
+        """pydantic 기본값이 검증을 건너뛰어 86.5점이 C로 나간 적이 있습니다."""
+        from app.models.schemas import LocationScore
+
+        assert LocationScore(region_name="x", total_score=92).grade == "S"
+        assert LocationScore(region_name="x", total_score=60.8).grade == "B"
+        assert LocationScore(region_name="x", total_score=30).grade == "D"
+
+    def test_방향은_기여에서_나온다(self):
+        from app.models.schemas import FactorContribution
+
+        f = FactorContribution(key="k", label="l", value=1, contribution=-12.9)
+        assert f.direction == "down"
+
+
+# ── 동네·업종 찾기 ────────────────────────────────────────────────────────
+class TestMarket:
+    @pytest.mark.parametrize("q,sgg,dong_prefix", [
+        ("서울 마포구 연남동", "마포구", "연남동"),
+        ("성수동", "성동구", "성수"),      # 행정동은 성수1가1동 …으로 쪼개져 있음
+        ("홍대", "마포구", "서교동"),       # 부르는 이름 ≠ 행정동 이름
+        ("역삼동", "강남구", "역삼"),
+    ])
+    def test_부르는_이름이_행정동으로_간다(self, q, sgg, dong_prefix):
+        from app.services import market_data
+
+        d = market_data.find_dong(q)
+        assert d and d["sgg"] == sgg and d["dong"].startswith(dong_prefix)
+
+    def test_없는_동네는_None(self):
+        from app.services import market_data
+
+        assert market_data.find_dong("우주정거장") is None
+
+    def test_업종_별칭(self):
+        from app.services import market_data
+
+        assert market_data.find_industry("치킨집")[0] == "I21006"
+        assert market_data.find_industry("커피숍")[0] == "I21201"
+
+    def test_점포_좌표는_행정동_경계_안에_있다(self):
+        """이진 파일을 잘못 읽으면 좌표가 엉뚱한 곳을 가리킵니다.
+        연남동 카페 204곳이 전부 연남동 근방(±3km)에 있어야 합니다."""
+        from app.services import market_data
+
+        d = market_data.find_dong("서울 마포구 연남동")
+        pts = market_data.store_points(d["code"], "I21201")
+        assert pts["total"] == d["small"]["I21201"]
+        for la, lo in pts["points"]:
+            assert abs(la - d["lat"]) < 0.03 and abs(lo - d["lon"]) < 0.03
+
+
+# ── 검색 계약 ─────────────────────────────────────────────────────────────
+class TestPolicySearch:
+    def test_마감된_공고는_안_나온다(self):
+        from app.services import policy_search
+
+        for d in policy_search.search("소상공인 지원", k=10):
+            assert d["open_status"] != "closed"
+
+    def test_지역이_어긋나면_안_나온다(self):
+        from app.services import policy_search
+
+        for d in policy_search.search("소상공인 경영안정자금", region="서울", k=10):
+            assert not d["regions"] or "서울" in d["regions"]
+
+    def test_추천마다_이유가_붙는다(self):
+        from app.services import policy_search
+
+        res = policy_search.search("장사가 안돼서 운영자금이 급해요", k=5)
+        assert res
+        for d in res:
+            assert d["match_reasons"]
+            assert d["source_url"].startswith("https://www.bizinfo.go.kr")
