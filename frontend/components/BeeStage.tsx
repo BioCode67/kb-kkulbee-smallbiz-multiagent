@@ -13,7 +13,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion as m } from 'framer-motion';
-import BeeCharacter from './BeeCharacter';
+import BeeCharacter3D from './BeeCharacter3D';
 import type { CharacterMotion } from '@/lib/types';
 
 const SCENE_URL = process.env.NEXT_PUBLIC_SPLINE_SCENE || '';
@@ -90,7 +90,7 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
             }`}
           />
         )}
-        {!spline && <BeeCharacter motion={motion} size={size} />}
+        {!spline && <BeeCharacter3D motion={motion} size={size} />}
       </div>
     </div>
   );
