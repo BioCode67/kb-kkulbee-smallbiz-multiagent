@@ -26,6 +26,14 @@ const SPAN: Record<number, string> = {
   6: 'md:col-span-6',
 };
 
+const BAR: Record<string, string> = {
+  yellow: 'bg-gradient-to-r from-kb-yellow to-kb-yellow/20',
+  brown: 'bg-gradient-to-r from-white/25 to-transparent',
+  green: 'bg-gradient-to-r from-emerald-400 to-emerald-400/15',
+  red: 'bg-gradient-to-r from-rose-400 to-rose-400/15',
+  neutral: 'bg-gradient-to-r from-white/20 to-transparent',
+};
+
 const ACCENT: Record<string, string> = {
   yellow: 'ring-kb-yellow/[.35] bg-kb-yellow/[.07]',
   brown: 'ring-white/10 bg-white/[.04]',
@@ -47,9 +55,14 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.06, duration: 0.42, ease: [0.22, 0.9, 0.3, 1] }}
-          className={`${SPAN[c.span]} rounded-2xl p-5 shadow-glass ring-1
-                      backdrop-blur-xl ${ACCENT[c.accent] ?? ACCENT.neutral}`}
+          className={`${SPAN[c.span]} relative overflow-hidden rounded-2xl p-5
+                      shadow-glass ring-1 backdrop-blur-xl
+                      ${ACCENT[c.accent] ?? ACCENT.neutral}`}
         >
+          {/* 카드 머리의 가는 색띠. 카드가 여럿일 때 종류를 색으로 먼저
+              구분하게 해 줍니다 — 제목을 읽기 전에 눈이 갈래를 잡습니다. */}
+          <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px]
+                                        ${BAR[c.accent] ?? BAR.neutral}`} />
           <header className="mb-4">
             <h3 className="text-[15px] font-bold tracking-tight text-white">{c.title}</h3>
             {c.subtitle && (
@@ -88,42 +101,83 @@ function CardBody({ card }: { card: BentoCard }) {
 }
 
 /* ── 상권 점수 ─────────────────────────────────────────────────────────── */
+
+/** 등급별 색. 노랑이 진할수록 좋은 자리입니다. */
+const GRADE_TONE: Record<string, { ring: string; text: string; label: string }> = {
+  S: { ring: '#FFBC00', text: 'text-kb-yellow', label: '아주 좋은 자리' },
+  A: { ring: '#FFD35C', text: 'text-kb-yellow', label: '좋은 자리' },
+  B: { ring: '#E8DCC6', text: 'text-white', label: '무난한 자리' },
+  C: { ring: '#B9A88F', text: 'text-white/70', label: '따져 볼 자리' },
+  D: { ring: '#8A7866', text: 'text-white/55', label: '신중할 자리' },
+};
+
 function ScoreCard({ s }: { s: LocationScore }) {
-  const gradeColor =
-    s.grade === 'S' || s.grade === 'A' ? 'text-kb-yellow'
-    : s.grade === 'B' ? 'text-white' : 'text-white/60';
+  const g = GRADE_TONE[s.grade] ?? GRADE_TONE.C;
+
+  // 원형 게이지. 가로 막대는 "몇 점"만 말하지만, 원은 0과 100 사이 어디쯤인지를
+  // 한눈에 보여 줍니다. 눈금(50점)을 함께 그어 두면 '중간보다 위인가'가
+  // 숫자를 읽기 전에 들어옵니다.
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  const filled = (Math.min(100, Math.max(0, s.total_score)) / 100) * C;
 
   return (
     <div>
-      <div className="flex items-end gap-2">
-        <span className="text-[44px] font-extrabold leading-none tracking-tighter text-white
-                         [font-variant-numeric:tabular-nums]">
-          {s.total_score.toFixed(1)}
-        </span>
-        <span className="pb-1.5 text-sm text-white/40">/ 100</span>
-        <span className={`ml-auto pb-1 text-2xl font-black ${gradeColor}`}>{s.grade}</span>
+      {/* 게이지를 위에, 등급을 아래에 둡니다. 가로로 나란히 놓았더니 카드가
+          좁아(6칸 중 2칸) 오른쪽 글이 세 줄로 끼었습니다. 세로가 낫습니다. */}
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          <svg width="132" height="132" viewBox="0 0 132 132" className="-rotate-90">
+            <circle cx="66" cy="66" r={R} fill="none"
+                    stroke="rgba(255,255,255,.09)" strokeWidth="11" />
+            <circle cx="66" cy="66" r={R} fill="none"
+                    stroke={g.ring} strokeWidth="11" strokeLinecap="round"
+                    strokeDasharray={`${filled} ${C - filled}`}
+                    style={{ transition: 'stroke-dasharray .9s cubic-bezier(.22,.9,.3,1)' }} />
+            {/* 전국 한가운데(50점) 눈금. 이게 있어야 '중간보다 위인가'가
+                숫자를 읽기 전에 들어옵니다. */}
+            <line x1="66" y1="6" x2="66" y2="19"
+                  stroke="rgba(255,255,255,.55)" strokeWidth="2"
+                  transform="rotate(180 66 66)" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-[31px] font-extrabold leading-none tracking-tight
+                             text-white [font-variant-numeric:tabular-nums]">
+              {s.total_score.toFixed(1)}
+            </span>
+            <span className="mt-1 text-[10.5px] text-white/35">/ 100점</span>
+          </div>
+        </div>
+
+        <div className="mt-2.5 flex items-baseline gap-2">
+          <span className={`text-[26px] font-black leading-none ${g.text}`}>{s.grade}</span>
+          <span className="text-[13px] font-semibold text-white/80">{g.label}</span>
+        </div>
+
+        {s.peer_median != null && (
+          <p className="mt-1.5 text-center text-[11.5px] leading-snug text-white/45">
+            전국 행정동 3,450곳의 한가운데가 {s.peer_median}점
+            <span className={s.total_score >= s.peer_median
+              ? ' text-emerald-300/85' : ' text-amber-300/80'}>
+              {' · '}{s.total_score >= s.peer_median ? '중간 이상' : '중간 이하'}
+            </span>
+          </p>
+        )}
       </div>
 
-      {s.peer_median != null && (
-        <div className="mt-4">
-          <div className="relative h-1.5 rounded-full bg-white/10">
-            <div className="absolute inset-y-0 left-0 rounded-full bg-kb-yellow"
-                 style={{ width: `${Math.min(100, s.total_score)}%` }} />
-            <div className="absolute -top-1 h-3.5 w-0.5 bg-white/50"
-                 style={{ left: `${Math.min(100, s.peer_median)}%` }} />
-          </div>
-          {/* 50점은 전국 행정동의 한가운데입니다. 요인마다 백분위로 재고
-              중간값을 0점 기여로 맞춰 두었으므로, 중간 상권이 정확히 50점을
-              받습니다. 임의로 정한 기준선이 아닙니다. */}
-          <p className="mt-2 text-[11px] text-white/40">
-            전국 행정동 3,450곳의 한가운데가 {s.peer_median}점
-            {s.total_score >= s.peer_median ? ' · 중간 이상' : ' · 중간 이하'}
-          </p>
+      {s.same_industry_count != null && (
+        <div className="mt-4 flex items-center justify-between rounded-xl
+                        bg-black/25 px-3.5 py-3">
+          <span className="text-[12px] text-white/55">이 동네 {s.industry}</span>
+          <span className="text-[16px] font-bold text-white
+                           [font-variant-numeric:tabular-nums]">
+            {s.same_industry_count.toLocaleString()}곳
+          </span>
         </div>
       )}
 
       {/* 표본으로 낸 점수를 실측처럼 보이게 두지 않습니다 */}
-      <p className={`mt-4 rounded-lg px-2.5 py-2 text-[11px] leading-relaxed ${
+      <p className={`mt-3 rounded-lg px-2.5 py-2 text-[11px] leading-relaxed ${
         s.data_source === 'public_api'
           ? 'bg-emerald-400/10 text-emerald-200/80'
           : 'bg-amber-400/10 text-amber-200/75'}`}>

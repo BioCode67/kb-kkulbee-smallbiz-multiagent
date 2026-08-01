@@ -290,14 +290,71 @@ function AskBox({ value, onChange, onSubmit, loading }: {
   );
 }
 
+/**
+ * 기다리는 동안 무엇을 하고 있는지 보여 줍니다.
+ *
+ * 회색 상자를 깜빡이는 스켈레톤은 "곧 뭔가 나온다"는 것 말고는 아무것도
+ * 말해 주지 않습니다. 이 서비스는 에이전트 넷이 실제로 순서대로 도는데,
+ * 그 사실이 기다림의 이유가 됩니다. 2~3초가 '느리다'가 아니라 '자료를
+ * 뒤지는 중'으로 읽힙니다.
+ *
+ * 진행 시각은 실제 소요 시간에 맞춰 두었습니다 — 규칙 라우팅 20ms,
+ * 상권·자금 검색 수십 ms, 문장 생성이 대부분(1~3초)입니다.
+ */
+const STEPS = [
+  { at: 0, label: '질문을 읽는 중', hint: '어느 갈래인지, 어느 동네·업종인지' },
+  { at: 350, label: '실측 자료를 뒤지는 중', hint: '점포 272만 개 · 공고 900건' },
+  { at: 1100, label: '근거를 정리하는 중', hint: '무엇이 그 결론을 만들었는지' },
+  { at: 1900, label: '금소법 검사 중', hint: '나가는 문장은 예외 없이 거칩니다' },
+];
+
 function Thinking() {
+  const [ms, setMs] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    const id = setInterval(() => setMs(performance.now() - t0), 120);
+    return () => clearInterval(id);
+  }, []);
+
+  const done = STEPS.filter((s) => ms >= s.at).length;
+
   return (
-    <div className="mt-6 space-y-3">
-      <div className="glass h-[84px] animate-pulse" />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="glass h-[176px] animate-pulse" />
-        <div className="glass h-[176px] animate-pulse md:col-span-2" />
-      </div>
+    <div className="surface-1 mt-6 p-5">
+      <ol className="space-y-3">
+        {STEPS.map((s, i) => {
+          const state = i < done - 1 ? 'done' : i === done - 1 ? 'now' : 'wait';
+          return (
+            <li key={s.label} className="flex items-start gap-3">
+              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center
+                                rounded-full text-[10px] font-bold transition-colors ${
+                state === 'done' ? 'bg-kb-yellow/20 text-kb-yellow'
+                : state === 'now' ? 'bg-kb-yellow text-kb-ink'
+                : 'bg-white/[.07] text-white/25'}`}>
+                {state === 'done' ? '✓' : i + 1}
+              </span>
+              <div className="min-w-0">
+                <p className={`text-[13px] font-medium transition-colors ${
+                  state === 'wait' ? 'text-white/25' : 'text-white/85'}`}>
+                  {s.label}
+                  {state === 'now' && (
+                    <span className="ml-1.5 inline-flex gap-0.5 align-middle">
+                      {[0, 1, 2].map((d) => (
+                        <i key={d}
+                           className="h-1 w-1 animate-bounce rounded-full bg-kb-yellow"
+                           style={{ animationDelay: `${d * 0.13}s` }} />
+                      ))}
+                    </span>
+                  )}
+                </p>
+                <p className={`mt-0.5 text-[11px] transition-colors ${
+                  state === 'wait' ? 'text-white/15' : 'text-white/40'}`}>
+                  {s.hint}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
@@ -326,36 +383,56 @@ function Answer({ text, elapsed }: { text: string; elapsed: number }) {
   );
 }
 
-/* ── 어느 에이전트가 돌았는지 ──────────────────────────────────────────── */
+/* ── 어느 에이전트가 돌았는지 ──────────────────────────────────────────
+ *
+ * 멀티에이전트라고 적어 두는 것과, 어느 에이전트가 실제로 돌았는지 보여
+ * 주는 것은 다릅니다. 질문마다 켜지는 갈래가 달라지므로 이 목록도 매번
+ * 달라집니다 — 그 변화가 "정말 라우팅이 되는가"에 대한 답입니다.
+ */
 function AgentTrace({ res }: { res: ChatResponse }) {
   return (
     <div className="surface-1 mt-4 p-4">
       <p className="text-[10.5px] font-semibold uppercase tracking-wider text-white/[.4]">
         거쳐 간 에이전트
       </p>
-      <ol className="mt-2.5 space-y-1.5">
+
+      <ol className="relative mt-3 space-y-0">
+        {/* 세로줄 — 순서대로 흘렀다는 것이 선 하나로 읽힙니다 */}
+        <span aria-hidden
+              className="absolute left-[9px] top-2 bottom-4 w-px bg-white/[.12]" />
         {res.agent_trace.map((a, i) => (
-          <li key={`${a}-${i}`} className="flex items-center gap-2 text-[12px]">
-            <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full
-                             bg-kb-yellow/20 text-[9px] font-bold text-kb-yellow">
+          <li key={`${a}-${i}`} className="relative flex items-center gap-2.5 py-1.5">
+            <span className={`z-10 grid h-[19px] w-[19px] shrink-0 place-items-center
+                              rounded-full text-[9.5px] font-bold ring-2 ring-kb-ink ${
+              a === 'guardrail'
+                ? 'bg-rose-400/25 text-rose-200'
+                : 'bg-kb-yellow/25 text-kb-yellow'}`}>
               {i + 1}
             </span>
-            <span className={a === 'guardrail' ? 'text-rose-200/80' : 'text-white/[.65]'}>
+            <span className={`text-[12.5px] ${
+              a === 'guardrail' ? 'text-rose-200/85' : 'text-white/[.75]'}`}>
               {AGENT_LABEL[a] ?? a}
             </span>
           </li>
         ))}
       </ol>
+
       {res.guardrail && (
-        <p className={`mt-3 rounded-lg px-2.5 py-2 text-[11px] leading-snug ${
+        <p className={`mt-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2
+                       text-[11px] leading-snug ${
           res.guardrail.passed
-            ? 'bg-emerald-400/10 text-emerald-200/75'
-            : 'bg-rose-400/10 text-rose-200/80'}`}>
+            ? 'bg-emerald-400/10 text-emerald-200/80'
+            : 'bg-rose-400/10 text-rose-200/85'}`}>
+          <span className="mt-px">{res.guardrail.passed ? '✓' : '!'}</span>
           {res.guardrail.passed
             ? '금소법 위반 표현 없음'
             : `단정 표현 ${res.guardrail.violations.length}건을 고쳐 내보냈습니다`}
         </p>
       )}
+
+      <p className="mt-2.5 text-right text-[10px] text-white/25">
+        {res.elapsed_ms}ms
+      </p>
     </div>
   );
 }
