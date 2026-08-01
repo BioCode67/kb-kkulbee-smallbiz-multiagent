@@ -16,8 +16,9 @@ const config: Config = {
         glass: 'rgba(255,255,255,0.06)',
       },
       fontFamily: {
-        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont',
-               'Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif'],
+        sans: ['Pretendard Variable', 'Pretendard', '-apple-system',
+               'BlinkMacSystemFont', 'Apple SD Gothic Neo', 'Malgun Gothic',
+               'sans-serif'],
       },
       boxShadow: {
         glass: '0 1px 0 rgba(255,255,255,.08) inset, 0 18px 48px rgba(0,0,0,.34)',

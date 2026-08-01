@@ -232,7 +232,8 @@ class BentoCard(BaseModel):
     kind: BentoCardKind
     title: str
     subtitle: str = ""
-    span: Literal[1, 2, 3] = Field(default=1, description="Bento 격자에서 차지할 칸")
+    span: Literal[1, 2, 3, 4, 5, 6] = Field(
+        default=2, description="Bento 격자(6칸)에서 차지할 칸")
     accent: Literal["yellow", "brown", "green", "red", "neutral"] = "neutral"
     payload: dict = Field(default_factory=dict)
 

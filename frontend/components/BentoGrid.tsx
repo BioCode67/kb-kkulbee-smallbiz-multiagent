@@ -15,10 +15,15 @@ import type {
 } from '@/lib/types';
 import LocationMap from './LocationMap';
 
+// 서버가 정한 폭(1~6)을 격자 칸으로 옮깁니다. 무엇을 얼마나 넓게 보여
+// 줄지는 서버가 압니다 — 지원사업이 네 건이면 넓게, 한 건이면 좁게.
 const SPAN: Record<number, string> = {
   1: 'md:col-span-1',
   2: 'md:col-span-2',
   3: 'md:col-span-3',
+  4: 'md:col-span-4',
+  5: 'md:col-span-5',
+  6: 'md:col-span-6',
 };
 
 const ACCENT: Record<string, string> = {
@@ -31,8 +36,11 @@ const ACCENT: Record<string, string> = {
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
+  // 6칸 격자를 씁니다. 3칸이었을 때는 폭 2짜리 카드(지도·지원사업)가 늘
+  // 화면의 3분의 2만 차지하고 오른쪽 3분의 1이 통째로 비었습니다. 6칸이면
+  // 2·3·4·6 어느 폭이든 만들 수 있어 남는 자리가 안 생깁니다.
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-6">
       {cards.map((c, i) => (
         <motion.section
           key={c.id}

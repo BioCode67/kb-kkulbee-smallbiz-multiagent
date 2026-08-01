@@ -300,34 +300,34 @@ def _cards(state: GraphState) -> list[BentoCard]:
     if loc:
         cards.append(BentoCard(
             id="score", kind=BentoCardKind.SCORE, title="상권 점수",
-            subtitle=f"{loc.region_name} · {loc.industry}", span=1,
+            subtitle=f"{loc.region_name} · {loc.industry}", span=2,
             accent="yellow" if loc.total_score >= 65 else "neutral",
             payload=loc.model_dump(mode="json")))
         cards.append(BentoCard(
             id="factors", kind=BentoCardKind.FACTORS, title="점수를 만든 요인",
-            subtitle="기준 50점에서 각 요인이 올리고 내린 몫", span=2,
+            subtitle="기준 50점에서 각 요인이 올리고 내린 몫", span=4,
             accent="brown",
             payload={"base": loc.base_score,
                      "factors": [f.model_dump(mode="json") for f in loc.factors]}))
     if state.get("pins"):
         cards.append(BentoCard(
             id="map", kind=BentoCardKind.MAP, title="주변 상권 비교",
-            subtitle="점수 하나만으로는 높은지 알 수 없습니다", span=2,
+            subtitle="점수 하나만으로는 높은지 알 수 없습니다", span=3,
             payload={"pins": [p.model_dump(mode="json") for p in state["pins"]]}))
     if state.get("policies"):
         cards.append(BentoCard(
             id="policy", kind=BentoCardKind.POLICY, title="맞는 지원사업",
-            subtitle="추천 이유를 함께 적었습니다", span=2, accent="green",
+            subtitle="추천 이유를 함께 적었습니다", span=3, accent="green",
             payload={"items": [p.model_dump(mode="json") for p in state["policies"]]}))
     pack = state.get("protection")
     if pack:
         cards.append(BentoCard(
             id="terms", kind=BentoCardKind.TERMS, title="어려운 말 풀이",
-            subtitle="이 대화에 나온 용어만 골랐습니다", span=1,
+            subtitle="이 대화에 나온 용어만 골랐습니다", span=2,
             payload={"terms": [t.model_dump(mode="json") for t in pack.terms]}))
         cards.append(BentoCard(
             id="procedure", kind=BentoCardKind.PROCEDURE, title="분쟁 해결 4단계",
-            subtitle="준비 서류와 걸리는 시간까지", span=2, accent="brown",
+            subtitle="준비 서류와 걸리는 시간까지", span=4, accent="brown",
             payload={"steps": [s.model_dump(mode="json") for s in pack.procedure],
                      "rules": pack.applicable_rules,
                      "checklist": pack.document_checklist}))
@@ -335,7 +335,7 @@ def _cards(state: GraphState) -> list[BentoCard]:
     if rep and rep.violations:
         cards.append(BentoCard(
             id="notice", kind=BentoCardKind.NOTICE, title="표현을 고쳤습니다",
-            subtitle="금융소비자보호법에 따라", span=1, accent="red",
+            subtitle="금융소비자보호법에 따라", span=2, accent="red",
             payload=rep.model_dump(mode="json")))
     return cards
 

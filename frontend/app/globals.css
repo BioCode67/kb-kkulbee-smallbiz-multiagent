@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── 글꼴 ────────────────────────────────────────────────────────────────
+ *
+ * Pretendard를 씁니다. 지금까지는 CSS에 이름만 적어 두고 실제로 받아 오지
+ * 않아, 사장님 컴퓨터에 그 글꼴이 없으면 시스템 기본으로 떨어졌습니다.
+ * 윈도우에서는 맑은 고딕이 나오는데 자간과 굵기가 달라 화면이 통째로
+ * 다르게 보입니다. 디자인을 맞춰 놓고 글꼴을 안 받아 오면 소용이 없습니다.
+ *
+ * 가변 글꼴(Variable)이라 굵기 하나하나를 따로 받지 않아도 됩니다.
+ * font-display: swap이라 글꼴이 늦어도 글자가 먼저 보입니다 — 빈 화면을
+ * 보여 주는 것보다 낫습니다.
+ */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  /* 저장소에 직접 넣었습니다. CDN을 걸어 두었더니 경로가 404였고, 맞는
+     주소를 찾아도 심사 현장에서 그쪽이 느리면 글꼴이 안 옵니다. 남의 서버
+     사정에 우리 화면이 걸려 있을 이유가 없습니다.
+
+     원본 2.06MB에서 실제로 쓰는 글자만 남겨 0.53MB가 됐습니다. 한글 음절
+     11,172자를 전부 넣으면 대부분이 평생 안 쓰이는 글자입니다. 화면에 있는
+     글자 + 받침이 흔한 음절 2,985자만 남겼습니다. */
+  src: url('/pretendard-subset.woff2') format('woff2-variations');
+}
+
 @layer base {
   :root { color-scheme: dark; }
 
@@ -20,16 +46,20 @@
     z-index: -1;
     @apply bg-honey;
   }
+  /* 벌집 결. 화면 위쪽에만 옅게 깔고 아래로 갈수록 사라집니다.
+     전면에 균일하게 깔면 글자 뒤에서 어른거려 읽기를 방해합니다. */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
-    opacity: .04;
+    opacity: .05;
     background-image:
       linear-gradient(30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%),
       linear-gradient(-30deg, transparent 47%, #FFBC00 47%, #FFBC00 53%, transparent 53%);
     background-size: 46px 80px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 62%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 62%);
   }
 
   ::selection { @apply bg-kb-yellow/30; }
@@ -45,6 +75,25 @@
 }
 
 @layer components {
+  /* ── 표면 위계 ──────────────────────────────────────────────────────
+   *
+   * 처음에는 모든 카드가 .glass 하나를 같이 썼습니다. 그러니 화면 전체가
+   * 같은 밝기의 판으로 덮여 무엇이 중요한지 눈이 못 고릅니다. 위계를
+   * 세 단으로 나눕니다 — 바탕에 가까울수록 어둡고, 손이 닿는 것일수록
+   * 밝고 테두리가 또렷합니다.
+   */
+  .surface-1 {
+    @apply rounded-2xl bg-white/[.035] ring-1 ring-white/[.07]
+           shadow-[0_1px_0_rgba(255,255,255,.05)_inset,0_10px_30px_-12px_rgba(0,0,0,.6)];
+  }
+  .surface-2 {
+    @apply rounded-2xl bg-white/[.06] ring-1 ring-white/[.11]
+           shadow-[0_1px_0_rgba(255,255,255,.08)_inset,0_18px_44px_-16px_rgba(0,0,0,.7)];
+  }
+  .surface-3 {
+    @apply rounded-2xl bg-white/[.09] ring-1 ring-white/[.16]
+           shadow-[0_1px_0_rgba(255,255,255,.12)_inset,0_24px_60px_-20px_rgba(0,0,0,.8)];
+  }
   .glass {
     @apply rounded-2xl bg-white/[.045] shadow-glass ring-1 ring-white/10 backdrop-blur-xl;
   }
