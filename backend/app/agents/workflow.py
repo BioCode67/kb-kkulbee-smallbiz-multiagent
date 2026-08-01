@@ -325,6 +325,15 @@ def _cards(state: GraphState) -> list[BentoCard]:
             accent="brown",
             payload={"base": loc.base_score,
                      "factors": [f.model_dump(mode="json") for f in loc.factors]}))
+    if loc and (loc.gaps or loc.crowded):
+        cards.append(BentoCard(
+            id="gaps", kind=BentoCardKind.GAPS, title="이 동네에 덜 나온 업종",
+            # 폭을 3으로 두었더니 카드 안을 다시 둘로 나누면서 한 칸이
+            # 200px밖에 안 됐습니다. 이름·막대·숫자가 겹쳐 막대가 사라졌습니다.
+            subtitle="비슷한 규모 동네와 견줘 본 것입니다", span=6, accent="green",
+            payload={"gaps": [g.model_dump(mode="json") for g in loc.gaps],
+                     "crowded": [g.model_dump(mode="json") for g in loc.crowded],
+                     "region": loc.region_name}))
     if state.get("pins"):
         cards.append(BentoCard(
             id="map", kind=BentoCardKind.MAP, title="주변 상권 비교",

@@ -10,7 +10,7 @@
 
 import { motion } from 'framer-motion';
 import type {
-  BentoCard, FactorContribution, GuardrailReport, LocationScore,
+  BentoCard, FactorContribution, GuardrailReport, IndustryGap, LocationScore,
   PolicyMatch, ProcedureStep, TermEntry,
 } from '@/lib/types';
 import LocationMap from './LocationMap';
@@ -96,6 +96,8 @@ function CardBody({ card }: { card: BentoCard }) {
                                             rules={p.rules as unknown as string[]}
                                             checklist={p.checklist as unknown as string[]} />;
     case 'notice': return <NoticeCard r={p as unknown as GuardrailReport} />;
+    case 'gaps': return <GapsCard gaps={p.gaps as unknown as IndustryGap[]}
+                                  crowded={p.crowded as unknown as IndustryGap[]} />;
     default: return null;
   }
 }
@@ -250,6 +252,77 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           추정해 채우지 않았습니다.
         </p>
       </div>
+    </div>
+  );
+}
+
+/* ── 이 동네에 덜 나온 업종 ────────────────────────────────────────────
+ *
+ * "카페가 204개라 경쟁이 세다"까지는 말했는데, 그럼 무엇을 하라는 것인지는
+ * 답하지 않고 있었습니다. 입지 상담의 절반은 "여기서 뭘 하면 되나"입니다.
+ *
+ * 다만 '기회'라고 단정하지 않습니다. 적은 데는 이유가 있을 수 있습니다.
+ * 사실(몇 곳 있고 비슷한 규모 동네는 평균 몇 곳)만 놓고 판단은 맡깁니다.
+ */
+function GapsCard({ gaps, crowded }: { gaps: IndustryGap[]; crowded: IndustryGap[] }) {
+  const Row = ({ g, kind }: { g: IndustryGap; kind: 'gap' | 'crowd' }) => {
+    // 막대는 '기대 대비 몇 배'를 보여 줍니다. 2배까지를 폭 100%로 잡아
+    // 부족(왼쪽 짧음)과 과밀(오른쪽 김)이 같은 자로 읽히게 했습니다.
+    const w = Math.min(100, (g.ratio / 2) * 100);
+    return (
+      <li className="flex items-center gap-2.5 py-[5px]">
+        <span className="w-[124px] shrink-0 truncate text-[12px] text-white/[.82]">
+          {g.name}
+        </span>
+        <div className="relative h-[6px] flex-1 rounded-full bg-white/[.07]">
+          <div className={`absolute inset-y-0 left-0 rounded-full ${
+            kind === 'gap' ? 'bg-emerald-400/75' : 'bg-rose-400/75'}`}
+               style={{ width: `${Math.max(4, w)}%` }} />
+          {/* 기대치(1배) 자리 눈금 */}
+          <span className="absolute inset-y-[-3px] w-px bg-white/30" style={{ left: '50%' }} />
+        </div>
+        <span className="w-[92px] shrink-0 whitespace-nowrap text-right text-[11px]
+                         text-white/45 [font-variant-numeric:tabular-nums]">
+          <b className="text-white/85">{g.here}</b>
+          <span className="text-white/30"> / </span>{g.expected}
+        </span>
+      </li>
+    );
+  };
+
+  return (
+    <div className="grid gap-x-8 gap-y-5 md:grid-cols-2">
+      <div>
+        <p className="mb-1.5 text-[12px] font-bold text-emerald-300/90">
+          비슷한 규모 동네보다 적은 업종
+          <span className="ml-1.5 font-normal text-white/30">이 동네 / 평균</span>
+        </p>
+        {gaps.length ? (
+          <ul>{gaps.slice(0, 5).map((g) => <Row key={g.code} g={g} kind="gap" />)}</ul>
+        ) : (
+          <p className="py-3 text-[12px] leading-relaxed text-white/40">
+            눈에 띄게 적은 업종이 없습니다. 웬만한 업종이 이미 다 들어와 있는
+            상권입니다.
+          </p>
+        )}
+      </div>
+      <div>
+        <p className="mb-1.5 text-[12px] font-bold text-rose-300/90">
+          이미 많이 들어와 있는 업종
+          <span className="ml-1.5 font-normal text-white/30">이 동네 / 평균</span>
+        </p>
+        {crowded.length ? (
+          <ul>{crowded.slice(0, 5).map((g) => <Row key={g.code} g={g} kind="crowd" />)}</ul>
+        ) : (
+          <p className="py-3 text-[12px] text-white/40">특별히 몰린 업종이 없습니다.</p>
+        )}
+      </div>
+
+      <p className="text-[11px] leading-relaxed text-white/[.38] md:col-span-2">
+        점포 수가 비슷한 전국 동네들과 견준 값입니다. 적다고 해서 반드시 기회는
+        아닙니다 — 임대료나 상권 성격 때문에 안 들어온 것일 수도 있습니다.
+        무엇을 알아볼지 정하는 출발점으로 보시면 됩니다.
+      </p>
     </div>
   );
 }

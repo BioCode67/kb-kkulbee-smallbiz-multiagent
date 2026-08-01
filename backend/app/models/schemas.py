@@ -99,6 +99,10 @@ class LocationScore(BaseModel):
     industry_code: str | None = Field(default=None, description="업종 소분류 코드")
     same_industry_count: int | None = Field(default=None, description="동 안 동종업종 점포 수")
 
+    # 이 동네에 덜 나온 업종 / 이미 넘치는 업종
+    gaps: list["IndustryGap"] = Field(default_factory=list)
+    crowded: list["IndustryGap"] = Field(default_factory=list)
+
     peer_median: float | None = Field(default=None, description="같은 업종 상권 중앙값")
     data_source: Literal["public_api", "fallback"] = "fallback"
     note: str = ""
@@ -117,6 +121,21 @@ class LocationScore(BaseModel):
             "S" if s >= 85 else "A" if s >= 72 else "B" if s >= 58
             else "C" if s >= 45 else "D")
         return self
+
+
+class IndustryGap(BaseModel):
+    """이 동네에 상대적으로 적거나 많은 업종 하나.
+
+    '기회'라고 단정하지 않습니다. 적은 데는 이유가 있을 수 있습니다 —
+    임대료, 상권 성격, 배후 인구. 그래서 '몇 곳 있고 비슷한 규모 동네는
+    평균 몇 곳'이라는 사실만 싣고 판단은 사장님께 맡깁니다.
+    """
+
+    code: str
+    name: str
+    here: int = Field(description="이 동네에 있는 수")
+    expected: float = Field(description="비슷한 규모 동네의 평균")
+    ratio: float = Field(description="here / expected")
 
 
 class MapPin(BaseModel):
@@ -224,6 +243,7 @@ class BentoCardKind(str, Enum):
     TERMS = "terms"
     PROCEDURE = "procedure"
     NOTICE = "notice"
+    GAPS = "gaps"
 
 
 class BentoCard(BaseModel):

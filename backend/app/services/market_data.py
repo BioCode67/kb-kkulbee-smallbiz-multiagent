@@ -285,3 +285,131 @@ def store_points(dong_code: str, industry_code: str | None = None,
 
     return {"points": out, "total": total, "shown": len(out),
             "capped": total > len(out)}
+
+
+# ── 기회 업종 ─────────────────────────────────────────────────────────────
+# 소상공인이 여는 업종의 대분류 — 음식 · 소매 · 수리/개인서비스.
+# 나머지(과학기술·부동산·보건의료·시설관리)는 자격이나 자본이 다른 영역입니다.
+_OPENABLE_LARGE = ("I2", "G2", "S2")
+
+# 대분류가 맞아도 소상공인 얘기가 아닌 것들. 자격증·대형자본·B2B 쪽입니다.
+_NOT_OPENABLE = (
+    "주유소", "충전소", "자동차", "의료기기", "도매", "엔지니어링", "사료",
+    "행정사", "중개", "임대업", "총포", "주류 도매", "농약", "비료", "석유",
+    "건설", "철물", "산업용", "기계", "전자부품", "화학", "폐기물",
+    "장례", "구내식당", "연료", "목욕탕", "사우나", "예식", "웨딩",
+)
+
+
+def _openable(code: str, name: str) -> bool:
+    if code[:2] not in _OPENABLE_LARGE:
+        return False
+    return not any(w in name for w in _NOT_OPENABLE)
+
+
+def opportunities(code: str, k: int = 6) -> list[dict]:
+    """이 동네에 **비어 있는 업종**을 찾습니다.
+
+    "카페가 204개라 경쟁이 세다"까지는 말했는데, 그럼 무엇을 하라는 것인지는
+    답하지 않고 있었습니다. 입지 상담의 절반은 "여기서 뭘 하면 되나"입니다.
+
+    재는 방법은 이렇습니다. 상권 규모가 비슷한 동네들이 어떤 업종을 몇 개씩
+    갖고 있는지 보고, 이 동네가 그보다 적게 가진 업종을 찾습니다. 상권이
+    크면 모든 업종이 많으므로, 절대 수가 아니라 **규모 대비 비율**로 봐야
+    합니다.
+
+    "부족하니 하면 된다"는 말은 아닙니다. 그 업종이 없는 데는 이유가 있을
+    수 있습니다(임대료, 상권 성격, 배후 인구). 그래서 결과에 '전국 비슷한
+    규모 동네 평균 대비 몇 곳'이라는 사실만 싣고 판단은 사장님께 맡깁니다.
+    """
+    ix = _load()
+    me = ix["dong"].get(code)
+    if not me:
+        return []
+
+    nat = ix["nation"]
+    my_total = max(me["stores"], 1)
+
+    # 규모가 비슷한 동네들(±35%)을 견줄 무리로 삼습니다.
+    lo, hi = my_total * 0.65, my_total * 1.35
+    peers = [v for v in ix["dong"].values() if lo <= v["stores"] <= hi]
+    if len(peers) < 20:
+        peers = list(ix["dong"].values())
+
+    out = []
+    for sm, nat_total in nat["small_national"].items():
+        # 전국에 드문 업종은 '부족한' 것이 아니라 원래 없는 것입니다.
+        if nat_total < 3000:
+            continue
+        name = nat["small_name"].get(sm)
+        if not name:
+            continue
+        # 소상공인이 실제로 열 수 있는 업종만 봅니다.
+        #
+        # 거르지 않았더니 연남동에 '주유소·의료기기 소매·자동차 부품'이,
+        # 부전동에 '행정사·가축 사료 소매·토목 엔지니어링'이 부족 업종으로
+        # 나왔습니다. 통계적으로는 맞습니다 — 정말 없으니까요. 그런데
+        # 카페를 알아보는 사장님께 주유소를 권하는 것은 답이 아닙니다.
+        # 없는 데는 이유가 있는 업종들입니다.
+        if not _openable(sm, name):
+            continue
+
+        mine = me["small"].get(sm, 0)
+        peer_counts = [p["small"].get(sm, 0) for p in peers]
+        expect = sum(peer_counts) / len(peer_counts)
+        if expect < 1.5:
+            continue
+
+        gap = expect - mine
+        if gap < 1.0:
+            continue
+        # 비율로도 확실히 적어야 합니다. 기대 8곳에 6곳은 '부족'이 아닙니다.
+        if mine > expect * 0.6:
+            continue
+
+        out.append({
+            "code": sm, "name": name,
+            "here": mine, "expected": round(expect, 1),
+            "gap": round(gap, 1),
+            "ratio": round(mine / expect, 2) if expect else 0.0,
+        })
+
+    # **있긴 한데 적은 쪽을 먼저 보여 줍니다.**
+    #
+    # 비율만으로 줄 세웠더니 전부 '0곳'이 올라왔습니다. 통계적으로는 가장
+    # 부족하지만, 아예 없는 업종은 대개 그 상권이 못 받쳐 주는 것입니다.
+    # 반대로 **몇 곳 있으면서 기대보다 적은** 업종은 그 동네가 그 장사를
+    # 받쳐 주면서 아직 안 찼다는 뜻입니다. 그쪽이 실제 기회입니다.
+    out.sort(key=lambda x: (x["here"] == 0, x["ratio"], -x["gap"]))
+    return out[:k]
+
+
+def saturated(code: str, k: int = 4) -> list[dict]:
+    """반대로 **이미 넘치는 업종**. 들어가면 바로 경쟁에 부딪히는 쪽입니다."""
+    ix = _load()
+    me = ix["dong"].get(code)
+    if not me:
+        return []
+    nat = ix["nation"]
+    my_total = max(me["stores"], 1)
+    lo, hi = my_total * 0.65, my_total * 1.35
+    peers = [v for v in ix["dong"].values() if lo <= v["stores"] <= hi]
+    if len(peers) < 20:
+        peers = list(ix["dong"].values())
+
+    out = []
+    for sm, cnt in me["small"].items():
+        if cnt < 5 or nat["small_national"].get(sm, 0) < 3000:
+            continue
+        name = nat["small_name"].get(sm)
+        if not name:
+            continue
+        peer_counts = [p["small"].get(sm, 0) for p in peers]
+        expect = sum(peer_counts) / len(peer_counts)
+        if expect < 1.5 or cnt < expect * 1.6:
+            continue
+        out.append({"code": sm, "name": name, "here": cnt,
+                    "expected": round(expect, 1),
+                    "ratio": round(cnt / expect, 2)})
+    out.sort(key=lambda x: -x["ratio"])
+    return out[:k]

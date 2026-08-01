@@ -22,7 +22,9 @@
 """
 from __future__ import annotations
 
-from app.models.schemas import FactorContribution, LocationScore, MapPin
+from app.models.schemas import (
+    FactorContribution, IndustryGap, LocationScore, MapPin,
+)
 from app.services import market_data
 
 # 요인 다섯. 방향과 무게는 상권 분석의 통상적인 해석을 따릅니다.
@@ -167,6 +169,9 @@ def analyze(region: str, industry: str | None = None) -> LocationScore | None:
         industry_code=ind[0] if ind else None,
         same_industry_count=(d["small"].get(ind[0], 0) if ind else None),
         total_score=total, factors=factors,
+        gaps=[IndustryGap(**o) for o in market_data.opportunities(d["code"], 6)],
+        crowded=[IndustryGap(**{k: v for k, v in o.items() if k != "gap"})
+                 for o in market_data.saturated(d["code"], 4)],
         peer_median=50.0,
         data_source="public_api",
         note=("공공데이터포털 「소상공인시장진흥공단_상가(상권)정보」 2026-03-31 "

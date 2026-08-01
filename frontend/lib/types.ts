@@ -37,10 +37,23 @@ export interface LocationScore {
   dong_code: string | null;
   industry_code: string | null;
   same_industry_count: number | null;
+  /** 이 동네에 덜 나온 업종 / 이미 넘치는 업종 */
+  gaps: IndustryGap[];
+  crowded: IndustryGap[];
   peer_median: number | null;
   /** fallback이면 내장 표본으로 계산한 값입니다. 화면에 밝혀야 합니다 */
   data_source: 'public_api' | 'fallback';
   note: string;
+}
+
+export interface IndustryGap {
+  code: string;
+  name: string;
+  /** 이 동네에 있는 수 */
+  here: number;
+  /** 비슷한 규모 동네의 평균 */
+  expected: number;
+  ratio: number;
 }
 
 export interface MapPin {
@@ -118,7 +131,8 @@ export interface ProtectionPack {
 }
 
 export type BentoCardKind =
-  | 'score' | 'factors' | 'map' | 'policy' | 'terms' | 'procedure' | 'notice';
+  | 'score' | 'factors' | 'map' | 'policy' | 'terms' | 'procedure'
+  | 'notice' | 'gaps';
 
 export interface BentoCard {
   id: string;
