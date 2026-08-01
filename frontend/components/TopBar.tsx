@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import ProtectionDrawer from './ProtectionDrawer';
 
 interface Sources {
   market?: { stores?: number; dongs_kept?: number; source?: string; source_url?: string };
@@ -19,6 +20,7 @@ interface Sources {
 export default function TopBar() {
   const [src, setSrc] = useState<Sources | null>(null);
   const [open, setOpen] = useState(false);
+  const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
     fetch('/api/v1/sources')
@@ -56,6 +58,15 @@ export default function TopBar() {
               <span className="text-white/30">{open ? '▲' : '▼'}</span>
             </button>
           )}
+          {/* Pick 4를 직접 눌러 볼 자리 — 용어 사전과 진짜 가드레일 검사기 */}
+          <button
+            onClick={() => setDrawer(true)}
+            className="rounded-full bg-white/[.06] px-3 py-1.5 text-[11.5px]
+                       text-white/60 ring-1 ring-white/[.09] transition
+                       hover:bg-white/[.11] hover:text-white"
+          >
+            🛡 소비자 보호
+          </button>
           <a
             href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
             target="_blank" rel="noreferrer"
@@ -96,6 +107,7 @@ export default function TopBar() {
           </div>
         </div>
       )}
+      <ProtectionDrawer open={drawer} onClose={() => setDrawer(false)} />
     </header>
   );
 }
