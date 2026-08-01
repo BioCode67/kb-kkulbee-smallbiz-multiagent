@@ -71,7 +71,12 @@ function CardBody({ card }: { card: BentoCard }) {
     case 'score': return <ScoreCard s={p as unknown as LocationScore} />;
     case 'factors': return <FactorsCard base={Number(p.base ?? 50)}
                                         factors={p.factors as unknown as FactorContribution[]} />;
-    case 'map': return <LocationMap pins={p.pins as never} />;
+    case 'map': return <LocationMap
+                          pins={p.pins as never}
+                          dongCode={p.dong_code as unknown as string | null}
+                          industryCode={p.industry_code as unknown as string | null}
+                          industry={p.industry as unknown as string | null}
+                          sameIndustryCount={p.same_industry_count as unknown as number | null} />;
     case 'policy': return <PolicyCard items={p.items as unknown as PolicyMatch[]} />;
     case 'terms': return <TermsCard terms={p.terms as unknown as TermEntry[]} />;
     case 'procedure': return <ProcedureCard steps={p.steps as unknown as ProcedureStep[]}

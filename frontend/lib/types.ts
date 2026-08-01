@@ -33,6 +33,10 @@ export interface LocationScore {
   total_score: number;
   grade: 'S' | 'A' | 'B' | 'C' | 'D';
   factors: FactorContribution[];
+  /** 지도에서 실제 점포를 불러올 때 씁니다 */
+  dong_code: string | null;
+  industry_code: string | null;
+  same_industry_count: number | null;
   peer_median: number | null;
   /** fallback이면 내장 표본으로 계산한 값입니다. 화면에 밝혀야 합니다 */
   data_source: 'public_api' | 'fallback';
@@ -121,8 +125,8 @@ export interface BentoCard {
   kind: BentoCardKind;
   title: string;
   subtitle: string;
-  /** Bento 격자에서 차지할 칸 수 */
-  span: 1 | 2 | 3;
+  /** Bento 격자(6칸)에서 차지할 칸 수 */
+  span: 1 | 2 | 3 | 4 | 5 | 6;
   accent: 'yellow' | 'brown' | 'green' | 'red' | 'neutral';
   payload: Record<string, unknown>;
 }

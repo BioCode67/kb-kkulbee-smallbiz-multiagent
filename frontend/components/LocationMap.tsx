@@ -1,29 +1,55 @@
 'use client';
 
 /**
- * 상권 지도 — Leaflet
+ * 상권 지도 — 실제 점포를 찍습니다.
  *
- * Leaflet은 import 시점에 window를 만집니다. Next.js가 서버에서 이 파일을
- * 읽으면 그 자리에서 깨지므로, useEffect 안에서 동적으로 불러옵니다.
+ * 예전에는 비교 상권 다섯 개만 큰 점으로 찍었습니다. "연남동에 카페가
+ * 204개 있습니다"라고 말하면서 정작 그 204개가 어디 있는지는 안 보여
+ * 줬습니다. 골목 하나에 몰려 있는 것과 동 전체에 흩어져 있는 것은 사장님께
+ * 전혀 다른 이야기인데도요.
  *
- * 점수를 색으로 바꿔 찍습니다. 숫자만 늘어놓으면 "72점이 높은 건가"를
- * 알 수 없는데, 옆 동네와 색으로 나란히 놓으면 한눈에 들어옵니다.
+ * 이제 두 겹으로 그립니다.
+ *   ① 동종업종 점포 — 실제 좌표. 경쟁이 어디에 몰려 있는지 눈에 보입니다.
+ *   ② 비교 상권 — 옆 동네 점수. 내 자리가 높은지 낮은지 견줄 자입니다.
+ *
+ * 좌표는 /api/v1/stores가 줍니다. 서버가 272만 개를 메모리에 올리지 않고
+ * 그 동네 자리만 파일에서 읽어 옵니다(8KB, 11ms).
+ *
+ * **지도 제공자에 대해.** 지금은 Leaflet + CARTO 어두운 타일입니다. 키가
+ * 필요 없고 어디서든 뜹니다. 국내 상권만 보면 카카오·네이버가 더 상세하고
+ * (구글은 지도 데이터 국외반출 규제로 국내 상세도가 낮습니다), 무료 키를
+ * 받으면 갈아 끼울 수 있습니다. 점포 좌표는 우리 자료라 어느 지도 위에서도
+ * 그대로 찍힙니다 — 제공자를 바꿔도 이 화면의 값어치는 그대로입니다.
+ *
+ * Leaflet은 import 시점에 window를 만집니다. Next가 서버에서 이 파일을
+ * 읽으면 그 자리에서 깨지므로 useEffect 안에서 동적으로 불러옵니다.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MapPin } from '@/lib/types';
 
-/** 점수 → 색. 노랑이 밝을수록 좋은 자리입니다. */
-function tone(score: number): { fill: string; ring: string } {
-  if (score >= 72) return { fill: '#FFBC00', ring: 'rgba(255,188,0,.45)' };
-  if (score >= 58) return { fill: '#FFD35C', ring: 'rgba(255,211,92,.35)' };
-  if (score >= 45) return { fill: '#B9A88F', ring: 'rgba(185,168,143,.3)' };
-  return { fill: '#8A7866', ring: 'rgba(138,120,102,.28)' };
+interface Props {
+  pins: MapPin[];
+  dongCode?: string | null;
+  industryCode?: string | null;
+  industry?: string | null;
+  sameIndustryCount?: number | null;
 }
 
-export default function LocationMap({ pins }: { pins: MapPin[] }) {
+/** 점수 → 색. 노랑이 밝을수록 좋은 자리입니다. */
+function tone(score: number): { fill: string } {
+  if (score >= 72) return { fill: '#FFBC00' };
+  if (score >= 58) return { fill: '#FFD35C' };
+  if (score >= 45) return { fill: '#B9A88F' };
+  return { fill: '#8A7866' };
+}
+
+export default function LocationMap({
+  pins, dongCode, industryCode, industry, sameIndustryCount,
+}: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{ remove: () => void } | null>(null);
+  const [shops, setShops] = useState<{ total: number; shown: number } | null>(null);
 
   useEffect(() => {
     if (!boxRef.current || !pins?.length) return;
@@ -39,8 +65,8 @@ export default function LocationMap({ pins }: { pins: MapPin[] }) {
       const target = pins.find((p) => p.is_target) ?? pins[0];
       const map = L.map(boxRef.current, {
         center: [target.latitude, target.longitude],
-        zoom: 12,
-        zoomControl: false,
+        zoom: 14,
+        zoomControl: true,
         attributionControl: false,
         scrollWheelZoom: false,
       });
@@ -52,14 +78,44 @@ export default function LocationMap({ pins }: { pins: MapPin[] }) {
         { maxZoom: 19 },
       ).addTo(map);
 
-      const group: unknown[] = [];
+      // ── ① 동종업종 실제 점포 ────────────────────────────────────────
+      //
+      // 먼저 그립니다. 뒤에 그리면 비교 상권의 큰 점을 덮어 버립니다.
+      let fitted: [number, number][] = [];
+      if (dongCode) {
+        try {
+          const q = new URLSearchParams({ dong: dongCode });
+          if (industryCode) q.set('industry', industryCode);
+          const r = await fetch(`/api/v1/stores?${q}`);
+          if (r.ok && !disposed) {
+            const data = await r.json();
+            setShops({ total: data.total, shown: data.shown });
+            const layer = L.layerGroup().addTo(map);
+            (data.points as [number, number][]).forEach(([la, lo]) => {
+              L.circleMarker([la, lo], {
+                radius: 3.4,
+                fillColor: '#FF7A59',
+                fillOpacity: 0.72,
+                weight: 0,
+                // 점이 수백 개라 이벤트를 달면 스크롤이 무거워집니다
+                interactive: false,
+              }).addTo(layer);
+            });
+            if (data.points.length) fitted = data.points as [number, number][];
+          }
+        } catch {
+          // 점포를 못 받아도 비교 상권 지도는 떠야 합니다
+        }
+      }
+
+      // ── ② 비교 상권 ────────────────────────────────────────────────
       pins.forEach((p) => {
         const t = tone(p.score);
-        const r = p.is_target ? 15 : 10;
+        const r = p.is_target ? 14 : 9;
         const marker = L.circleMarker([p.latitude, p.longitude], {
           radius: r,
           fillColor: t.fill,
-          fillOpacity: p.is_target ? 0.95 : 0.7,
+          fillOpacity: p.is_target ? 0.95 : 0.62,
           color: p.is_target ? '#fff' : t.fill,
           weight: p.is_target ? 2.5 : 1,
         }).addTo(map);
@@ -69,11 +125,15 @@ export default function LocationMap({ pins }: { pins: MapPin[] }) {
           { direction: 'top', offset: [0, -r], className: 'kb-tip' },
         );
         if (p.is_target) marker.openTooltip();
-        group.push([p.latitude, p.longitude]);
       });
 
-      if (group.length > 1) {
-        map.fitBounds(group as [number, number][], { padding: [36, 36] });
+      // 점포가 있으면 그 범위에 맞춥니다. 조회한 동네를 꽉 채워 보여 주는
+      // 편이, 옆 동네까지 다 들어오게 축소하는 것보다 쓸모 있습니다.
+      if (fitted.length > 2) {
+        map.fitBounds(fitted, { padding: [26, 26], maxZoom: 16 });
+      } else if (pins.length > 1) {
+        map.fitBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number]),
+                      { padding: [36, 36] });
       }
     })();
 
@@ -82,26 +142,49 @@ export default function LocationMap({ pins }: { pins: MapPin[] }) {
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [pins]);
+  }, [pins, dongCode, industryCode]);
 
   return (
     <div className="relative">
       <div
         ref={boxRef}
-        className="h-[260px] w-full overflow-hidden rounded-xl ring-1 ring-white/[.08]"
+        className="h-[320px] w-full overflow-hidden rounded-xl ring-1 ring-white/[.08]"
       />
+
       {/* 색이 무엇을 뜻하는지 밝히지 않으면 지도가 장식이 됩니다 */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1
-                      text-[11px] text-white/40">
-        {[['#FFBC00', '72점 이상'], ['#FFD35C', '58~72'],
-          ['#B9A88F', '45~58'], ['#8A7866', '45 미만']].map(([c, label]) => (
-          <span key={label} className="inline-flex items-center gap-1.5">
-            <i className="h-2 w-2 rounded-full" style={{ background: c }} />
-            {label}
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5
+                      text-[11px] text-white/45">
+        {shops && shops.total > 0 && (
+          <span className="inline-flex items-center gap-1.5 font-medium text-white/75">
+            <i className="h-2 w-2 rounded-full" style={{ background: '#FF7A59' }} />
+            {industry ?? '동종업종'} {shops.total.toLocaleString()}곳
+            {shops.shown < shops.total && (
+              <span className="text-white/35">
+                ({shops.shown.toLocaleString()}곳만 표시)
+              </span>
+            )}
           </span>
-        ))}
-        <span className="ml-auto">흰 테두리가 조회하신 상권입니다</span>
+        )}
+        <span className="inline-flex items-center gap-1.5">
+          <i className="h-2.5 w-2.5 rounded-full ring-2 ring-white"
+             style={{ background: '#FFBC00' }} />
+          조회한 상권
+        </span>
+        {[['#FFD35C', '58~72점'], ['#B9A88F', '45~58'], ['#8A7866', '45 미만']]
+          .map(([c, label]) => (
+            <span key={label} className="inline-flex items-center gap-1.5">
+              <i className="h-2 w-2 rounded-full" style={{ background: c }} />
+              {label}
+            </span>
+          ))}
       </div>
+
+      {shops && shops.total > 0 && sameIndustryCount != null && (
+        <p className="mt-2 text-[11.5px] leading-relaxed text-white/50">
+          주황 점 하나가 실제 {industry ?? '동종업종'} 점포 한 곳입니다.
+          몰려 있는 골목이 보이면 그곳이 이 동네의 경쟁 중심입니다.
+        </p>
+      )}
     </div>
   );
 }

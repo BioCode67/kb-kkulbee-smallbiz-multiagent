@@ -313,7 +313,12 @@ def _cards(state: GraphState) -> list[BentoCard]:
         cards.append(BentoCard(
             id="map", kind=BentoCardKind.MAP, title="주변 상권 비교",
             subtitle="점수 하나만으로는 높은지 알 수 없습니다", span=3,
-            payload={"pins": [p.model_dump(mode="json") for p in state["pins"]]}))
+            payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
+                     # 지도가 실제 점포를 불러올 수 있게 좌표 키를 함께 보냅니다.
+                     "dong_code": getattr(loc, "dong_code", None),
+                     "industry_code": getattr(loc, "industry_code", None),
+                     "industry": getattr(loc, "industry", None),
+                     "same_industry_count": getattr(loc, "same_industry_count", None)}))
     if state.get("policies"):
         cards.append(BentoCard(
             id="policy", kind=BentoCardKind.POLICY, title="맞는 지원사업",

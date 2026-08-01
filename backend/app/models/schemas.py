@@ -94,6 +94,11 @@ class LocationScore(BaseModel):
     grade: Literal["S", "A", "B", "C", "D"] = "C"
     factors: list[FactorContribution] = Field(default_factory=list)
 
+    # 지도에서 실제 점포를 불러오려면 어느 동네·어느 업종인지가 필요합니다.
+    dong_code: str | None = Field(default=None, description="행정동 코드")
+    industry_code: str | None = Field(default=None, description="업종 소분류 코드")
+    same_industry_count: int | None = Field(default=None, description="동 안 동종업종 점포 수")
+
     peer_median: float | None = Field(default=None, description="같은 업종 상권 중앙값")
     data_source: Literal["public_api", "fallback"] = "fallback"
     note: str = ""

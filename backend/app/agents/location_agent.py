@@ -163,6 +163,9 @@ def analyze(region: str, industry: str | None = None) -> LocationScore | None:
     return LocationScore(
         region_name=name.strip(), industry=ind_label,
         latitude=d["lat"], longitude=d["lon"],
+        dong_code=d["code"],
+        industry_code=ind[0] if ind else None,
+        same_industry_count=(d["small"].get(ind[0], 0) if ind else None),
         total_score=total, factors=factors,
         peer_median=50.0,
         data_source="public_api",

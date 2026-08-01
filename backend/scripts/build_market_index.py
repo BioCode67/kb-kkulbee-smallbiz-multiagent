@@ -33,6 +33,7 @@ import ssl
 import sys
 import urllib.request
 import zipfile
+import struct
 from collections import defaultdict
 from datetime import date, datetime
 
@@ -146,7 +147,7 @@ def aggregate() -> dict:
                         "sgg": (row.get("시군구명") or "").strip(),
                         "dong": (row.get("행정동명") or "").strip(),
                         "n": 0, "small": defaultdict(int), "large": defaultdict(int),
-                        "lons": [], "lats": [],
+                        "lons": [], "lats": [], "pts": [],
                     }
                 d["n"] += 1
                 d["small"][sm] += 1
@@ -160,6 +161,10 @@ def aggregate() -> dict:
                     if 124 < lo < 132 and 33 < la < 39:
                         d["lons"].append(lo)
                         d["lats"].append(la)
+                        # 지도에 실제 점포를 찍기 위해 좌표를 업종과 함께
+                        # 남깁니다. 집계값만으로는 "카페 204개"라고 말할 수는
+                        # 있어도 그 204개가 어디에 있는지는 못 보여 줍니다.
+                        d["pts"].append((sm, la, lo))
                 except (KeyError, ValueError, TypeError):
                     pass
                 total_rows += 1
@@ -223,6 +228,41 @@ def finalize(agg: dict) -> tuple[dict, dict]:
     return out, nation
 
 
+def write_points(agg: dict, kept: dict) -> dict:
+    """점포 좌표를 이진 파일 하나로 내보냅니다.
+
+    272만 개를 JSON으로 두면 60MB가 넘고, 서버가 그걸 통째로 메모리에 올리면
+    무료 등급 512MB가 그 자리에서 끝납니다. 그래서 두 벌로 나눕니다.
+
+      points.bin    한 점포가 10바이트 — 업종번호(2) + 위도(4) + 경도(4)
+      points_index  행정동코드 → [시작 위치, 개수]. 3,450줄이라 가볍습니다.
+
+    서버는 색인에서 그 동네의 자리만 찾아 8KB쯤을 읽습니다. 전체를 올릴
+    이유가 없습니다. 메모리는 요청 수와 무관하게 평평합니다.
+    """
+    os.makedirs(OUT_DIR, exist_ok=True)
+    ids = {code: i for i, code in enumerate(sorted(agg["nation_small"]))}
+
+    index: dict[str, list[int]] = {}
+    offset = 0
+    with open(os.path.join(OUT_DIR, "points.bin"), "wb") as f:
+        for code in kept:
+            pts = agg["dong"][code]["pts"]
+            if not pts:
+                continue
+            buf = bytearray()
+            for sm, la, lo in pts:
+                buf += struct.pack("<Hff", ids.get(sm, 0xFFFF), la, lo)
+            f.write(buf)
+            index[code] = [offset, len(pts)]
+            offset += len(pts)
+
+    with open(os.path.join(OUT_DIR, "points_index.json"), "w", encoding="utf-8") as f:
+        json.dump({"stride": 10, "industry_ids": ids, "dong": index},
+                  f, ensure_ascii=False, separators=(",", ":"))
+    return {"points": offset, "bytes": offset * 10}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--download", action="store_true")
@@ -234,6 +274,8 @@ def main() -> int:
 
     agg = aggregate()
     dong, nation = finalize(agg)
+    pts = write_points(agg, dong)
+    print(f"  점포 좌표 {pts['points']:,}개 → points.bin ({pts['bytes']/1e6:.1f} MB)")
 
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, "dong.json"), "w", encoding="utf-8") as f:
@@ -251,6 +293,7 @@ def main() -> int:
         "dongs_kept": len(dong),
         "min_stores": MIN_STORES,
         "industries": len(agg["nation_small"]),
+        "store_points": pts["points"],
         "measured": ["상권 규모", "동종업종 경쟁", "업종 집적", "업종 다양성", "점포 밀집도"],
         "not_measured": ["유동인구", "매출", "폐업률", "임대료"],
         "note": ("점포는 실측입니다. 유동인구·매출·폐업률은 이 자료에 없어 "

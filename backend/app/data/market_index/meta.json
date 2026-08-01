@@ -1,5 +1,5 @@
 {
- "built_at": "2026-08-01T07:41:49+00:00",
+ "built_at": "2026-08-01T09:59:17+00:00",
  "built_for_date": "2026-08-01",
  "source": "공공데이터포털 「소상공인시장진흥공단_상가(상권)정보」 2026-03-31",
  "source_url": "https://www.data.go.kr/data/15083033/fileData.do",
@@ -8,6 +8,7 @@
  "dongs_kept": 3450,
  "min_stores": 30,
  "industries": 247,
+ "store_points": 2723052,
  "measured": [
   "상권 규모",
   "동종업종 경쟁",

@@ -67,6 +67,22 @@ def sources() -> dict:
     return out
 
 
+@app.get("/api/v1/stores")
+def stores(dong: str, industry: str | None = None, limit: int = 1200) -> dict:
+    """한 행정동의 실제 점포 좌표.
+
+    "카페가 204개 있습니다"까지는 집계값으로 말할 수 있지만, **그 204개가
+    어디에 있는지**는 좌표가 있어야 보여 줄 수 있습니다. 골목 하나에 몰려
+    있는 것과 동 전체에 흩어져 있는 것은 사장님께 전혀 다른 이야기입니다.
+
+    272만 개를 메모리에 올리지 않습니다. 색인에서 그 동네 자리만 찾아
+    파일에서 8KB쯤을 읽습니다.
+    """
+    from app.services import market_data
+
+    return market_data.store_points(dong, industry, min(limit, 3000))
+
+
 @app.get("/api/v1/industries")
 def industries() -> dict:
     """화면의 업종 고르기 목록. 전국 점포가 많은 순입니다."""

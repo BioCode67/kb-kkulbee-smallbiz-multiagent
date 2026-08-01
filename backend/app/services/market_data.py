@@ -224,3 +224,64 @@ def neighbors(code: str, k: int = 4) -> list[dict]:
         same += [dict(code=c, **v) for c, v in ix["dong"].items()
                  if v["sido"] == me["sido"] and v["sgg"] != me["sgg"]][:k * 3]
     return sorted(same, key=lambda v: -v["stores"])[:k]
+
+
+# ── 점포 좌표 ─────────────────────────────────────────────────────────────
+#
+# 272만 개를 통째로 메모리에 올리면 무료 등급 512MB가 그 자리에서 끝납니다.
+# 색인(행정동 → 파일 위치)만 올려 두고, 요청이 오면 그 동네 자리만 읽습니다.
+# 한 동네가 평균 8KB라 디스크에서 바로 읽어도 1ms가 안 걸립니다.
+_pts_lock = threading.Lock()
+_pts: dict = {}
+
+
+def _points_index() -> dict:
+    if _pts:
+        return _pts
+    with _pts_lock:
+        if _pts:
+            return _pts
+        path = os.path.join(INDEX_DIR, "points_index.json")
+        if not os.path.exists(path):
+            _pts["dong"] = {}
+            return _pts
+        with open(path, encoding="utf-8") as f:
+            _pts.update(json.load(f))
+        _pts["id_to_code"] = {v: k for k, v in _pts["industry_ids"].items()}
+    return _pts
+
+
+def store_points(dong_code: str, industry_code: str | None = None,
+                 limit: int = 1200) -> dict:
+    """한 행정동의 점포 좌표. 업종을 주면 그 업종만 골라 냅니다.
+
+    limit을 두는 이유는 지도 때문입니다. 홍대 서교동은 점포가 8,872개인데
+    그걸 다 찍으면 브라우저가 멈추고, 화면도 까맣게 덮여 아무것도 안 보입니다.
+    """
+    import struct
+
+    ix = _points_index()
+    slot = (ix.get("dong") or {}).get(dong_code)
+    if not slot:
+        return {"points": [], "total": 0, "shown": 0, "capped": False}
+
+    start, count = slot
+    want_id = ix["industry_ids"].get(industry_code) if industry_code else None
+
+    path = os.path.join(INDEX_DIR, "points.bin")
+    with open(path, "rb") as f:
+        f.seek(start * 10)
+        raw = f.read(count * 10)
+
+    out: list[tuple[float, float]] = []
+    total = 0
+    for i in range(count):
+        iid, la, lo = struct.unpack_from("<Hff", raw, i * 10)
+        if want_id is not None and iid != want_id:
+            continue
+        total += 1
+        if len(out) < limit:
+            out.append((round(la, 6), round(lo, 6)))
+
+    return {"points": out, "total": total, "shown": len(out),
+            "capped": total > len(out)}
