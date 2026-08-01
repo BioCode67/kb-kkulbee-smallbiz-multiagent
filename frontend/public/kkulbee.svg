@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 250" width="220" height="250">
+  <!--
+    꿀비 — 정적 판본
+
+    화면에서 움직이는 꿀비는 components/BeeCharacter.tsx가 그립니다. 이 파일은
+    움직임이 없는 곳에 쓰려고 따로 둔 것입니다 — 발표자료, 파비콘, 링크
+    미리보기 이미지. 같은 아이가 어디서나 같은 얼굴이어야 합니다.
+
+    입체감은 빛 하나로 만듭니다. 왼쪽 위에 광원이 있다고 보고, 밝은 면과
+    어두운 면을 그라디언트로 깔고 바닥에서 튕겨 올라오는 반사광을 아래에
+    한 겹 얹었습니다. 반사광이 없으면 아래쪽이 새까맣게 죽어 평평해 보입니다.
+  -->
+  <defs>
+    <radialGradient id="hoodG" cx="34%" cy="26%" r="78%">
+      <stop offset="0%" stop-color="#FFE9A8"/>
+      <stop offset="42%" stop-color="#FFC62E"/>
+      <stop offset="100%" stop-color="#E09000"/>
+    </radialGradient>
+    <radialGradient id="faceG" cx="46%" cy="62%" r="72%">
+      <stop offset="0%" stop-color="#FFF6E7"/>
+      <stop offset="70%" stop-color="#FBE6C9"/>
+      <stop offset="100%" stop-color="#EFD0AC"/>
+    </radialGradient>
+    <radialGradient id="bodyG" cx="36%" cy="24%" r="82%">
+      <stop offset="0%" stop-color="#FFE297"/>
+      <stop offset="45%" stop-color="#FFC22E"/>
+      <stop offset="100%" stop-color="#DC8C00"/>
+    </radialGradient>
+    <!-- 날개는 비쳐 보여야 하는데, 어두운 배경에서는 반투명 흰색이 그냥
+         회색으로 읽힙니다. 뿌리 쪽을 충분히 밝게 잡고 끝으로 갈수록 옅어지게
+         해야 밝은 배경에서도 어두운 배경에서도 날개로 보입니다. -->
+    <linearGradient id="wingG" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".95"/>
+      <stop offset="55%" stop-color="#F2F8FF" stop-opacity=".62"/>
+      <stop offset="100%" stop-color="#DCEBFF" stop-opacity=".28"/>
+    </linearGradient>
+    <radialGradient id="eyeG" cx="38%" cy="32%" r="80%">
+      <stop offset="0%" stop-color="#4A3A2E"/>
+      <stop offset="55%" stop-color="#241A13"/>
+      <stop offset="100%" stop-color="#120C08"/>
+    </radialGradient>
+    <radialGradient id="blushG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF8E86" stop-opacity=".62"/>
+      <stop offset="100%" stop-color="#FF8E86" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="hoodClip"><ellipse cx="110" cy="96" rx="72" ry="70"/></clipPath>
+    <clipPath id="bodyClip"><ellipse cx="110" cy="196" rx="46" ry="42"/></clipPath>
+  </defs>
+
+  <!-- 더듬이 -->
+  <g stroke="#2A1E16" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M88 44 C 80 26, 70 18, 63 15"/>
+    <path d="M132 44 C 140 26, 150 18, 157 15"/>
+  </g>
+  <circle cx="62" cy="14" r="8.5" fill="#2A1E16"/>
+  <circle cx="158" cy="14" r="8.5" fill="#2A1E16"/>
+  <circle cx="59.5" cy="11.5" r="2.6" fill="#fff" opacity=".45"/>
+  <circle cx="155.5" cy="11.5" r="2.6" fill="#fff" opacity=".45"/>
+
+  <!-- 날개 — 몸통 뒤쪽 위, 머리와 몸이 만나는 자리에 답니다. 옆구리에
+       붙이면 팔처럼 보이고, 아래로 내리면 노처럼 보입니다. -->
+  <g opacity=".95">
+    <g transform="rotate(-34 84 158)">
+      <ellipse cx="60" cy="158" rx="27" ry="13" fill="url(#wingG)"
+               stroke="#fff" stroke-opacity=".8" stroke-width="1.3"/>
+      <g stroke="#fff" stroke-opacity=".5" stroke-width=".9" fill="none">
+        <path d="M38 158 Q58 151 84 156"/>
+        <path d="M38 158 Q58 165 84 160"/>
+      </g>
+    </g>
+    <g transform="rotate(34 136 158)">
+      <ellipse cx="160" cy="158" rx="27" ry="13" fill="url(#wingG)"
+               stroke="#fff" stroke-opacity=".8" stroke-width="1.3"/>
+      <g stroke="#fff" stroke-opacity=".5" stroke-width=".9" fill="none">
+        <path d="M182 158 Q162 151 136 156"/>
+        <path d="M182 158 Q162 165 136 160"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- 몸통 -->
+  <ellipse cx="110" cy="196" rx="46" ry="42" fill="url(#bodyG)"/>
+  <g clip-path="url(#bodyClip)" fill="#33251A" opacity=".95">
+    <path d="M58 178 Q110 190 162 178 L162 192 Q110 204 58 192 Z"/>
+    <path d="M62 210 Q110 222 158 210 L158 224 Q110 236 62 224 Z"/>
+  </g>
+  <ellipse cx="110" cy="226" rx="30" ry="8" fill="#FFD97A" opacity=".2"/>
+
+  <!-- 팔·다리 -->
+  <g fill="#2A1E16">
+    <ellipse cx="66" cy="194" rx="9" ry="13" transform="rotate(-18 66 194)"/>
+    <ellipse cx="154" cy="194" rx="9" ry="13" transform="rotate(18 154 194)"/>
+    <ellipse cx="94" cy="238" rx="11" ry="8"/>
+    <ellipse cx="126" cy="238" rx="11" ry="8"/>
+  </g>
+
+  <!-- 머리(후드) -->
+  <ellipse cx="110" cy="96" rx="72" ry="70" fill="url(#hoodG)"/>
+  <g clip-path="url(#hoodClip)" fill="#33251A" opacity=".95">
+    <path d="M38 44 Q60 28 96 24 L104 36 Q66 42 48 60 Z"/>
+    <path d="M38 84 Q54 70 78 64 L82 78 Q58 86 44 100 Z"/>
+    <path d="M42 122 Q56 112 74 108 L78 120 Q60 128 50 138 Z"/>
+  </g>
+  <ellipse cx="76" cy="54" rx="26" ry="16" fill="#fff" opacity=".26" transform="rotate(-24 76 54)"/>
+
+  <!-- 얼굴 -->
+  <ellipse cx="118" cy="102" rx="52" ry="50" fill="url(#faceG)"/>
+  <path d="M66 102 A52 50 0 0 1 170 102 L170 84 A52 50 0 0 0 66 84 Z" fill="#C8A882" opacity=".22"/>
+  <path d="M104 62 Q114 50 128 54 Q138 57 141 64 Q132 58 122 60 Q112 62 104 62 Z"
+        fill="#2A1E16"/>
+
+  <!-- 눈 — 광택점을 둘 이상 찍어야 유리알처럼 보입니다 -->
+  <g>
+    <ellipse cx="100" cy="104" rx="17" ry="19" fill="url(#eyeG)"/>
+    <circle cx="95" cy="97" r="6.4" fill="#fff" opacity=".95"/>
+    <circle cx="106" cy="109" r="3" fill="#fff" opacity=".55"/>
+    <ellipse cx="100" cy="116" rx="8" ry="3.4" fill="#C79A6E" opacity=".45"/>
+  </g>
+  <g>
+    <ellipse cx="140" cy="104" rx="17" ry="19" fill="url(#eyeG)"/>
+    <circle cx="135" cy="97" r="6.4" fill="#fff" opacity=".95"/>
+    <circle cx="146" cy="109" r="3" fill="#fff" opacity=".55"/>
+    <ellipse cx="140" cy="116" rx="8" ry="3.4" fill="#C79A6E" opacity=".45"/>
+  </g>
+
+  <!-- 볼터치 -->
+  <ellipse cx="84" cy="122" rx="13" ry="9" fill="url(#blushG)"/>
+  <ellipse cx="156" cy="122" rx="13" ry="9" fill="url(#blushG)"/>
+
+  <!-- 입 -->
+  <path d="M108 122 q16 24 33 2 q-17 10 -33 -2 Z" fill="#B0453E"/>
+  <path d="M114 130 q12 10 22 1 q-11 5 -22 -1 Z" fill="#FF8D84"/>
+</svg>

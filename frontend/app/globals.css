@@ -70,3 +70,51 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ── 꿀비 움직임 ─────────────────────────────────────────────────────────
+ *
+ * 여기 전역으로 둔 이유가 있습니다. 처음에는 컴포넌트 안의 <style jsx>에
+ * 뒀는데, styled-jsx는 키프레임 이름에 해시를 붙여 스코프를 만듭니다.
+ * 그런데 애니메이션을 인라인 style로 걸면 그 인라인은 styled-jsx를 거치지
+ * 않아 원래 이름 그대로 남습니다. 이름이 서로 어긋나 **아무 일도 일어나지
+ * 않습니다.** 오류도 안 납니다. 마스코트가 그냥 가만히 서 있을 뿐입니다.
+ *
+ * wing-l·wing-r은 아예 어디에도 정의되어 있지 않았습니다. 날개가 한 번도
+ * 떤 적이 없었습니다.
+ *
+ * 키프레임은 이름으로 찾아 쓰는 전역 자원이라, 전역에 두는 편이 맞습니다.
+ */
+
+/* 날개 — 초당 여러 번 떨어야 벌처럼 보입니다. 원근을 넣어 위아래로
+   퍼덕이게 하면 좌우로 늘였다 줄이는 것보다 훨씬 벌 같습니다. */
+@keyframes wing-l {
+  from { transform: perspective(300px) rotateY(0deg)   rotateZ(0deg); }
+  to   { transform: perspective(300px) rotateY(-52deg) rotateZ(-9deg); }
+}
+@keyframes wing-r {
+  from { transform: perspective(300px) rotateY(0deg)  rotateZ(0deg); }
+  to   { transform: perspective(300px) rotateY(52deg) rotateZ(9deg); }
+}
+
+/* 몸통이 떠다닙니다. 실제 값은 컴포넌트가 CSS 변수로 넣습니다 —
+   동작 상태마다 높이와 기울기가 달라야 하기 때문입니다. */
+@keyframes bee-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(var(--bee-rise, -9px)) rotate(var(--bee-tilt, 0deg)); }
+}
+
+/* 그림자는 반대로 움직입니다. 위로 뜰수록 작고 옅어져야 높이가 읽힙니다. */
+@keyframes bee-shadow {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: .45; }
+  50% { transform: translateX(-50%) scaleX(var(--bee-shrink, .86)); opacity: .2; }
+}
+
+@keyframes antenna {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes q-pop {
+  0%, 60%, 100% { opacity: 0; transform: translateY(7px); }
+  20%, 45% { opacity: 1; transform: translateY(0); }
+}
