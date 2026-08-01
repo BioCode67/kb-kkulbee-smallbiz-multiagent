@@ -177,6 +177,9 @@ class PolicyMatch(BaseModel):
     apply_period: str = Field(default="", description="공고에 적힌 접수기간 원문")
     apply_deadline: str | None = Field(default=None, description="마감일 (YYYY-MM-DD)")
     open_status: Literal["open", "rolling", "upcoming", "closed", "unknown"] = "unknown"
+    # 사장님들이 가장 많이 헷갈리는 것 — 주는 돈인가 빌리는 돈인가.
+    funding_type: str = Field(default="기타", description="융자·이차보전·보증·보조금·바우처·컨설팅")
+    funding_note: str = Field(default="", description="그게 무슨 뜻인지 한 줄")
     summary: str = Field(default="", description="사업개요 발췌")
     eligibility: list[str] = Field(
         default_factory=list, description="공고가 밝힌 지원대상 (☞ 첫 줄)")

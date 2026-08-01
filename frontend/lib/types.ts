@@ -86,6 +86,9 @@ export interface PolicyMatch {
   apply_period: string;
   apply_deadline: string | null;
   open_status: OpenStatus;
+  /** 주는 돈인가 빌리는 돈인가 — 융자·이차보전·보증·보조금·바우처·컨설팅 */
+  funding_type: string;
+  funding_note: string;
   summary: string;
   eligibility: string[];
   required_docs: string[];

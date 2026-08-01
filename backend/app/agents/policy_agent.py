@@ -32,6 +32,8 @@ def _to_match(d: dict) -> PolicyMatch:
         apply_period=d.get("apply_period_text", ""),
         apply_deadline=d.get("apply_end"),
         open_status=d.get("open_status", "unknown"),
+        funding_type=d.get("funding_type", "기타"),
+        funding_note=d.get("funding_note", ""),
         summary=(d.get("summary") or "")[:400],
         eligibility=d.get("eligibility", []),
         required_docs=d.get("support", []),

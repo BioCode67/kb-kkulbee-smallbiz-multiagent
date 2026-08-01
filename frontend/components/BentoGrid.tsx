@@ -355,6 +355,17 @@ function StatusChip({ m }: { m: PolicyMatch }) {
   );
 }
 
+/** 자금 성격별 색. 빌리는 돈과 주는 돈이 한눈에 갈려야 합니다. */
+const FUNDING_TONE: Record<string, string> = {
+  '융자': 'bg-sky-500/[.16] text-sky-200 ring-sky-400/25',
+  '이차보전': 'bg-indigo-500/[.16] text-indigo-200 ring-indigo-400/25',
+  '보증': 'bg-violet-500/[.16] text-violet-200 ring-violet-400/25',
+  '보조금': 'bg-emerald-500/[.16] text-emerald-200 ring-emerald-400/25',
+  '바우처': 'bg-teal-500/[.16] text-teal-200 ring-teal-400/25',
+  '컨설팅·교육': 'bg-amber-500/[.14] text-amber-200 ring-amber-400/22',
+  '기타': 'bg-white/[.07] text-white/50 ring-white/[.12]',
+};
+
 function PolicyCard({ items }: { items: PolicyMatch[] }) {
   const won = (v: number) =>
     v >= 100_000_000
@@ -386,6 +397,12 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
 
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5
                           text-[11.5px] text-white/[.65]">
+            {/* 주는 돈인지 빌리는 돈인지를 맨 앞에 둡니다. 5천만원 융자를
+                보조금으로 알고 신청하는 일이 실제로 생깁니다. */}
+            <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold
+                              ring-1 ${FUNDING_TONE[m.funding_type] ?? FUNDING_TONE['기타']}`}>
+              {m.funding_type}
+            </span>
             <StatusChip m={m} />
             {/* 금액은 근거가 있을 때만 씁니다. 예전에는 본문에서 찾은 가장 큰
                 금액을 '한도'라고 적어 총사업비가 한도로 둔갑했습니다. */}
@@ -398,6 +415,12 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
               <span>금리 <b className="text-white/90">{m.rate_pct}%</b></span>
             )}
           </div>
+
+          {m.funding_note && (
+            <p className="mt-2 text-[11px] leading-snug text-white/45">
+              {m.funding_note}
+            </p>
+          )}
 
           {/* 공고가 밝힌 지원대상·지원내용. 예전에는 이 칸이 늘 비어 있었습니다
               — 900건 전부에 ☞로 적혀 있는데 뽑아 쓰지 않았습니다. */}
