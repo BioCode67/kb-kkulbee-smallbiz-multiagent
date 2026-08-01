@@ -33,9 +33,17 @@ app.add_middleware(
 
 @app.get("/api/v1/health")
 def health() -> dict:
+    """LLM이 지금 도는지도 함께 봅니다.
+
+    키가 없거나 한도를 넘겨도 서비스는 돌아갑니다(규칙과 문장 틀로 물러섬).
+    그래서 화면만 봐서는 LLM이 죽은 줄 모릅니다. 여기 숫자로 드러냅니다.
+    """
+    from app.services import llm
+
     return {
         "status": "ok",
         "agents": ["router", "location", "policy", "protection", "guardrail"],
+        "llm": llm.status(),
     }
 
 

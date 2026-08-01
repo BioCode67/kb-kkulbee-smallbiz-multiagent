@@ -23,7 +23,13 @@ import uuid
 from langgraph.graph import END, StateGraph
 from typing_extensions import Annotated, TypedDict
 
-from app.agents import guardrail_agent, location_agent, policy_agent
+from app.agents import (
+    composer,
+    guardrail_agent,
+    location_agent,
+    policy_agent,
+    router_agent,
+)
 from app.models.schemas import (
     AgentKind,
     BentoCard,
@@ -69,6 +75,10 @@ def _brighter(a: str, b: str) -> str:
 class GraphState(TypedDict, total=False):
     request: ChatRequest
     intents: list[str]
+    region: str | None
+    industry: str | None
+    routed_by: str
+    composed_by: str
     answer: Annotated[str, _join]
     location: object
     pins: list
@@ -81,33 +91,30 @@ class GraphState(TypedDict, total=False):
 
 
 # ── 라우터 ────────────────────────────────────────────────────────────────
-LOCATION_WORDS = ["상권", "입지", "자리", "위치", "동네", "어디", "점포", "개업", "출점", "유동인구"]
-POLICY_WORDS = ["자금", "대출", "지원", "보증", "정책", "금리", "융자", "빌리", "바우처", "한도"]
-PROTECT_WORDS = ["분쟁", "민원", "불완전", "설명", "피해", "속았", "억울", "이의", "취소",
-                 "연체", "중도상환", "약관", "용어", "무슨 뜻", "절차"]
+async def route(state: GraphState) -> GraphState:
+    """어느 갈래를 켤지 정합니다. 여러 개가 동시에 켜질 수 있습니다.
 
+    LLM이 읽고, 키가 없거나 실패하면 낱말 규칙으로 돌아갑니다. 규칙만으로는
+    "요즘 통 손님이 없어서 월세도 빠듯해요"를 못 잡습니다 — '자금'도 '대출'도
+    안 들어 있는데 필요한 것은 경영안정자금입니다.
 
-def route(state: GraphState) -> GraphState:
-    """어느 갈래를 켤지 정합니다. 여러 개가 동시에 켜질 수 있습니다."""
-    q = state["request"].message
-    picked = []
-    if any(w in q for w in LOCATION_WORDS):
-        picked.append(Intent.LOCATION.value)
-    if any(w in q for w in POLICY_WORDS):
-        picked.append(Intent.POLICY.value)
-    if any(w in q for w in PROTECT_WORDS):
-        picked.append(Intent.PROTECTION.value)
-    if not picked:
-        picked = [Intent.GENERAL.value]
-    return {"intents": picked, "motion": CharacterMotion.THINKING.value,
+    읽어 낸 지역·업종은 상태에 실어 각 갈래가 씁니다. 화면에서 직접 고른
+    값이 있으면 그쪽이 우선입니다.
+    """
+    req = state["request"]
+    r = await router_agent.route(req.message, req.region, req.industry)
+    return {"intents": r["intents"],
+            "region": r.get("region"), "industry": r.get("industry"),
+            "routed_by": r.get("by", "rules"),
+            "motion": CharacterMotion.THINKING.value,
             "trace": [AgentKind.ROUTER.value]}
 
 
 # ── 각 갈래 ───────────────────────────────────────────────────────────────
 async def run_location(state: GraphState) -> GraphState:
     req = state["request"]
-    region = req.region or req.message
-    industry = req.industry or _guess_industry(req.message)
+    region = req.region or state.get("region") or req.message
+    industry = req.industry or state.get("industry") or _guess_industry(req.message)
 
     score = await location_agent.analyze_location(region, industry)
     if score is None:
@@ -143,7 +150,9 @@ def _won(v: int) -> str:
 
 def run_policy(state: GraphState) -> GraphState:
     req = state["request"]
-    matches = policy_agent.match(req.message, req.region, req.industry)
+    region = req.region or state.get("region")
+    industry = req.industry or state.get("industry")
+    matches = policy_agent.match(req.message, region, industry)
 
     if not matches:
         # 못 찾았으면 못 찾았다고 합니다. 관련 없는 공고를 채워 넣으면
@@ -195,15 +204,26 @@ def run_general(state: GraphState) -> GraphState:
             "trace": []}
 
 
-def run_guardrail(state: GraphState) -> GraphState:
+async def run_guardrail(state: GraphState) -> GraphState:
     """마지막 관문. 여기를 거치지 않고 나가는 문장은 없습니다.
+
+    **작성기를 여기 안에 둔 것은 순서 때문입니다.** LLM이 쓴 문장도 반드시
+    금소법 검사를 거쳐야 합니다. 작성기를 별도 노드로 두고 가드레일과
+    나란히 놓으면 둘이 동시에 돌아 검사받지 않은 문장이 나갈 수 있습니다.
+    그래프에서 '가드레일이 마지막'이라는 불변식이 깨지는 것입니다.
+
+    그래서 여기서 순서대로 합니다 — 엮고, 검사하고, 내보냅니다.
 
     answer는 이어 붙이는 채널이라 여기서 그냥 쓰면 원문 뒤에 수정본이
     따라붙습니다. 그래서 검사 결과를 따로 담고, 최종 조립은 run()에서
     이 값으로 갈아 끼웁니다.
     """
-    safe, report = guardrail_agent.apply(state.get("answer", ""))
-    return {"safe_answer": safe, "guardrail": report,
+    raw = state.get("answer", "")
+    text = await composer.compose(state["request"].message, dict(state), raw)
+    composed = "llm" if text != raw else "template"
+
+    safe, report = guardrail_agent.apply(text)
+    return {"safe_answer": safe, "guardrail": report, "composed_by": composed,
             "trace": [AgentKind.GUARDRAIL.value]}
 
 
