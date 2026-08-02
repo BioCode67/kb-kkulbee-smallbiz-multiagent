@@ -709,9 +709,10 @@ function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
           initial={{ scale: 0, rotate: -30 }}
           animate={{ scale: 1, rotate: -6 }}
           transition={{ delay: 0.35, type: 'spring', stiffness: 380, damping: 14 }}
-          className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2
-                     rounded-xl bg-kb-ink px-2.5 py-1 text-[16px] font-black
-                     italic text-kb-yellow shadow-lg"
+          className="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2
+                     -translate-y-1/2 rounded-xl bg-kb-ink px-2.5 py-1
+                     text-[16px] font-black italic text-kb-yellow shadow-lg
+                     sm:block"
         >
           VS
         </motion.span>
