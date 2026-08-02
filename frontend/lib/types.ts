@@ -6,7 +6,7 @@
  * 생기면 두 파일을 함께 여는 것을 규칙으로 삼습니다.
  */
 
-export type CharacterMotion = 'fly_happy' | 'thinking' | 'explaining';
+export type CharacterMotion = 'fly_happy' | 'thinking' | 'explaining' | 'consoling';
 
 export type Intent = 'location' | 'policy' | 'protection' | 'general';
 

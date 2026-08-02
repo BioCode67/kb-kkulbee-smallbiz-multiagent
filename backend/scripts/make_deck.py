@@ -457,6 +457,28 @@ def build() -> str:
         text(s, x + Inches(0.25), y0 + Inches(0.95), Inches(3.3), Inches(1.4),
              d, size=10, color=GRAY, spacing=1.32)
 
+    # ── 7.5 킬러 셋 — 창의성/차별성의 핵 ────────────────────────────────
+    s = blank(prs)
+    header(s, "SIGNATURE", "다른 팀이 하기 어려운 세 가지 — 전부 실제로 돌아갑니다")
+    killers = [
+        ("What-If 반사실 엔진", "XAI를 '미래 행동'으로",
+         "점수를 보여주고 끝나지 않습니다. 같은 동네를\n40개 업종으로 0.5초에 전부 다시 재서 \"무엇을\n하면 몇 점\"을 역계산합니다(+28.9점처럼).\n자료에 없는 변수(배달 비중·영업시간)는 다루지\n않습니다 — 지어낸 민감도는 반사실이 아닙니다."),
+        ("금소법 빨간 펜", "규제 준수가 눈에 보인다",
+         "\"무조건 대출받으실 수 있습니다\"를 넣으면\n위반 문구가 눈앞에서 취소선으로 지워지고\n안전한 문구가 초록으로 들어옵니다.\n시연용 흉내가 아니라 모든 답변이 통과하는\n바로 그 가드레일의 실제 diff입니다."),
+        ("감정 연동 3D 에이전트", "몸짓·말·화면이 한 감정으로",
+         "\"장사가 너무 힘들어요\"라고 하면 꿀비는\n통통 튀지 않고 고개를 숙이고 날개를 늦춥니다\n(consoling). 좋은 소식엔 콘페티. 잡아 늘이면\n슬라임처럼 쫀득 — 외부 에셋 0의 절차적 3D."),
+    ]
+    for i, (t, sub, d) in enumerate(killers):
+        x = Inches(0.75 + i * 4.02)
+        rect(s, x, Inches(2.1), Inches(3.72), Inches(4.5),
+             fill=YELLOW_SOFT if i == 0 else RGBColor(0xFA, 0xF8, 0xF4), line=LINE)
+        text(s, x + Inches(0.28), Inches(2.42), Inches(3.2), Inches(0.5),
+             t, size=17, bold=True)
+        text(s, x + Inches(0.28), Inches(3.0), Inches(3.2), Inches(0.4),
+             sub, size=11.5, bold=True, color=RGBColor(0x9A, 0x6B, 0x00))
+        text(s, x + Inches(0.28), Inches(3.55), Inches(3.25), Inches(2.9),
+             d, size=11, color=GRAY, spacing=1.42)
+
     # ── 7.6 실제 화면 ────────────────────────────────────────────────────
     s = blank(prs)
     header(s, "SCREENS", "지금 접속해 보실 수 있습니다")

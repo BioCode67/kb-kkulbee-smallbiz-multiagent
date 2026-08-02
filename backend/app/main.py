@@ -227,6 +227,41 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.get("/api/v1/whatif")
+def whatif(region: str, industry: str = "카페") -> dict:
+    """반사실(What-If) — "업종만 바꾸면 이 동네 점수는 몇 점인가".
+
+    점수를 보여 주고 끝나지 않고, 점수를 바꾸는 조작 가능한 변수를
+    역방향으로 훑습니다. 우리 점수 함수의 입력 중 사장님이 실제로 고를 수
+    있는 것은 업종과 동네 둘뿐입니다 — 배달 비중·영업시간은 자료에 없어
+    다루지 않습니다(지어낸 민감도는 반사실이 아니라 소설입니다).
+    같은 동네·같은 자(전국 백분위)로 주요 업종 40종을 전부 다시 재서
+    지금 업종 대비 격차를 돌려줍니다.
+    """
+    from app.agents import location_agent
+    from app.services import market_data
+
+    cur = location_agent.analyze(region, industry)
+    if cur is None:
+        return {"ok": False, "reason": "이 동네는 자료에 없습니다"}
+    rows = []
+    for it in market_data.industry_choices(40):
+        s = location_agent.analyze(region, it["name"])
+        if s is None:
+            continue
+        rows.append({"industry": it["name"],
+                     "score": s.total_score,
+                     "delta": round(s.total_score - cur.total_score, 1),
+                     "same_count": s.same_industry_count,
+                     "current": it["name"] == cur.industry})
+    rows.sort(key=lambda r: -r["score"])
+    return {"ok": True, "region": cur.region_name,
+            "current": {"industry": cur.industry, "score": cur.total_score},
+            "rows": rows[:9],
+            "note": ("입지 요인(경쟁·집적·다양성)만 다시 잰 값입니다 — 수요·"
+                     "전문성·임대료는 들어 있지 않으니 방향 참고로만 보세요.")}
+
+
 @app.get("/api/v1/closing-soon")
 def closing_soon(days: int = 10) -> dict:
     """마감이 코앞인 공고들 — 첫 화면의 '지금 움직여야 하는 것'.

@@ -23,6 +23,7 @@ import TopBar from '@/components/TopBar';
 import MyShop, { type ShopProfile } from '@/components/MyShop';
 import BreakEven from '@/components/BreakEven';
 import LoanCalc from '@/components/LoanCalc';
+import WhatIf from '@/components/WhatIf';
 import BeeChatbot from '@/components/BeeChatbot';
 import SiteFooter from '@/components/SiteFooter';
 import HeroTicker from '@/components/HeroTicker';
@@ -638,6 +639,11 @@ export default function Page() {
                     {/* 융자 답변엔 상환 계산기 — "한 달에 얼마 갚는데?"가
                         융자를 본 사장님의 다음 질문이라서. */}
                     {r.policies.length > 0 && <LoanCalc policies={r.policies} />}
+                    {/* What-If — 업종을 바꾸면 몇 점인지 역계산. 비교 모드가
+                        아닌 단일 입지 답변에만 붙습니다. */}
+                    {r.location && !r.cards.some((c) => c.kind === 'compare') && (
+                      <WhatIf loc={r.location} />
+                    )}
 
                     {/* 다음 걸음 — 마지막 답에만 답니다. 지나간 답의 칩은
                         지금 맥락과 어긋날 수 있습니다. */}
@@ -694,6 +700,10 @@ const SPRING = { type: 'spring' as const, stiffness: 220, damping: 26 };
 
 /** 꿀비가 말풍선에 띄울 한 줄. 길면 말풍선이 화면을 잡아먹습니다. */
 function summarize(d: ChatResponse): string {
+  // 힘든 이야기에는 결과보다 공감이 먼저 — 몸짓(consoling)과 말이 같이 갑니다
+  const warm = d.character_motion === 'consoling' ? '많이 힘드셨죠. ' : '';
+  if (d.policies.length && warm)
+    return `${warm}도움이 될 만한 걸 ${d.policies.length}건 찾아 뒀어요.`;
   if (d.location) {
     const g = d.location.grade;
     return g === 'S' || g === 'A'

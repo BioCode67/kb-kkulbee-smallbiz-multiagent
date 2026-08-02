@@ -17,6 +17,29 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { TermEntry } from '@/lib/types';
 
+/* 단어 단위 LCS 디프 — 원문에서 지워진 말과 새로 들어온 말을 가릅니다.
+   가드레일이 실제로 무엇을 지우고 무엇으로 바꿨는지를 '빨간 펜'으로
+   보여 주는 것이 목적입니다. 시각화일 뿐 검사·재작성은 전부 서버 몫. */
+type DiffTok = { w: string; k: 'same' | 'del' | 'add' };
+function wordDiff(a: string, b: string): DiffTok[] {
+  const A = a.split(/\s+/).filter(Boolean), B = b.split(/\s+/).filter(Boolean);
+  const n = A.length, m = B.length;
+  const dp: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out: DiffTok[] = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (A[i] === B[j]) { out.push({ w: A[i], k: 'same' }); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { out.push({ w: A[i], k: 'del' }); i++; }
+    else { out.push({ w: B[j], k: 'add' }); j++; }
+  }
+  while (i < n) out.push({ w: A[i++], k: 'del' });
+  while (j < m) out.push({ w: B[j++], k: 'add' });
+  return out;
+}
+
 type Tab = 'terms' | 'check';
 
 export default function ProtectionDrawer({ open, onClose }: {
@@ -26,7 +49,8 @@ export default function ProtectionDrawer({ open, onClose }: {
   const [terms, setTerms] = useState<TermEntry[]>([]);
   const [text, setText] = useState('사장님은 연 2%로 무조건 대출받으실 수 있습니다');
   const [result, setResult] = useState<{
-    safe: string; report: { passed: boolean; violations: string[] };
+    original?: string; safe: string;
+    report: { passed: boolean; violations: string[] };
   } | null>(null);
   const [busy, setBusy] = useState(false);
   // 이 서랍은 backdrop-blur를 쓰는 상단바 '안'에서 렌더됩니다. backdrop-filter는
@@ -162,9 +186,33 @@ export default function ProtectionDrawer({ open, onClose }: {
                           </ul>
                           <div className="surface-1 p-3">
                             <p className="text-[10.5px] font-bold uppercase tracking-wider
-                                          text-kb-ink/50">고쳐 나가는 문장</p>
-                            <p className="mt-1.5 text-[12.5px] leading-relaxed text-kb-ink/90">
-                              {result.safe.split('\n')[0]}
+                                          text-kb-ink/50">빨간 펜 교정 — 지운 말과 바꾼 말</p>
+                            <p className="mt-1.5 text-[12.5px] leading-[1.9] text-kb-ink/90">
+                              {wordDiff(result.original ?? text,
+                                        result.safe.split('\n')[0]).map((t, i) => (
+                                t.k === 'del' ? (
+                                  <motion.del key={i}
+                                    initial={{ opacity: 0.9 }}
+                                    animate={{ opacity: 0.55 }}
+                                    transition={{ delay: 0.15 + i * 0.05 }}
+                                    className="mx-0.5 rounded bg-rose-500/[.1] px-1
+                                               text-rose-600 line-through decoration-rose-500
+                                               decoration-2">
+                                    {t.w}
+                                  </motion.del>
+                                ) : t.k === 'add' ? (
+                                  <motion.mark key={i}
+                                    initial={{ opacity: 0, y: 3 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 + i * 0.05 }}
+                                    className="mx-0.5 rounded bg-emerald-400/[.18] px-1
+                                               font-semibold text-emerald-800">
+                                    {t.w}
+                                  </motion.mark>
+                                ) : (
+                                  <span key={i} className="mx-0.5">{t.w}</span>
+                                )
+                              ))}
                             </p>
                           </div>
                         </>

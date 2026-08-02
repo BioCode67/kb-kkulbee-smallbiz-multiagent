@@ -28,6 +28,7 @@ class CharacterMotion(str, Enum):
     FLY_HAPPY = "fly_happy"      # 좋은 소식 — 높은 점수, 지원사업 매칭
     THINKING = "thinking"        # 분석 중 — 스트리밍 대기
     EXPLAINING = "explaining"    # 설명 중 — 근거·절차 안내
+    CONSOLING = "consoling"      # 힘든 이야기 — 고개 숙이고 천천히, 위로
 
 
 class AgentKind(str, Enum):

@@ -396,10 +396,11 @@ export default function BeeCharacter3D({
         const m = motionRef.current;
         const happy = m === 'fly_happy';
         const thinking = m === 'thinking';
+        const sad = m === 'consoling';
 
         // 뜨는 높이와 주기가 기분을 만듭니다
-        const period = happy ? 1.05 : thinking ? 3.0 : 2.1;
-        const rise = happy ? 0.22 : thinking ? 0.08 : 0.13;
+        const period = happy ? 1.05 : thinking ? 3.0 : sad ? 3.6 : 2.1;
+        const rise = happy ? 0.22 : thinking ? 0.08 : sad ? 0.04 : 0.13;
         const phase = (t / period) * Math.PI * 2;
         bee.position.y = reduce ? 0 : Math.sin(phase) * rise;
 
@@ -439,13 +440,16 @@ export default function BeeCharacter3D({
         cx += (tx - cx) * 0.07;
         cy += (ty - cy) * 0.07;
         head.rotation.y = cx * 0.42 + (thinking ? Math.sin(t * 0.7) * 0.12 : 0);
-        head.rotation.x = cy * 0.26;
+        // 위로 모드 — 고개를 숙이고 아주 천천히 끄덕입니다. 밝은 몸짓이
+        // 실례인 순간이 있습니다.
+        head.rotation.x = cy * 0.26 + (sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0);
         head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : cx * -0.08;
         bee.rotation.y = cx * 0.2 + spin;
         bee.rotation.x = m === 'explaining' ? 0.1 : 0;
 
         // 날개 — 초당 여러 번 퍼덕여야 벌입니다
-        const flap = reduce ? 0 : Math.sin(t * (happy ? 46 : 34)) * (happy ? 0.85 : 0.62);
+        const flap = reduce ? 0
+          : Math.sin(t * (happy ? 46 : sad ? 16 : 34)) * (happy ? 0.85 : sad ? 0.3 : 0.62);
         wings[0].rotation.y = -flap;
         wings[1].rotation.y = flap;
 

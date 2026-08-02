@@ -74,6 +74,10 @@ def _assemble(parts: dict) -> str:
 # 밝은 쪽이 이깁니다. 좋은 소식이 하나라도 있으면 꿀비가 날아야 합니다.
 _MOTION_RANK = {"thinking": 0, "explaining": 1, "fly_happy": 2}
 
+# 힘든 말에는 밝은 몸짓이 실례입니다. 질문에 이 낱말들이 보이면 점수가
+# 좋아도 꿀비는 통통 튀지 않고 고개를 숙입니다(consoling).
+_HARDSHIP = re.compile(r"힘들|힘드|속상|막막|어렵|우울|지치|버티|눈물|포기|망할|무섭")
+
 
 def _brighter(a: str, b: str) -> str:
     if not a:
@@ -568,8 +572,10 @@ async def run(req: ChatRequest) -> ChatResponse:
         suggestions=_suggest(state),
         intent=Intent(intents[0]),
         answer=answer,
-        character_motion=CharacterMotion(state.get("motion",
-                                                   CharacterMotion.EXPLAINING.value)),
+        character_motion=(CharacterMotion.CONSOLING
+                          if _HARDSHIP.search(req.message)
+                          else CharacterMotion(state.get("motion",
+                                               CharacterMotion.EXPLAINING.value))),
         cards=_cards(state),
         location=state.get("location"),
         pins=state.get("pins", []),
