@@ -435,14 +435,15 @@ export default function Page() {
     <LayoutGroup>
       <TopBar />
       <main className="mx-auto min-h-screen max-w-[1760px] px-5 pb-24 lg:px-12">
-        {/* ── ① 히어로 — 꿀비가 화면을 차지합니다 ── */}
-        <AnimatePresence mode="wait">
+        {/* ── ① 히어로 — 꿀비가 화면을 차지합니다 ──
+            AnimatePresence로 감싸지 않습니다: 안에 layoutId(askbox)를 품은
+            채 exit하면 언마운트가 영영 끝나지 않아, 로딩 중 히어로와 결과
+            화면이 동시에 쌓였습니다(꿀비 2마리 + 상단 거대 공백의 정체). */}
           {hero && (
             <motion.section
               key="hero"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.2 } }}
               className={`hero-glow honeycomb-bg relative flex overflow-x-clip ${view === 'home' ? 'min-h-[calc(100vh-3.5rem)]' : ''}
                          flex-col items-center pt-14`}
             >
@@ -811,7 +812,6 @@ export default function Page() {
               </>)}
             </motion.section>
           )}
-        </AnimatePresence>
 
         {/* ── ② 결과 — 꿀비가 옆으로 물러나 동행합니다 ── */}
         {!hero && (
