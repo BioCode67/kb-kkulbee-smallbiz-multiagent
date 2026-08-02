@@ -320,7 +320,7 @@ export default function Page() {
   return (
     <LayoutGroup>
       <TopBar />
-      <main className="mx-auto min-h-screen max-w-[1240px] px-5 pb-24 lg:px-8">
+      <main className="mx-auto min-h-screen max-w-[1480px] px-5 pb-24 lg:px-10">
         {/* ── ① 히어로 — 꿀비가 화면을 차지합니다 ── */}
         <AnimatePresence mode="wait">
           {hero && (
@@ -335,7 +335,7 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              <div className="grid w-full max-w-[1080px] items-center gap-6
+              <div className="grid w-full max-w-[1200px] items-center gap-8
                               lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="flex flex-col items-center text-center
                                 lg:items-start lg:text-left">
@@ -421,7 +421,7 @@ export default function Page() {
               <motion.div
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-10 w-full max-w-[880px]"
+                className="mt-10 w-full max-w-[980px]"
               >
                 <div>
                   <div className="grid grid-cols-5 gap-2">
@@ -516,7 +516,7 @@ export default function Page() {
               </div>
 
               {/* ── 신뢰 숫자 — 필 카드 (모두봄 문법) ── */}
-              <div className="mt-12 grid w-full max-w-[880px] grid-cols-3 gap-4">
+              <div className="mt-12 grid w-full max-w-[980px] grid-cols-3 gap-5">
                 {[
                   ['272만+', '전국 점포 실측 좌표'],
                   ['900건', '정부 지원사업 공고'],
@@ -532,7 +532,7 @@ export default function Page() {
               </div>
 
               {/* ── 무엇이 다른가 ── */}
-              <div className="mb-20 mt-14 grid w-full max-w-[880px] gap-3
+              <div className="mb-20 mt-14 grid w-full max-w-[980px] gap-4
                               sm:grid-cols-3">
                 {[
                   ['지어내지 않습니다',
@@ -554,7 +554,7 @@ export default function Page() {
 
         {/* ── ② 결과 — 꿀비가 옆으로 물러나 동행합니다 ── */}
         {!hero && (
-          <div className="grid gap-6 pt-6 lg:grid-cols-[272px_minmax(0,1fr)]">
+          <div className="grid gap-8 pt-6 lg:grid-cols-[300px_minmax(0,1fr)]">
             <aside className="print:hidden lg:sticky lg:top-[4.5rem] lg:self-start">
               {/* 상자 없이 — 꿀비는 카드 속 아이콘이 아니라 화면에 서 있는
                   동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}

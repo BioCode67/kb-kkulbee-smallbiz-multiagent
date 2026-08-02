@@ -57,7 +57,7 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   // 화면의 3분의 2만 차지하고 오른쪽 3분의 1이 통째로 비었습니다. 6칸이면
   // 2·3·4·6 어느 폭이든 만들 수 있어 남는 자리가 안 생깁니다.
   return (
-    <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-6">
+    <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-6">
       {cards.map((c, i) => (
         <Card key={c.id} c={c} i={i} />
       ))}
@@ -170,31 +170,38 @@ function ScoreCard({ s }: { s: LocationScore }) {
           좁아(6칸 중 2칸) 오른쪽 글이 세 줄로 끼었습니다. 세로가 낫습니다. */}
       <div className="flex flex-col items-center">
         <div className="relative">
-          <svg width="132" height="132" viewBox="0 0 132 132" className="-rotate-90">
+          <svg width="156" height="156" viewBox="0 0 132 132" className="-rotate-90">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#FFD35C" />
+                <stop offset="100%" stopColor="#E09A00" />
+              </linearGradient>
+            </defs>
+            {/* 트랙이 흰색이라 크림 바탕에서 투명했다 — 잉크 8%로 */}
             <circle cx="66" cy="66" r={R} fill="none"
-                    stroke="rgba(255,255,255,.09)" strokeWidth="11" />
+                    stroke="rgba(56,50,42,.08)" strokeWidth="12" />
             <circle cx="66" cy="66" r={R} fill="none"
-                    stroke={g.ring} strokeWidth="11" strokeLinecap="round"
+                    stroke="url(#ringGrad)" strokeWidth="12" strokeLinecap="round"
                     strokeDasharray={`${filled} ${C - filled}`}
                     style={{ transition: 'stroke-dasharray .9s cubic-bezier(.22,.9,.3,1)' }} />
-            {/* 전국 한가운데(50점) 눈금. 이게 있어야 '중간보다 위인가'가
-                숫자를 읽기 전에 들어옵니다. */}
-            <line x1="66" y1="6" x2="66" y2="19"
-                  stroke="rgba(255,255,255,.55)" strokeWidth="2"
+            {/* 전국 한가운데(50점) 눈금 */}
+            <line x1="66" y1="5" x2="66" y2="20"
+                  stroke="rgba(56,50,42,.4)" strokeWidth="2.5"
                   transform="rotate(180 66 66)" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[31px] font-extrabold leading-none tracking-tight
+            <span className="text-[38px] font-black leading-none tracking-tight
                              text-kb-ink [font-variant-numeric:tabular-nums]">
               <CountUp value={s.total_score} />
             </span>
-            <span className="mt-1 text-[12.5px] text-kb-ink/68">/ 100점</span>
+            <span className="mt-1 text-[13px] font-medium text-kb-ink/62">/ 100점</span>
           </div>
         </div>
 
-        <div className="mt-2.5 flex items-baseline gap-2">
-          <span className={`text-[26px] font-black leading-none ${g.text}`}>{s.grade}</span>
-          <span className="text-[15px] font-semibold text-kb-ink/85">{g.label}</span>
+        <div className="mt-3 flex items-center gap-2 rounded-full bg-kb-yellow/[.16]
+                        py-1.5 pl-3 pr-4 ring-1 ring-kb-yellow/40">
+          <span className={`text-[24px] font-black leading-none ${g.text}`}>{s.grade}</span>
+          <span className="text-[15.5px] font-bold text-kb-ink/88">{g.label}</span>
         </div>
 
         {s.peer_median != null && (
@@ -211,7 +218,7 @@ function ScoreCard({ s }: { s: LocationScore }) {
       {/* 서울이면 실측 유동인구가 붙습니다 — "없다"던 칸이 채워지는 자리.
           점수에는 안 넣습니다(서울만 있는 값이라 전국 비교가 깨집니다). */}
       {s.living_pop && (
-        <div className="mt-4 rounded-xl bg-kb-ink/[.04] px-3.5 py-3">
+        <div className="mt-4 rounded-xl bg-white px-3.5 py-3 ring-1 ring-kb-ink/[.08] shadow-sm">
           <div className="flex items-baseline justify-between">
             <span className="text-[14px] text-kb-ink/82">이 동네에 실제로 있는 사람</span>
             <span className="text-[17px] font-bold text-kb-ink
@@ -225,8 +232,10 @@ function ScoreCard({ s }: { s: LocationScore }) {
             {s.living_pop.curve.map((v, h) => (
               <span key={h}
                 title={`${h}시`}
-                className={`flex-1 rounded-t-[2px] ${
-                  h === s.living_pop!.peak_hour ? 'bg-kb-yellow' : 'bg-kb-ink/20'}`}
+                className={`flex-1 rounded-t-[3px] ${
+                  h === s.living_pop!.peak_hour
+                    ? 'bg-gradient-to-t from-[#E09A00] to-kb-yellow'
+                    : 'bg-kb-yellow/30'}`}
                 style={{ height: `${Math.max(8, v * 100)}%` }} />
             ))}
           </div>
@@ -249,7 +258,7 @@ function ScoreCard({ s }: { s: LocationScore }) {
 
       {s.same_industry_count != null && (
         <div className="mt-4 flex items-center justify-between rounded-xl
-                        bg-kb-ink/[.05] px-3.5 py-3">
+                        bg-white px-3.5 py-3 ring-1 ring-kb-ink/[.08] shadow-sm">
           <span className="text-[14px] text-kb-ink/82">이 동네 {s.industry}</span>
           <span className="text-[18px] font-bold text-kb-ink
                            [font-variant-numeric:tabular-nums]">
@@ -323,23 +332,29 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           return (
             <li key={f.key}>
               <div className="flex items-baseline gap-2 text-[14px]">
-                <span className="w-[86px] shrink-0 text-kb-ink/80">{f.label}</span>
+                <span className="w-[92px] shrink-0 font-semibold text-kb-ink/85">{f.label}</span>
 
-                {/* 0을 가운데 두고 양옆으로 뻗는 막대 */}
-                <div className="relative h-4 flex-1">
-                  <div className="absolute inset-y-0 left-1/2 w-px bg-white/20" />
+                {/* 0을 가운데 두고 양옆으로 뻗는 막대 — 중앙선이 흰색이라
+                    안 보였다(다크 잔재). 잉크 12%로. */}
+                <div className="relative h-5 flex-1">
+                  <div className="absolute inset-y-0 left-1/2 w-px bg-kb-ink/[.14]" />
+                  <div className="absolute inset-y-[4px] left-0 right-0 rounded-full
+                                  bg-kb-ink/[.04]" />
                   <div
-                    className={`absolute inset-y-[3px] rounded-sm ${
-                      up ? 'bg-kb-yellow' : 'bg-rose-400/80'}`}
+                    className={`absolute inset-y-[4px] rounded-full ${up
+                      ? 'bg-gradient-to-r from-kb-yellow to-[#E09A00]'
+                      : 'bg-gradient-to-l from-rose-300 to-rose-500'}`}
                     style={up
                       ? { left: '50%', width: `${w}%` }
                       : { right: '50%', width: `${w}%` }}
                   />
                 </div>
 
-                <span className={`w-[52px] shrink-0 text-right font-semibold
-                                  [font-variant-numeric:tabular-nums]
-                                  ${up ? 'text-kb-amber' : 'text-rose-700'}`}>
+                <span className={`w-[58px] shrink-0 rounded-md py-0.5 text-center
+                                  text-[13px] font-bold
+                                  [font-variant-numeric:tabular-nums] ${up
+                    ? 'bg-kb-yellow/[.18] text-kb-amber'
+                    : 'bg-rose-500/[.1] text-rose-700'}`}>
                   {f.contribution > 0 ? '+' : ''}{f.contribution.toFixed(1)}
                 </span>
               </div>
