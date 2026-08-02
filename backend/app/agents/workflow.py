@@ -233,6 +233,37 @@ async def run_location(state: GraphState) -> GraphState:
                                    f"(전국 백분위) · 생활인구 대조 · "
                                    f"경쟁 점포 핀 {len(pins)}개")]}
 
+    # 시군구 단위 질문("경북경산시 술집") — 특정 동이 아니라 그 안의
+    # 행정동 전부를 재서 순위로 답합니다. 가장 큰 동 하나로 조용히
+    # 대신 답하면 사장님은 어디를 고른 건지 모릅니다.
+    # 원질문으로 감지합니다 — 라우터가 region을 이미 특정 동으로
+    # 바꿔 놓아(하양읍) 시군구 표식이 지워져 있었습니다.
+    d_hit = None if req.region else market_data.find_dong(req.message)
+    if d_hit and d_hit.get("matched_sgg"):
+        rows = location_agent.rank_sgg(d_hit["matched_sgg"], d_hit.get("sido"),
+                                       industry)
+        if rows:
+            best = rows[0]
+            from app.services import seoul_pop
+            if getattr(best, "dong_code", None):
+                best.living_pop = await seoul_pop.living_pop(best.dong_code)
+            pins = await location_agent.nearby_pins(best)
+            runners = " · ".join(
+                f"{i + 2}위 {s.region_name.split()[-1]} {s.total_score}점"
+                for i, s in enumerate(rows[1:3]))
+            lead = (f"{d_hit['matched_sgg']}는 행정동 {len(rows)}곳을 전부 "
+                    f"쟀습니다. {best.industry} 기준 1위는 {best.region_name}"
+                    f"({best.total_score}점·{best.grade}등급)"
+                    + (f" — {runners} 순입니다. " if runners else "입니다. ")
+                    + "아래 카드는 1위 동네 기준입니다.")
+            return {"parts": {"location": lead}, "location": best, "pins": pins,
+                    "motion": CharacterMotion.FLY_HAPPY.value,
+                    "trace": [AgentKind.LOCATION.value],
+                    "steps": [_lap(t0, "location", "입지 에이전트",
+                                   f"{d_hit['matched_sgg']} 행정동 {len(rows)}곳 "
+                                   f"전수 채점 → 1위 {best.region_name} "
+                                   f"{best.total_score}점 · 핀 {len(pins)}개")]}
+
     score = await location_agent.analyze_location(region, industry)
     if score is not None and getattr(score, "dong_code", None):
         # 서울이면 생활인구를 붙입니다. 키 없거나 실패해도 None일 뿐.
@@ -386,7 +417,10 @@ async def run_guardrail(state: GraphState) -> GraphState:
               + ("위반 없음" if report.passed
                  else f"단정 표현 {len(report.violations)}건 수정")
               + " · " + ("LLM 작성문 검사" if composed == "llm" else "템플릿 작성"))
+    # bank_rates는 반드시 '반환'해야 합니다 — state 지역 변경은 LangGraph
+    # 채널 밖으로 안 나갑니다(키 연결 첫날, 카드가 안 뜨던 원인).
     return {"safe_answer": safe, "guardrail": report, "composed_by": composed,
+            "bank_rates": state.get("bank_rates"),
             "trace": [AgentKind.GUARDRAIL.value],
             "steps": [_lap(t0, "guardrail", "가드레일(마지막 관문)", detail)]}
 

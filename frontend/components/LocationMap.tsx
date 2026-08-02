@@ -110,7 +110,9 @@ function LeafletMap({
 
       // 밝은 타일 — 크림 테마와 한 몸처럼 이어집니다.
       L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        // voyager — light_all보다 도로명·지형지물·역 표기가 진해서
+        // "여기가 어딘지"가 읽힙니다 (지도 위치 파악 어렵다는 피드백)
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         { maxZoom: 19 },
       ).addTo(map);
 

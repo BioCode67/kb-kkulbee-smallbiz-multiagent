@@ -85,6 +85,9 @@ _SIDO_ALIAS = {
 
 # 실제로 그렇게 부르는 곳들. 행정동 이름과 다릅니다.
 _PLACE_ALIAS = {
+    # 대학가 — 캠퍼스 주소지의 행정동으로 잇습니다. 영남대(경산시 대학로,
+    # 법정동 대동)는 행정동 동부동 관할입니다.
+    "영남대": ("경상북도", "경산시", "동부동"),
     "홍대": ("서울특별시", "마포구", "서교동"),
     "연트럴파크": ("서울특별시", "마포구", "연남동"),
     "가로수길": ("서울특별시", "강남구", "신사동"),
@@ -168,11 +171,22 @@ def find_dong(text: str) -> dict | None:
                 continue
             cands += [c for c, v in ix["dong"].items() if v["dong"].startswith(stem)]
 
+    matched_sgg = None
     if not cands:
-        # 동 이름이 없으면 시군구 단위로 — '마포구 어디가 좋을까'
+        # 동 이름이 없으면 시군구 단위로 — '마포구 어디가 좋을까'.
+        # '경북경산시'처럼 시도가 붙어 한 토큰이 되면 정규식이 통째로
+        # 잡아 실제 시군구명과 어긋납니다 — 실제 시군구 목록과
+        # 접미 일치로 다시 맞춥니다.
         m = re.search(r"([가-힣]+(?:시|군|구))", t)
         if m:
-            cands = [c for c, v in ix["dong"].items() if v["sgg"] == m.group(1)]
+            token = m.group(1)
+            sggs = {v["sgg"] for v in ix["dong"].values()}
+            hit = token if token in sggs else next(
+                (s for s in sorted(sggs, key=len, reverse=True)
+                 if token.endswith(s)), None)
+            if hit:
+                matched_sgg = hit
+                cands = [c for c, v in ix["dong"].items() if v["sgg"] == hit]
     if not cands:
         return None
 
@@ -187,7 +201,19 @@ def find_dong(text: str) -> dict | None:
                 v["stores"])
 
     best = max(cands, key=rank)
-    return {"code": best, **ix["dong"][best]}
+    out = {"code": best, **ix["dong"][best]}
+    if matched_sgg:
+        # 동이 아니라 시군구로 맞았다는 표식 — 호출자가 "그 시군구 전체를
+        # 순위로 재서" 답할 수 있게 남깁니다.
+        out["matched_sgg"] = matched_sgg
+    return out
+
+
+def dongs_in_sgg(sgg: str, sido: str | None = None) -> list[dict]:
+    """시군구 안의 행정동 전부 — 시군구 단위 질문을 순위로 답할 재료."""
+    ix = _load()
+    return [{"code": c, **v} for c, v in ix["dong"].items()
+            if v["sgg"] == sgg and (sido is None or v["sido"] == sido)]
 
 
 # ── 업종 찾기 ─────────────────────────────────────────────────────────────

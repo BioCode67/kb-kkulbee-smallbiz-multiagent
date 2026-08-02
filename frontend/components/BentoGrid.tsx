@@ -53,7 +53,7 @@ const ACCENT: Record<string, string> = {
 // 근거 공개의 핵심인데 접혀 있으면 없는 것과 같습니다. gaps·similar는
 // 보조 정보라 접어 두어 화면 과밀을 막습니다.
 const OPEN_BY_DEFAULT = new Set(['score', 'factors', 'policy', 'procedure',
-                                 'notice', 'compare', 'map']);
+                                 'notice', 'compare', 'map', 'rates']);
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
@@ -246,8 +246,8 @@ function ScoreCard({ s }: { s: LocationScore }) {
         {/* 등급 도장 — 성적표 도장처럼 '쾅' 찍힙니다. 점수 카운트업이
             끝날 때쯤 크게 들어와 살짝 비뚤게 앉는 것이 도장의 맛. */}
         <motion.div
-          initial={{ scale: 2.4, opacity: 0, rotate: -18 }}
-          animate={{ scale: 1, opacity: 1, rotate: -3 }}
+          initial={{ scale: 2.4, opacity: 0, rotate: -14 }}
+          animate={{ scale: 1, opacity: 1, rotate: 0 }}
           transition={{ delay: 0.85, type: 'spring', stiffness: 320, damping: 16 }}
           className="mt-3 flex items-center gap-2 rounded-full bg-kb-yellow/[.16]
                      py-1.5 pl-3 pr-4 ring-2 ring-kb-yellow/60"

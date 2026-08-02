@@ -315,6 +315,21 @@ export default function Page() {
     return () => window.removeEventListener('kkulbee:ask', h);
   }, [ask]);
 
+  // 로고 클릭 — 진짜 첫 화면으로. href="/" 리로드는 지난 상담 복원에
+  // 덮여 결과 화면이 떴습니다(사용자 신고). 화면만 홈으로 돌리고
+  // 저장된 상담 기록은 지우지 않습니다.
+  useEffect(() => {
+    const h = () => {
+      window.history.pushState(null, '', '/');
+      setHistory([]);
+      setView('home');
+      setMood('fly_happy');
+      setSpeech(GREETING);
+    };
+    window.addEventListener('kkulbee:home', h);
+    return () => window.removeEventListener('kkulbee:home', h);
+  }, []);
+
   // 꿀비를 콕 찌르면 — 한 바퀴 돌면서 한마디. 장난이지만 대사는 전부
   // 진짜 기능으로 안내합니다. 마스코트가 튜토리얼이 되는 순간입니다.
   useEffect(() => {
@@ -444,7 +459,7 @@ export default function Page() {
               key="hero"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`hero-glow honeycomb-bg relative flex overflow-x-clip ${view === 'home' ? 'min-h-[calc(100vh-3.5rem)]' : ''}
+              className={`honeycomb-bg relative flex overflow-x-clip ${view === 'home' ? 'hero-glow min-h-[calc(100vh-3.5rem)]' : ''}
                          flex-col items-center pt-14`}
             >
               {/* 가장자리 장식 — 좌우 여백이 '비어 있는 것'과 '숨 쉬는 것'은
@@ -471,8 +486,11 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              <div className="grid w-full max-w-[1560px] grid-cols-1 items-center gap-6
-                              lg:grid-cols-[1.2fr_0.8fr]">
+              {/* 판을 1360으로 좁힙니다 — 1560일 때 글은 왼쪽 끝, 꿀비는
+                  오른쪽 끝에 붙어 가운데가 통째로 비었습니다(사용자 신고).
+                  컨테이너가 좁아지면 양쪽이 중앙으로 모입니다. */}
+              <div className="grid w-full max-w-[1360px] grid-cols-1 items-center gap-6
+                              lg:grid-cols-[1.15fr_0.85fr]">
                 <div className="flex min-w-0 max-w-full flex-col items-center
                                 text-center lg:items-start lg:text-left">
                   <motion.span
@@ -1477,7 +1495,9 @@ function AgentTrace({ res }: { res: ChatResponse }) {
       </div>
 
       {steps.length > 0 ? (
-        <div className="space-y-1.5 px-4 py-3 font-mono">
+        /* 한글 상세는 본문 글꼴로 — 모노스페이스 한글은 어색합니다.
+           숫자(ms)만 모노로 남겨 콘솔 느낌을 지킵니다. */
+        <div className="space-y-1.5 px-4 py-3">
           {steps.map((s, i) => (
             <div key={i}
               className={`transition-all duration-300 ${
@@ -1487,7 +1507,8 @@ function AgentTrace({ res }: { res: ChatResponse }) {
                   s.node === 'guardrail' ? 'text-rose-300' : 'text-kb-yellow'}`}>
                   ▸ {s.label}
                 </span>
-                <span className="shrink-0 text-[11px] tabular-nums text-white/40">
+                <span className="shrink-0 font-mono text-[11px] tabular-nums
+                                 text-white/40">
                   {s.ms}ms
                 </span>
               </div>
@@ -1502,7 +1523,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         </div>
       ) : (
         /* 구버전 응답(steps 없음) — 에이전트 이름만이라도 */
-        <div className="space-y-1.5 px-4 py-3 font-mono">
+        <div className="space-y-1.5 px-4 py-3">
           {res.agent_trace.map((a, i) => (
             <p key={`${a}-${i}`} className="text-[12.5px] text-white/70">
               ▸ {AGENT_LABEL[a] ?? a}

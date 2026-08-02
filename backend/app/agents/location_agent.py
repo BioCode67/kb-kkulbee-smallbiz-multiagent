@@ -199,6 +199,21 @@ async def analyze_location(region: str, industry: str = "한식음식점") -> Lo
     return analyze(region, industry)
 
 
+def rank_sgg(sgg: str, sido: str | None, industry: str | None) -> list[LocationScore]:
+    """시군구 안 행정동 전부를 같은 자로 채점해 순위로.
+
+    "경산시에서 술집 어때?"는 특정 동네 질문이 아닙니다 — 경산시 15곳을
+    전부 재서 어디가 나은지로 답해야 질문에 맞는 답입니다.
+    """
+    rows: list[LocationScore] = []
+    for d in market_data.dongs_in_sgg(sgg, sido):
+        s = analyze(f"{d['sido']} {d['sgg']} {d['dong']}", industry)
+        if s:
+            rows.append(s)
+    rows.sort(key=lambda s: -s.total_score)
+    return rows
+
+
 async def nearby_pins(target: LocationScore, k: int = 4) -> list[MapPin]:
     """지도에 함께 찍을 비교 상권.
 

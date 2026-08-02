@@ -63,6 +63,11 @@ async def _fetch_credit_loans() -> list[dict] | None:
                 base = {b["fin_co_no"]: b["kor_co_nm"]
                         for b in body.get("baseList", [])}
                 for o in body.get("optionList", []):
+                    # 유형 A(대출금리)만 — 기준금리·가산금리·가감조정금리를
+                    # 섞어 최솟값을 취하면 우대조정치(0.x%)가 '평균 금리'처럼
+                    # 나갑니다. 실키 연결 첫날 검증에서 잡은 버그입니다.
+                    if o.get("crdt_lend_rate_type") != "A":
+                        continue
                     rows.append({
                         "bank": base.get(o.get("fin_co_no"), ""),
                         "type": o.get("crdt_lend_rate_type_nm", ""),

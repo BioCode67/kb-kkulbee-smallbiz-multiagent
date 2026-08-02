@@ -419,6 +419,29 @@ def test_contract_scan_clean_text_stays_clean():
     assert r["ok"] and r["clean"] and r["findings"] == []
 
 
+# ── 시군구 단위 질의 — '경북경산시 술집'이 general로 새지 않게 ──
+
+def test_sgg_suffix_match_and_flag():
+    """'경북경산시'처럼 시도가 붙은 한 토큰도 시군구로 풀려야 하고,
+    동이 아니라 시군구로 맞았다는 표식이 남아야 순위 답변이 가능합니다."""
+    from app.services.market_data import find_dong
+
+    d = find_dong("경북경산시 술집")
+    assert d and d.get("matched_sgg") == "경산시"
+    # 진짜 동 이름이면 표식이 없어야 합니다
+    d2 = find_dong("연남동 카페")
+    assert d2 and not d2.get("matched_sgg")
+
+
+def test_yeungnam_univ_alias():
+    """영남대(경산시 대학로, 법정동 대동)는 행정동 동부동 관할 —
+    하양읍(경산시 최대 상권)으로 잘못 가던 것의 재발 방지."""
+    from app.services.market_data import find_dong
+
+    d = find_dong("경북경산시 영남대 술집")
+    assert d and d["sgg"] == "경산시" and d["dong"] == "동부동"
+
+
 # ── 골든타임 — 권리 마감일 계산이 조문 기간과 일치하는지 ──
 
 def test_golden_time_loan_deadlines():
