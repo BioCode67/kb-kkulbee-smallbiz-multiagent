@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { dday, loadSaved, onSavedChange, removeSaved, type SavedProgram } from '@/lib/saved';
+import { downloadIcs } from '@/lib/ics';
 
 /** 원문 재확인 결과 — 백엔드 RPA가 기업마당 원문을 방금 열어 읽은 사실 */
 interface LiveCheck {
@@ -248,9 +249,21 @@ export default function SavedDrawer({ open, onClose }: {
               })}
             </div>
 
-            <footer className="border-t border-kb-ink/[.1] p-3 text-center
-                               text-[10.5px] text-kb-ink/40">
-              이 브라우저에만 저장됩니다 · 최대 50건
+            <footer className="border-t border-kb-ink/[.1] p-3">
+              {items.some((s) => s.deadline) && (
+                <button
+                  onClick={() => downloadIcs(items)}
+                  className="mb-2 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[12px]
+                             font-semibold text-kb-ink/70 transition
+                             hover:bg-kb-ink/[.09] hover:text-kb-ink"
+                  title="구글·애플·네이버 캘린더에 넣을 수 있는 표준 파일"
+                >
+                  📅 마감을 내 캘린더로 — .ics 내려받기
+                </button>
+              )}
+              <p className="text-center text-[10.5px] text-kb-ink/40">
+                이 브라우저에만 저장됩니다 · 최대 50건
+              </p>
             </footer>
           </motion.aside>
         </>
