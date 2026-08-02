@@ -545,12 +545,12 @@ function StatusChip({ m }: { m: PolicyMatch }) {
   const [text, tone] =
     m.open_status === 'open' && days != null
       ? days <= 7
-        ? [`마감 ${days}일 전`, 'bg-red-500/[.16] text-red-300 ring-red-400/25']
+        ? [`마감 ${days}일 전`, 'bg-red-500/[.16] text-red-700 ring-red-400/25']
         : [`${m.apply_deadline}까지`, 'bg-emerald-500/[.14] text-emerald-700 ring-emerald-400/20']
       : m.open_status === 'rolling'
-        ? [m.apply_period || '상시 접수', 'bg-sky-500/[.13] text-sky-300 ring-sky-400/20']
+        ? [m.apply_period || '상시 접수', 'bg-sky-500/[.13] text-sky-700 ring-sky-400/20']
         : m.open_status === 'upcoming'
-          ? [`${m.apply_period} 예정`, 'bg-amber-500/[.13] text-amber-300 ring-amber-400/20']
+          ? [`${m.apply_period} 예정`, 'bg-amber-500/[.13] text-amber-800 ring-amber-400/20']
           : [m.apply_period || '기간 미기재', 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.12]'];
 
   return (
