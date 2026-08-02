@@ -37,6 +37,9 @@ export interface LocationScore {
   dong_code: string | null;
   industry_code: string | null;
   same_industry_count: number | null;
+  /** 서울 생활인구(있으면). 점수에는 안 들어가고 표기만 */
+  living_pop: { avg: number; peak_hour: number; peak: number;
+                curve: number[]; date: string; source: string } | null;
   /** 이 동네에 덜 나온 업종 / 이미 넘치는 업종 */
   gaps: IndustryGap[];
   crowded: IndustryGap[];

@@ -262,3 +262,28 @@ class TestFinlife:
         from app.services import finlife
         os.environ.pop("FINLIFE_API_KEY", None)
         assert asyncio.run(finlife.bank_rates()) is None
+
+
+# ── 서울 생활인구 파싱 (키 없이, 문서 형식 표본으로) ──────────────────────
+class TestSeoulPop:
+    def test_24시간이_요약된다(self):
+        from app.services.seoul_pop import parse_rows
+
+        rows = [{"TMZON_PD_SE": str(h),
+                 "TOT_LVPOP_CO": str(10000 + (5000 if h == 13 else 0))}
+                for h in range(24)]
+        out = parse_rows(rows)
+        assert out and out["peak_hour"] == 13
+        assert out["curve"][13] == 1.0 and len(out["curve"]) == 24
+
+    def test_반나절도_없으면_None(self):
+        from app.services.seoul_pop import parse_rows
+
+        assert parse_rows([{"TMZON_PD_SE": "9", "TOT_LVPOP_CO": "100"}]) is None
+
+    def test_키_없으면_조용히_빠진다(self):
+        import asyncio
+
+        from app.services import seoul_pop
+        os.environ.pop("SEOUL_API_KEY", None)
+        assert asyncio.run(seoul_pop.living_pop("11440710")) is None

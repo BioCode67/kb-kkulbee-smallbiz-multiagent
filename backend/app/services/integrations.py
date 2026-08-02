@@ -40,6 +40,16 @@ def status() -> list[dict]:
             "apply": "finlife.fss.or.kr 하단 오픈API → 인증키 신청",
         },
         {
+            "key": "seoul_pop",
+            "name": "서울 생활인구 (열린데이터광장)",
+            "env": "SEOUL_API_KEY",
+            "configured": _has("SEOUL_API_KEY"),
+            "enables": "서울 상권에 유동인구(일평균·시간대 곡선) 실측 표기",
+            "without": "지금처럼 '자료에 없음'으로 표기 — 나머지 전부 정상",
+            "where": "app/services/seoul_pop.py",
+            "apply": "data.seoul.go.kr → 인증키 신청(즉시 발급)",
+        },
+        {
             "key": "kakao_map",
             "name": "카카오 지도 (JavaScript)",
             "env": "NEXT_PUBLIC_KAKAO_MAP_KEY",

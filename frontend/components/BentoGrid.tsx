@@ -174,6 +174,41 @@ function ScoreCard({ s }: { s: LocationScore }) {
         )}
       </div>
 
+      {/* 서울이면 실측 유동인구가 붙습니다 — "없다"던 칸이 채워지는 자리.
+          점수에는 안 넣습니다(서울만 있는 값이라 전국 비교가 깨집니다). */}
+      {s.living_pop && (
+        <div className="mt-4 rounded-xl bg-kb-ink/[.04] px-3.5 py-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[12px] text-kb-ink/65">생활인구 (실측)</span>
+            <span className="text-[15px] font-bold text-kb-ink
+                             [font-variant-numeric:tabular-nums]">
+              일평균 {s.living_pop.avg.toLocaleString()}명
+            </span>
+          </div>
+          {/* 하루 곡선 — 이 동네가 '언제 사는' 동네인지. 카페엔 오전이,
+              술집엔 저녁이 중요합니다. */}
+          <div className="mt-2 flex h-[34px] items-end gap-[2px]">
+            {s.living_pop.curve.map((v, h) => (
+              <span key={h}
+                title={`${h}시`}
+                className={`flex-1 rounded-t-[2px] ${
+                  h === s.living_pop!.peak_hour ? 'bg-kb-yellow' : 'bg-kb-ink/20'}`}
+                style={{ height: `${Math.max(8, v * 100)}%` }} />
+            ))}
+          </div>
+          <p className="mt-1.5 flex justify-between text-[10px] text-kb-ink/45">
+            <span>0시</span>
+            <span className="font-semibold text-kb-amber">
+              피크 {s.living_pop.peak_hour}시 · {s.living_pop.peak.toLocaleString()}명
+            </span>
+            <span>23시</span>
+          </p>
+          <p className="mt-1.5 text-[10px] leading-snug text-kb-ink/40">
+            {s.living_pop.source} · 점수에는 넣지 않았습니다
+          </p>
+        </div>
+      )}
+
       {s.industry === '업종 미지정' && (
         <IndustryChips region={s.region_name} />
       )}

@@ -99,6 +99,9 @@ class LocationScore(BaseModel):
     industry_code: str | None = Field(default=None, description="업종 소분류 코드")
     same_industry_count: int | None = Field(default=None, description="동 안 동종업종 점포 수")
 
+    # 서울 생활인구(있으면). 점수에는 안 들어가고 표기만 합니다.
+    living_pop: dict | None = Field(default=None)
+
     # 이 동네에 덜 나온 업종 / 이미 넘치는 업종
     gaps: list["IndustryGap"] = Field(default_factory=list)
     crowded: list["IndustryGap"] = Field(default_factory=list)

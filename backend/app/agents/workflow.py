@@ -142,6 +142,10 @@ async def run_location(state: GraphState) -> GraphState:
     industry = req.industry or state.get("industry") or _guess_industry(req.message)
 
     score = await location_agent.analyze_location(region, industry)
+    if score is not None and getattr(score, "dong_code", None):
+        # 서울이면 생활인구를 붙입니다. 키 없거나 실패해도 None일 뿐.
+        from app.services import seoul_pop
+        score.living_pop = await seoul_pop.living_pop(score.dong_code)
     if score is None:
         # 자료에 없는 동네에 점수를 지어내지 않습니다. 예전에는 이름만 있으면
         # 난수로 채워 무엇이든 답했습니다.
