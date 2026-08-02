@@ -359,7 +359,7 @@ export default function Page() {
   return (
     <LayoutGroup>
       <TopBar />
-      <main className="mx-auto min-h-screen max-w-[1480px] px-5 pb-24 lg:px-10">
+      <main className="mx-auto min-h-screen max-w-[1760px] px-5 pb-24 lg:px-12">
         {/* ── ① 히어로 — 꿀비가 화면을 차지합니다 ── */}
         <AnimatePresence mode="wait">
           {hero && (
@@ -394,7 +394,7 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              <div className="grid w-full max-w-[1200px] grid-cols-1 items-center gap-8
+              <div className="grid w-full max-w-[1560px] grid-cols-1 items-center gap-10
                               lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="flex min-w-0 max-w-full flex-col items-center
                                 text-center lg:items-start lg:text-left">
@@ -469,7 +469,7 @@ export default function Page() {
 
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
                 <motion.div layoutId="bee" transition={SPRING}
-                            className="relative z-10 flex justify-center
+                            className="relative z-[45] flex justify-center
                                        lg:justify-center lg:-translate-x-6">
                   {/* 무대 장식 — 벌 주변이 휑하지 않게. 플랫폼 글로우와
                       실측 미니 배지 둘이 벌을 감쌉니다(클릭 통과). */}
@@ -477,27 +477,8 @@ export default function Page() {
                     <span className="absolute left-1/2 top-[58%] h-[46%] w-[86%]
                                      -translate-x-1/2 rounded-full
                                      bg-[radial-gradient(ellipse_at_center,rgba(255,188,0,.22),transparent_65%)]" />
-                    <motion.span
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute -left-2 top-[24%] hidden rounded-full
-                                 border border-kb-ink/[.1] bg-white/90 px-3 py-1.5
-                                 text-[12px] font-bold text-kb-ink/72 shadow-md
-                                 lg:block">
-                      🏪 272만 점포 실측
-                    </motion.span>
-                    <motion.span
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 4.2, repeat: Infinity,
-                                    ease: 'easeInOut', delay: 1.6 }}
-                      className="absolute -right-3 top-[64%] hidden rounded-full
-                                 border border-kb-ink/[.1] bg-white/90 px-3 py-1.5
-                                 text-[12px] font-bold text-kb-ink/72 shadow-md
-                                 lg:block">
-                      🛡️ 금소법 가드레일 ON
-                    </motion.span>
                   </div>
-                  <BeeStage motion={mood} size={430} speech={speech} />
+                  <BeeStage motion={mood} size={470} speech={speech} />
                 </motion.div>
               </div>
 
@@ -507,7 +488,7 @@ export default function Page() {
               <motion.div
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-10 w-full max-w-[980px]"
+                className="mt-10 w-full max-w-[1240px]"
               >
                 <div>
                   <div className="grid grid-cols-5 gap-2">
@@ -603,7 +584,7 @@ export default function Page() {
               </div>
 
               {/* ── 신뢰 숫자 — 필 카드 (모두봄 문법) ── */}
-              <div className="mt-12 grid w-full max-w-[980px] grid-cols-3 gap-5">
+              <div className="mt-12 grid w-full max-w-[1240px] grid-cols-3 gap-5">
                 {[
                   ['272만+', '전국 점포 실측 좌표'],
                   ['900건', '정부 지원사업 공고'],
@@ -619,7 +600,7 @@ export default function Page() {
               </div>
 
               {/* ── 무엇이 다른가 ── */}
-              <div className="mb-20 mt-14 grid w-full max-w-[1200px] gap-5
+              <div className="mb-20 mt-14 grid w-full max-w-[1240px] gap-5
                               sm:grid-cols-3">
                 {[
                   ['지어내지 않습니다',
@@ -646,7 +627,8 @@ export default function Page() {
               {/* 상자 없이 — 꿀비는 카드 속 아이콘이 아니라 화면에 서 있는
                   동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}
               <div className="flex flex-col items-center">
-                <motion.div layoutId="bee" transition={SPRING}>
+                <motion.div layoutId="bee" transition={SPRING}
+                            className="relative z-[45]">
                   <BeeStage motion={mood} size={240} speech={speech} />
                 </motion.div>
                 <button

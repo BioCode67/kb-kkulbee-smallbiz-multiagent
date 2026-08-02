@@ -60,7 +60,7 @@ export default function TopBar() {
   return (
     <header className="print:hidden sticky top-0 z-40 border-b border-kb-ink/[.1]
                        bg-kb-cream/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-[1200px] items-center px-5 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-[1760px] items-center px-5 lg:px-12">
         {/* 로고 — 꿀 방울 배지에 앉은 꿀비 + 2줄 워드마크. 글자만 있던
             로고는 이 서비스의 성격(캐릭터가 주인공)을 말하지 못했습니다. */}
         <a href="/" className="group flex items-center gap-2.5">

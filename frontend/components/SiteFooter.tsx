@@ -18,7 +18,7 @@ const DATA = [
 export default function SiteFooter() {
   return (
     <footer className="print:hidden mt-20 border-t border-kb-ink/[.08]">
-      <div className="mx-auto max-w-[1200px] px-5 py-10 lg:px-8">
+      <div className="mx-auto max-w-[1560px] px-5 py-10 lg:px-12">
         <div className="grid gap-8 md:grid-cols-[1.2fr_1.8fr]">
           <div>
             <div className="flex items-center gap-2">

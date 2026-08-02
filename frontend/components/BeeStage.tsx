@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion as m } from 'framer-motion';
 import BeeCharacter3D from './BeeCharacter3D';
 import type { CharacterMotion } from '@/lib/types';
@@ -28,6 +29,26 @@ interface Props {
 
 export default function BeeStage({ motion, size, speech, className = '' }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // 말풍선은 body 포털에 그립니다 — 벌 캔버스가 body 레벨 z-34라,
+  // 섹션 안에 두면 z를 아무리 올려도 벌 뒤에 깔립니다. 위치는 무대를
+  // rAF로 따라갑니다(스크롤·리사이즈 포함).
+  const hostRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      const h = hostRef.current, b = bubbleRef.current;
+      if (!h || !b) return;
+      const r = h.getBoundingClientRect();
+      b.style.left = `${r.left + r.width / 2}px`;
+      b.style.top = `${r.top - 6}px`;
+    };
+    tick();
+    return () => cancelAnimationFrame(raf);
+  }, [speech]);
   const appRef = useRef<{ emitEvent: (t: string, n: string) => void } | null>(null);
   const [spline, setSpline] = useState(false);
 
@@ -61,26 +82,34 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
   }, [motion, spline]);
 
   return (
-    <div className={`relative flex flex-col items-center ${className}`}>
-      <AnimatePresence>
-        {speech && (
-          <m.div
-            key={speech}
-            initial={{ opacity: 0, y: 10, scale: 0.94 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-            transition={{ duration: 0.34, ease: [0.22, 0.9, 0.3, 1] }}
-            className="relative z-[45] mb-2 max-w-[30ch] rounded-2xl border-2
-                       border-kb-yellow/70 bg-white px-5 py-3 text-center text-[16px]
-                       font-semibold leading-[1.65] text-kb-ink
-                       shadow-[0_14px_36px_-10px_rgba(56,50,42,.4)]"
-          >
-            {speech}
-            <span className="absolute -bottom-[9px] left-1/2 h-4 w-4 -translate-x-1/2
-                             rotate-45 border-b-2 border-r-2 border-kb-yellow/70 bg-white" />
-          </m.div>
-        )}
-      </AnimatePresence>
+    <div ref={hostRef} className={`relative flex flex-col items-center ${className}`}>
+      {/* 말풍선 자리만 흐름에 남깁니다 — 실제 그림은 포털 */}
+      {speech && <div className="h-[70px]" aria-hidden />}
+      {mounted && createPortal(
+        <div ref={bubbleRef}
+             className="pointer-events-none fixed z-[38] -translate-x-1/2 -translate-y-full">
+          <AnimatePresence>
+            {speech && (
+              <m.div
+                key={speech}
+                initial={{ opacity: 0, y: 10, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.34, ease: [0.22, 0.9, 0.3, 1] }}
+                className="relative max-w-[32ch] rounded-2xl border-2
+                           border-kb-yellow/70 bg-white px-5 py-3 text-center
+                           text-[16px] font-semibold leading-[1.65] text-kb-ink
+                           shadow-[0_14px_36px_-10px_rgba(56,50,42,.4)]"
+              >
+                {speech}
+                <span className="absolute -bottom-[9px] left-1/2 h-4 w-4 -translate-x-1/2
+                                 rotate-45 border-b-2 border-r-2 border-kb-yellow/70
+                                 bg-white" />
+              </m.div>
+            )}
+          </AnimatePresence>
+        </div>,
+        document.body)}
 
       <div className="relative" style={{ width: size, height: size }}>
         {SCENE_URL && (
