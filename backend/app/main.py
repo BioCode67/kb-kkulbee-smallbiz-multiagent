@@ -227,6 +227,101 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.post("/api/v1/plan")
+def funding_plan(payload: dict) -> dict:
+    """자금 설계사 — 필요 금액을 '주는 돈부터' 실공고로 쌓는 조달 설계.
+
+    금융 상담의 진짜 질문은 "좋은 공고 뭐 있어?"가 아니라 "5천만원이
+    필요한데 어떻게 만들죠?"입니다. 900건 실공고에서 보조금 → 보증·
+    이차보전 → 융자 순서로 쌓아 갚을 돈을 최소화하고, 융자분은 월
+    상환액(원리금균등 5년 가정)까지 계산해 돌려줍니다.
+
+    정직성 — 금액 근거(amount_basis)가 없는 공고는 스택에 넣지 않고
+    '검토 후보'로만 보냅니다. 모든 숫자에 공고 원문 링크가 붙습니다.
+    """
+    from app.services import policy_search
+
+    amount = int(payload.get("amount_krw") or 0)
+    purpose = str(payload.get("purpose") or "운영")      # 운영/창업/시설
+    region = payload.get("region") or None
+    industry = payload.get("industry") or None
+    if amount < 1_000_000:
+        return {"ok": False, "reason": "필요 금액을 100만원 이상으로 넣어 주세요"}
+
+    # 목적별 질의 여러 번 — 한 질의로는 보조금·융자가 같이 안 잡힙니다
+    queries = [f"{purpose}자금 보조금 지원", f"{purpose}자금 융자",
+               f"소상공인 {purpose}자금"]
+    seen: dict[str, dict] = {}
+    for q in queries:
+        for m in policy_search.search(q, region=region, industry=industry, k=10) or []:
+            if m.get("open_status") in ("open", "rolling") and m["id"] not in seen:
+                seen[m["id"]] = m
+
+    def url_of(m):
+        return ("https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do"
+                f"?pblancId={m['id']}")
+
+    GRANT = ("보조금", "바우처")
+    GUAR = ("이차보전", "보증")
+    LOAN = ("융자",)
+    groups = {"grant": [], "guar": [], "loan": []}
+    extras = []
+    for m in seen.values():
+        ft = m.get("funding_type")
+        cap = m.get("amount_krw")
+        bucket = ("grant" if ft in GRANT else
+                  "guar" if ft in GUAR else
+                  "loan" if ft in LOAN else None)
+        if bucket and cap:
+            groups[bucket].append(m)
+        elif bucket:
+            extras.append(m)          # 금액 근거 없음 — 지어내지 않는다
+    for g in groups.values():
+        g.sort(key=lambda m: -(m.get("match_score") or 0))
+
+    def monthly(principal: float, annual_pct: float, months: int = 60) -> int:
+        r = annual_pct / 100 / 12
+        if r == 0:
+            return int(principal / months)
+        return int(principal * r * (1 + r) ** months / ((1 + r) ** months - 1))
+
+    steps, remaining = [], amount
+    for bucket, label in (("grant", "주는 돈"), ("guar", "보증·이자지원"),
+                          ("loan", "빌리는 돈")):
+        for m in groups[bucket]:
+            if remaining <= 0:
+                break
+            alloc = min(int(m["amount_krw"]), remaining)
+            rate = m.get("rate_pct")
+            is_loan = bucket != "grant"
+            steps.append({
+                "name": m.get("name") or m.get("title"), "funding_type": m.get("funding_type"),
+                "bucket": bucket, "alloc_krw": alloc,
+                "cap_krw": int(m["amount_krw"]),
+                "amount_basis": m.get("amount_basis"),
+                "rate_pct": rate,
+                "monthly_krw": monthly(alloc, rate if rate is not None else 3.5)
+                               if is_loan else 0,
+                "rate_assumed": is_loan and rate is None,
+                "reason": (m.get("match_reasons") or [""])[0],
+                "provider": m.get("agency") or m.get("ministry"),
+                "url": url_of(m),
+            })
+            remaining -= alloc
+
+    covered = amount - max(0, remaining)
+    return {"ok": True, "target_krw": amount, "covered_krw": covered,
+            "gap_krw": max(0, remaining),
+            "grant_krw": sum(s["alloc_krw"] for s in steps if s["bucket"] == "grant"),
+            "monthly_total_krw": sum(s["monthly_krw"] for s in steps),
+            "steps": steps,
+            "extras": [{"name": e.get("name") or e.get("title"), "funding_type": e.get("funding_type"),
+                        "url": url_of(e)} for e in extras[:3]],
+            "note": ("실제 접수 중인 공고의 금액 근거로만 쌓은 설계입니다. "
+                     "승인·한도·금리는 심사 결과에 따라 달라지며, 월 상환액은 "
+                     "원리금균등 5년 가정입니다. 확약이 아닙니다.")}
+
+
 @app.get("/api/v1/suggest")
 def suggest(q: str = "") -> dict:
     """입력 자동완성 — 실제 있는 동네·업종 이름만 제안합니다."""
