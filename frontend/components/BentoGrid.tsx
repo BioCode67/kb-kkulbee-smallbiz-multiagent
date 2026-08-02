@@ -49,7 +49,7 @@ const ACCENT: Record<string, string> = {
 // 피드백의 답입니다. 결론(점수·매칭·절차)은 펼치고, 근거와 곁가지(요인 분해·
 // 지도·기회 업종·닮은 동네·금리·용어)는 제목만 보이게 접습니다. 접힌 카드도
 // 제목·부제가 있어 무엇이 들었는지 알고 누를 수 있습니다.
-const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice', 'compare']);
+const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice', 'compare', 'map']);
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;

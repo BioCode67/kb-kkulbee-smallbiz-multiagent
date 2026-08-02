@@ -44,8 +44,10 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       if (!h || !b) return;
       const r = h.getBoundingClientRect();
       b.style.left = `${r.left + r.width / 2}px`;
-      // 상단바(56px) 아래로 클램프 — 말풍선이 헤더에 물리지 않게
-      b.style.top = `${Math.max(120, r.top - 6)}px`;
+      // 위 모서리 기준 — 말풍선 '전체'가 헤더(56px) 아래 있도록 높이를
+      // 반영해 클램프합니다 (바닥 기준 클램프는 윗부분이 파고들었음)
+      const bh = b.offsetHeight || 70;
+      b.style.top = `${Math.max(64, r.top - 6 - bh)}px`;
     };
     tick();
     return () => cancelAnimationFrame(raf);
@@ -88,7 +90,7 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       {speech && <div className="h-[70px]" aria-hidden />}
       {mounted && createPortal(
         <div ref={bubbleRef}
-             className="pointer-events-none fixed z-[38] -translate-x-1/2 -translate-y-full">
+             className="pointer-events-none fixed z-[38] -translate-x-1/2">
           <AnimatePresence>
             {speech && (
               <m.div

@@ -433,9 +433,18 @@ def _cards(state: GraphState) -> list[BentoCard]:
             subtitle=f"{loc.region_name} · {loc.industry}", span=2,
             accent="yellow" if loc.total_score >= 65 else "neutral",
             payload=loc.model_dump(mode="json")))
+        if state.get("pins") and not cmp_pair:
+            cards.append(BentoCard(
+                id="map", kind=BentoCardKind.MAP, title="지도로 보기",
+                subtitle="주황 점 하나가 실제 경쟁 가게 하나예요", span=4,
+                payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
+                         "dong_code": getattr(loc, "dong_code", None),
+                         "industry_code": getattr(loc, "industry_code", None),
+                         "industry": getattr(loc, "industry", None),
+                         "same_industry_count": getattr(loc, "same_industry_count", None)}))
         cards.append(BentoCard(
             id="factors", kind=BentoCardKind.FACTORS, title="점수가 이렇게 나온 이유",
-            subtitle="50점에서 무엇이 올리고 내렸는지", span=4,
+            subtitle="50점에서 무엇이 올리고 내렸는지", span=6,
             accent="brown",
             payload={"base": loc.base_score,
                      "factors": [f.model_dump(mode="json") for f in loc.factors]}))
@@ -458,16 +467,6 @@ def _cards(state: GraphState) -> list[BentoCard]:
                 span=3, accent="neutral",
                 payload={"items": sim, "industry": loc.industry,
                          "base": loc.region_name}))
-    if state.get("pins") and not cmp_pair:
-        cards.append(BentoCard(
-            id="map", kind=BentoCardKind.MAP, title="지도로 보기",
-            subtitle="주황 점이 실제 경쟁 가게예요", span=3,
-            payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
-                     # 지도가 실제 점포를 불러올 수 있게 좌표 키를 함께 보냅니다.
-                     "dong_code": getattr(loc, "dong_code", None),
-                     "industry_code": getattr(loc, "industry_code", None),
-                     "industry": getattr(loc, "industry", None),
-                     "same_industry_count": getattr(loc, "same_industry_count", None)}))
     if state.get("bank_rates"):
         cards.append(BentoCard(
             id="rates", kind=BentoCardKind.RATES, title="은행권 공시 금리",

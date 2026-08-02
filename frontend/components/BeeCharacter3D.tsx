@@ -99,16 +99,6 @@ export default function BeeCharacter3D({
         position: 'fixed', inset: '0', zIndex: '34',
         pointerEvents: 'none', display: 'block',
       });
-      // 스크롤은 '이동'이 아니라 '세상이 움직인 것' — 러프 없이 즉시
-      // 따라붙어야 벌이 자리에 붙어 있는 것처럼 보입니다. (비행 러프는
-      // flyto·드래그 복귀에만 남습니다)
-      let lastScrollY = window.scrollY;
-      const onScroll = () => {
-        const dy = window.scrollY - lastScrollY;
-        lastScrollY = window.scrollY;
-        if (!ballRef.on) beeRootRef?.position && (beeRootRef.position.y += dy * wpp());
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
       const onResize = () => {
         winW = window.innerWidth; winH = window.innerHeight;
         renderer.setSize(winW, winH);
@@ -521,13 +511,17 @@ export default function BeeCharacter3D({
         } else if (!placed) {
           beeRoot.position.set(txw, tyw, 0);
           placed = true;
-        } else {
-          // 시간 기반 추적 — 프레임이 20fps로 떨어져도 같은 속도로 붙습니다.
-          // 앵커(스크롤 포함)는 강하게, flyto 비행만 여유 있게.
+        } else if (flyOverride) {
+          // flyto 비행만 부드럽게 — 시간 기반이라 프레임 저하에도 등속
           const dt = Math.min(0.05, t - prevT);
-          const kFollow = 1 - Math.exp(-(flyOverride ? 6 : 22) * dt);
+          const kFollow = 1 - Math.exp(-6 * dt);
           beeRoot.position.x += (txw - beeRoot.position.x) * kFollow;
           beeRoot.position.y += (tyw - beeRoot.position.y) * kFollow;
+        } else {
+          // 앵커 모드는 스냅 — 스크롤 중 프레임이 밀려도 '딸려 오는'
+          // 잔상이 원천적으로 없습니다. 제자리 복귀의 출렁임은 자식
+          // 스프링(jx·jy)이 담당하므로 러프가 여기 필요 없습니다.
+          beeRoot.position.set(txw, tyw, 0);
         }
         prevT = t;
         // 비행 방향으로 살짝 기울기 — 이동감 (탄도 중엔 탄도가 기울기 결정)
@@ -578,16 +572,12 @@ export default function BeeCharacter3D({
         const dizzy = dz >= 0 && dz < 1 ? (1 - dz) : 0;
         if (dizzy > 0) bee.rotation.z += Math.sin(t * 16) * 0.14 * dizzy;
 
-        // 마우스를 향해 천천히 고개를 돌립니다
-        cx += (tx - cx) * 0.07;
-        cy += (ty - cy) * 0.07;
-        head.rotation.y = cx * 0.42 + (thinking ? Math.sin(t * 0.7) * 0.12 : 0);
-        // 위로 모드 — 고개를 숙이고 아주 천천히 끄덕입니다. 밝은 몸짓이
-        // 실례인 순간이 있습니다.
-        head.rotation.x = cy * 0.26 + (sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0);
-        head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : cx * -0.08;
-        // 기본 시선은 왼쪽(본문·사용자 쪽) — 무대 오른쪽에 서 있으니까
-        bee.rotation.y = -0.26 + cx * 0.2 + spin;
+        // 시선은 늘 사용자(카메라) — 마우스 추적은 '딴 데 보는' 인상을
+        // 줘서 뺐습니다. 표정은 동작 상태로만 움직입니다.
+        head.rotation.y = thinking ? Math.sin(t * 0.7) * 0.12 : 0;
+        head.rotation.x = sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0;
+        head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : 0;
+        bee.rotation.y = spin;
         // 축하 백덤블링 — 뒤로 한 바퀴 (S·A등급 콘페티와 함께)
         const fp = (t - flipFrom) / 1.0;
         const flip = fp >= 0 && fp < 1 ? -(1 - Math.pow(1 - fp, 3)) * Math.PI * 2 : 0;
@@ -600,8 +590,8 @@ export default function BeeCharacter3D({
         wings[1].rotation.y = flap;
 
         // 더듬이는 몸보다 늦게 따라옵니다. 관성이 있어야 매달린 것처럼 보입니다.
-        antennae[0].rotation.z = Math.sin(t * 1.6) * 0.09 - cx * 0.1;
-        antennae[1].rotation.z = Math.sin(t * 1.6 + 0.4) * 0.09 - cx * 0.1;
+        antennae[0].rotation.z = Math.sin(t * 1.6) * 0.09;
+        antennae[1].rotation.z = Math.sin(t * 1.6 + 0.4) * 0.09;
 
         // 눈 — 생각 중엔 계속 감고, 아니면 가끔 깜빡입니다
         if (thinking) {
@@ -636,7 +626,6 @@ export default function BeeCharacter3D({
         window.removeEventListener('pointercancel', onUp);
         window.removeEventListener('pointerdown', onDownGlobal);
         window.removeEventListener('resize', onResize);
-        window.removeEventListener('scroll', onScroll);
         window.removeEventListener('kkulbee:flyto', onFlyTo);
         window.removeEventListener('kkulbee:flyhome', onFlyHome);
         window.removeEventListener('kkulbee:celebrate', onCelebrate);

@@ -90,8 +90,18 @@ const MODES = [
 ];
 
 /** 배너 아이콘 — 이모지는 기기 글꼴에 따라 네모로 나오므로 SVG로 그립니다. */
+const MODE_TONE: Record<string, { bg: string; fg: string }> = {
+  pin: { bg: 'bg-amber-400/[.16]', fg: '#E09A00' },
+  compass: { bg: 'bg-emerald-400/[.16]', fg: '#1E8E5A' },
+  coin: { bg: 'bg-sky-400/[.16]', fg: '#0369A1' },
+  shield: { bg: 'bg-rose-400/[.14]', fg: '#BE4A5A' },
+  bee: { bg: 'bg-violet-400/[.14]', fg: '#7C5CBF' },
+};
+
 function ModeIcon({ name, on }: { name: string; on: boolean }) {
-  const c = on ? '#FFBC00' : 'rgba(255,255,255,.55)';
+  // 미선택 아이콘이 흰색 55%라 흰 카드에서 투명했다(다크 잔재).
+  // 갈래마다 제 색을 갖는다 — 다섯 배너가 한눈에 구별된다.
+  const c = on ? '#E09A00' : MODE_TONE[name]?.fg ?? '#A08D6E';
   const p = { fill: 'none', stroke: c, strokeWidth: 1.8,
               strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   return (
@@ -136,6 +146,15 @@ const AGENT_LABEL: Record<string, string> = {
 
 const GREETING = '안녕하세요 사장님! 무엇이 궁금하세요?';
 
+/** 갈래 페이지의 한 줄 설명 — 제도어 없이, 사장님 말로. */
+const MODE_EASY: Record<string, string> = {
+  location: '동네 이름만 말하면, 실제 가게 숫자로 그 자리가 어떤지 알려드려요',
+  gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드려요',
+  policy: '사장님 상황에 맞는 정부 지원금을 찾아드려요 — 제도 이름 몰라도 돼요',
+  protection: '억울한 일이 생겼을 때, 어떤 순서로 해결하는지 알려드려요',
+  all: '자리도, 돈도, 권리도 — 한 번에 같이 봐드려요',
+};
+
 export default function Page() {
   const [input, setInput] = useState('');
   // 대화는 쌓입니다. 새 질문이 이전 답을 지우면 "그럼 자금은?"이라고
@@ -148,6 +167,9 @@ export default function Page() {
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
   const [speech, setSpeech] = useState(GREETING);
   const [mode, setMode] = useState(0);
+  // 배너는 '옵션 전환'이 아니라 '페이지 이동'이어야 한다는 피드백 —
+  // 정적 내보내기라 경로 대신 ?mode= 쿼리로 갈래 전용 화면을 엽니다.
+  const [view, setView] = useState<'home' | 'mode'>('home');
   // 로딩 중에도 방금 물은 말이 보여야 합니다. 답이 올 때까지 질문이
   // 사라지면 "내가 뭐라고 보냈더라"가 됩니다.
   const [pendingQ, setPendingQ] = useState('');
@@ -166,8 +188,12 @@ export default function Page() {
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
-    const q = new URLSearchParams(window.location.search).get('q');
+    const sp = new URLSearchParams(window.location.search);
+    const q = sp.get('q');
     if (q?.trim()) { ask(q.trim()); return; }
+    const mk = sp.get('mode');
+    const mi = MODES.findIndex((m) => m.key === mk);
+    if (mi >= 0) { setMode(mi); setView('mode'); }
     // 딥링크가 없으면 지난 상담을 이어봅니다 — 상담소는 어제 한 얘기를
     // 기억해야 상담소입니다.
     try {
@@ -214,16 +240,6 @@ export default function Page() {
         } catch {/* 용량 초과면 조용히 — 상담은 계속됩니다 */}
         return next;
       });
-      // 배달 비행 — 새 답이 놓이면 꿀비가 그 위로 스윽 날아갔다 돌아옵니다.
-      // "이거 내가 가져왔어요"의 몸짓.
-      setTimeout(() => {
-        const last = resultRef.current?.lastElementChild;
-        if (!last) return;
-        const r = (last as HTMLElement).getBoundingClientRect();
-        window.dispatchEvent(new CustomEvent('kkulbee:flyto',
-          { detail: { x: r.left + r.width * 0.5, y: Math.max(120, r.top + 40) } }));
-        setTimeout(() => window.dispatchEvent(new CustomEvent('kkulbee:flyhome')), 1500);
-      }, 500);
       // 좋은 소식은 몸으로도 알립니다. S·A등급이면 꿀색 종이가 잠깐 흩날립니다.
       // 장난 같지만, 점수를 "받았다"는 감각을 만드는 것은 이런 2초입니다.
       if (data.location && (data.location.grade === 'S' || data.location.grade === 'A')) {
@@ -316,18 +332,33 @@ export default function Page() {
       .catch(() => {/* 인사말은 기본으로 남습니다 */});
   }, []);
 
+  // 갈래 페이지로 이동 — URL이 바뀌고(뒤로가기 지원) 화면 구성이 바뀝니다.
+  const goMode = useCallback((i: number) => {
+    setMode(i);
+    setView('mode');
+    setHistory([]);
+    window.history.pushState(null, '', `?mode=${MODES[i].key}`);
+    window.scrollTo({ top: 0 });
+  }, []);
+  const goHome = useCallback(() => {
+    setView('home');
+    setHistory([]);
+    window.history.pushState(null, '', '/');
+  }, []);
+  useEffect(() => {
+    const onPop = () => {
+      const mk = new URLSearchParams(window.location.search).get('mode');
+      const i = MODES.findIndex((m) => m.key === mk);
+      if (i >= 0) { setMode(i); setView('mode'); } else { setView('home'); }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   // 상단바의 다섯 갈래 — 누르면 그 갈래가 선택된 첫 화면으로 돌아갑니다.
   // 결과를 보던 중이라도 '기능으로 이동'은 새로 시작이 자연스럽습니다.
   useEffect(() => {
-    const h = (e: Event) => {
-      const i = (e as CustomEvent<number>).detail;
-      setMode(i);
-      setHistory([]);
-      localStorage.removeItem('kkulbee:history');
-      setMood('fly_happy');
-      setSpeech(GREETING);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    const h = (e: Event) => goMode((e as CustomEvent<number>).detail);
     window.addEventListener('kkulbee:mode', h);
     return () => window.removeEventListener('kkulbee:mode', h);
   }, []);
@@ -368,8 +399,8 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)] overflow-x-clip
-                         flex-col items-center pt-14"
+              className={`hero-glow honeycomb-bg relative flex overflow-x-clip ${view === 'home' ? 'min-h-[calc(100vh-3.5rem)]' : ''}
+                         flex-col items-center pt-14`}
             >
               {/* 가장자리 장식 — 좌우 여백이 '비어 있는 것'과 '숨 쉬는 것'은
                   다릅니다. 꿀 방울·벌집 조각이 아주 옅게 떠다니며 결을 만듭니다.
@@ -391,6 +422,7 @@ export default function Page() {
                 ))}
               </div>
 
+              {view === 'home' && (<>
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
@@ -468,8 +500,7 @@ export default function Page() {
                 </div>
 
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
-                <motion.div layoutId="bee" transition={SPRING}
-                            className="relative z-[45] flex justify-center
+                <div className="relative z-[45] flex justify-center
                                        lg:justify-center lg:-translate-x-24">
                   {/* 무대 장식 — 벌 주변이 휑하지 않게. 플랫폼 글로우와
                       실측 미니 배지 둘이 벌을 감쌉니다(클릭 통과). */}
@@ -479,8 +510,36 @@ export default function Page() {
                                      bg-[radial-gradient(ellipse_at_center,rgba(255,188,0,.22),transparent_65%)]" />
                   </div>
                   <BeeStage motion={mood} size={470} speech={speech} />
-                </motion.div>
+                </div>
               </div>
+
+              </>)}
+
+              {/* ── 갈래 페이지 헤더 — 배너는 '이동'입니다. 새 화면답게
+                  갈래 이름이 크게, 꿀비는 제자리에 바로 섭니다. ── */}
+              {view === 'mode' && (
+                <div className="mt-2 flex w-full max-w-[1240px] items-center
+                                justify-between gap-6">
+                  <div className="min-w-0">
+                    <button onClick={goHome}
+                      className="text-[14px] font-medium text-kb-ink/62
+                                 transition hover:text-kb-ink">
+                      ← 처음으로
+                    </button>
+                    <h1 className="font-display mt-2 text-[42px] leading-tight
+                                   text-kb-ink sm:text-[58px]">
+                      {MODES[mode].label}
+                    </h1>
+                    <p className="mt-3 max-w-[52ch] text-[17px] leading-relaxed
+                                  text-kb-ink/80">
+                      {MODE_EASY[MODES[mode].key]}
+                    </p>
+                  </div>
+                  <div className="hidden shrink-0 md:block">
+                    <BeeStage motion={mood} size={240} speech={speech} />
+                  </div>
+                </div>
+              )}
 
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은
                   목업 냄새가 났고 흰 상자 속 흰 입력창은 흐릿했습니다.
@@ -498,14 +557,12 @@ export default function Page() {
                         <button
                           key={m.key}
                           onClick={() => {
-                            setMode(i);
-                            // 클릭했는데 화면이 그대로면 고장으로 읽힙니다.
-                            // 입력창으로 데려가 포커스까지 줘야 "골랐다"가
-                            // 몸으로 확인됩니다 — 특히 모바일에서.
-                            document.querySelector<HTMLInputElement>('#ask input')
-                              ?.focus({ preventScroll: false });
-                            document.getElementById('ask')
-                              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // 배너는 페이지 이동입니다 — 같은 화면에서
+                            // 옵션만 바꾸면 '눌렀는데 그대로'로 읽힙니다.
+                            goMode(i);
+                            setTimeout(() => document
+                              .querySelector<HTMLInputElement>('#ask input')
+                              ?.focus({ preventScroll: true }), 50);
                           }}
                           aria-pressed={on}
                           className={`group flex flex-col items-center gap-1 rounded-xl
@@ -514,7 +571,10 @@ export default function Page() {
                               ? 'border-2 border-kb-yellow bg-white shadow-[0_10px_28px_-12px_rgba(224,144,0,.5)]'
                               : 'border border-kb-ink/[.12] bg-white/85 shadow-sm hover:-translate-y-0.5 hover:bg-white hover:shadow-md'}`}
                         >
-                          <ModeIcon name={m.icon} on={on} />
+                          <span className={`grid h-10 w-10 place-items-center
+                                            rounded-xl ${MODE_TONE[m.icon]?.bg ?? ''}`}>
+                            <ModeIcon name={m.icon} on={on} />
+                          </span>
                           <span className={`text-[14px] font-semibold ${
                             on ? 'text-kb-amber' : 'text-kb-ink/80'}`}>
                             {m.label}
@@ -561,6 +621,7 @@ export default function Page() {
                 </div>
               </motion.div>
 
+              {view === 'home' && (<>
               {/* ── 마퀴 밴드 — 기능이 흘러갑니다 (젠지 랜딩 문법) ── */}
               <div className="relative left-1/2 mt-14 w-screen -translate-x-1/2 overflow-hidden
                               border-y border-kb-ink/[.08] bg-white/60 py-3.5"
@@ -569,8 +630,8 @@ export default function Page() {
                   {[0, 1].map((rep) => (
                     <span key={rep} className="flex shrink-0 items-center">
                       {['272만 점포 실측', '정부 공고 900건', '금소법 가드레일',
-                        '두 동네 비교', 'RPA 원문 순찰', '마감 캘린더',
-                        'What-If 역계산', '상환 시뮬레이터', '3,450개 동네 백분위',
+                        '두 동네 비교', '공고 자동 확인', '마감 캘린더',
+                        '업종 바꿔 재보기', '상환 시뮬레이터', '3,450개 동네 백분위',
                         '민원서 초안', '지도 투어'].map((w) => (
                         <span key={w} className="mx-6 flex items-center gap-6
                                                  text-[15px] font-bold
@@ -588,7 +649,7 @@ export default function Page() {
                 {[
                   ['272만+', '전국 점포 실측 좌표'],
                   ['900건', '정부 지원사업 공고'],
-                  ['3,450곳', '행정동 백분위 비교'],
+                  ['3,450곳', '전국 동네끼리 비교'],
                 ].map(([n, l]) => (
                   <div key={l} className="rounded-2xl border border-kb-ink/[.1] bg-white
                                           px-4 py-6 text-center shadow-sm">
@@ -616,6 +677,7 @@ export default function Page() {
                   </div>
                 ))}
               </div>
+              </>)}
             </motion.section>
           )}
         </AnimatePresence>
@@ -627,10 +689,9 @@ export default function Page() {
               {/* 상자 없이 — 꿀비는 카드 속 아이콘이 아니라 화면에 서 있는
                   동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}
               <div className="flex flex-col items-center">
-                <motion.div layoutId="bee" transition={SPRING}
-                            className="relative z-[45]">
+                <div className="relative z-[45]">
                   <BeeStage motion={mood} size={240} speech={speech} />
-                </motion.div>
+                </div>
                 <button
                   onClick={() => { setHistory([]); localStorage.removeItem('kkulbee:history'); setMood('fly_happy'); setSpeech(GREETING); }}
                   className="mt-2 rounded-full px-4 py-1.5 text-[13.5px] text-kb-ink/72
@@ -1025,7 +1086,7 @@ function Answer({ res }: { res: ChatResponse }) {
     <div className="surface-2 relative p-5 sm:p-6">
       {/* 이 화면을 그대로 여는 링크. 질문이 주소에 실려 있어 받은 사람도
           같은 답을 봅니다. */}
-      <div className="print:hidden absolute right-4 top-4 flex gap-1.5">
+      <div className="print:hidden mb-3 flex justify-end gap-1.5">
         {/* 종이로 들고 가는 상담 — 은행·지원센터 창구에서는 화면보다
             출력물이 통합니다. 브라우저 인쇄로 PDF 저장도 됩니다. */}
         <button
