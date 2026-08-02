@@ -517,27 +517,60 @@ export default function Page() {
 
               </>)}
 
-              {/* ── 갈래 페이지 헤더 — 배너는 '이동'입니다. 새 화면답게
-                  갈래 이름이 크게, 꿀비는 제자리에 바로 섭니다. ── */}
+              {/* ── 갈래 페이지 — 제목 아래 곧바로 질문창. 제목과 입력창이
+                  화면 반대편에 떨어져 있으면 그 사이가 죽은 땅이 됩니다.
+                  왼쪽 한 기둥에 '제목 → 설명 → 질문 → 예시'가 이어지고
+                  꿀비가 옆에 서면, 빈칸 없이 한눈에 읽힙니다. ── */}
               {view === 'mode' && (
-                <div className="mt-2 flex w-full max-w-[1240px] items-center
-                                justify-between gap-6">
+                <div className="mt-2 grid w-full max-w-[1240px] items-start gap-6
+                                md:grid-cols-[minmax(0,1fr)_280px]">
                   <div className="min-w-0">
                     <button onClick={goHome}
                       className="text-[14px] font-medium text-kb-ink/62
                                  transition hover:text-kb-ink">
                       ← 처음으로
                     </button>
-                    <h1 className="font-display mt-2 text-[42px] leading-tight
-                                   text-kb-ink sm:text-[58px]">
+                    <h1 className="font-display mt-2 text-[40px] leading-tight
+                                   text-kb-ink sm:text-[52px]">
                       {MODES[mode].label}
                     </h1>
-                    <p className="mt-3 max-w-[52ch] text-[17px] leading-relaxed
+                    <p className="mt-2.5 max-w-[52ch] text-[16.5px] leading-relaxed
                                   text-kb-ink/80">
                       {MODE_EASY[MODES[mode].key]}
                     </p>
+
+                    <motion.div layoutId="askbox" transition={SPRING}
+                                id="ask" className="mt-6">
+                      <AskBox value={input} onChange={setInput}
+                              placeholder={MODES[mode].placeholder}
+                              onSubmit={() => { ask(input); setInput(''); }}
+                              loading={loading}
+                              lastQ={history[history.length - 1]?.q} />
+                    </motion.div>
+
+                    <motion.div
+                      key={MODES[mode].key}
+                      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.22 }}
+                      className="mt-3 flex flex-col gap-1.5"
+                    >
+                      {MODES[mode].samples.map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => ask(q)}
+                          className="group flex items-center gap-2.5 rounded-lg
+                                     border border-kb-ink/[.08] bg-white/70 px-3 py-2
+                                     text-left transition hover:border-kb-amber/40
+                                     hover:bg-white hover:shadow-sm"
+                        >
+                          <span className="text-[13px] text-kb-amber transition">→</span>
+                          <span className="text-[15px] font-medium text-kb-ink/88
+                                           group-hover:text-kb-ink">{q}</span>
+                        </button>
+                      ))}
+                    </motion.div>
                   </div>
-                  <div className="hidden shrink-0 md:block">
+                  <div className="hidden shrink-0 justify-self-center md:block">
                     <BeeStage motion={mood} size={240} speech={speech} />
                   </div>
                 </div>
@@ -557,9 +590,15 @@ export default function Page() {
               <motion.div
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-10 w-full max-w-[1240px]"
+                className={`w-full max-w-[1240px] ${view === 'mode' ? 'mt-9' : 'mt-10'}`}
               >
                 <div>
+                  {view === 'mode' && (
+                    <p className="mb-2 text-[12.5px] font-bold uppercase
+                                  tracking-wider text-kb-ink/55">
+                      다른 고민도 있으세요?
+                    </p>
+                  )}
                   <div className="grid grid-cols-5 gap-2">
                     {MODES.map((m, i) => {
                       const on = i === mode;
@@ -598,6 +637,7 @@ export default function Page() {
                     })}
                   </div>
 
+                  {view === 'home' && (<>
                   <motion.div layoutId="askbox" transition={SPRING}
                               id="ask" className="mt-4">
                     <AskBox value={input} onChange={setInput}
@@ -628,6 +668,7 @@ export default function Page() {
                       </button>
                     ))}
                   </motion.div>
+                  </>)}
                 </div>
               </motion.div>
 
