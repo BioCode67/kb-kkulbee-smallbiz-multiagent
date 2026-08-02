@@ -274,7 +274,8 @@ function LeafletMap({
             {tourStep}
           </div>
         )}
-        <div className="absolute left-2.5 top-2.5 z-[500] flex gap-1.5">
+        {/* left-14 — Leaflet 줌(+/−)이 왼쪽 위에 있어 left-2.5면 겹칩니다 */}
+        <div className="absolute left-14 top-2.5 z-[500] flex gap-1.5">
           <button onClick={runTour} disabled={touring}
             className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[13.5px] font-bold
                        text-kb-ink shadow transition hover:brightness-105
