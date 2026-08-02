@@ -149,6 +149,16 @@ const AGENT_LABEL: Record<string, string> = {
 const GREETING = '안녕하세요 사장님! 무엇이 궁금하세요?';
 
 /** 갈래 페이지의 한 줄 설명 — 제도어 없이, 사장님 말로. */
+/* 갈래별 근거 배지 — "믿어 달라"가 아니라 무엇을 몇 개나 실측했는지.
+   전부 저장소·실서비스와 일치하는 숫자입니다. 지어낸 수치를 넣지 않습니다. */
+const MODE_PROOF: Record<string, string[]> = {
+  location: ['점포 2,725,318개 실측', '행정동 3,450곳 전국 백분위', '요인 6개 근거 공개'],
+  gap: ['점포 273만 개 실측', '업종 247종 구성 대조', '전국 같은 자로 비교'],
+  policy: ['실제 접수 공고 900건', '검색 정확도 P@1 0.875', '전 항목 원문 링크'],
+  protection: ['법조문 근거 인용', '독소조항 10유형 검사', '금소법 가드레일 통과'],
+  all: ['세 에이전트 동시 가동', '가드레일이 마지막 관문', '모든 답에 실측 로그'],
+};
+
 const MODE_EASY: Record<string, string> = {
   location: '동네 이름만 말하면, 실제 가게 숫자로 그 자리가 어떤지 알려드려요',
   gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드려요',
@@ -523,7 +533,7 @@ export default function Page() {
                   꿀비가 옆에 서면, 빈칸 없이 한눈에 읽힙니다. ── */}
               {view === 'mode' && (
                 <div className="mt-2 grid w-full max-w-[1240px] items-start gap-6
-                                md:grid-cols-[minmax(0,1fr)_280px]">
+                                md:grid-cols-[minmax(0,1fr)_330px]">
                   <div className="min-w-0">
                     <button onClick={goHome}
                       className="text-[14px] font-medium text-kb-ink/62
@@ -538,6 +548,25 @@ export default function Page() {
                                   text-kb-ink/80">
                       {MODE_EASY[MODES[mode].key]}
                     </p>
+
+                    {/* 근거 배지 — 귀여운 얼굴 옆에 실측 숫자. '믿어 달라'가
+                        아니라 무엇을 몇 개 세어 봤는지를 먼저 보여줍니다. */}
+                    <div className="mt-3.5 flex flex-wrap gap-2">
+                      {(MODE_PROOF[MODES[mode].key] ?? []).map((t) => (
+                        <span key={t}
+                          className="inline-flex items-center gap-1.5 rounded-full
+                                     border border-kb-ink/[.1] bg-white/80 px-3
+                                     py-1.5 text-[13px] font-semibold text-kb-ink/78">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                               className="text-emerald-600">
+                            <path d="M20 6L9 17l-5-5" stroke="currentColor"
+                                  strokeWidth="3" strokeLinecap="round"
+                                  strokeLinejoin="round" />
+                          </svg>
+                          {t}
+                        </span>
+                      ))}
+                    </div>
 
                     <motion.div layoutId="askbox" transition={SPRING}
                                 id="ask" className="mt-6">
@@ -571,7 +600,7 @@ export default function Page() {
                     </motion.div>
                   </div>
                   <div className="hidden shrink-0 justify-self-center md:block">
-                    <BeeStage motion={mood} size={240} speech={speech} />
+                    <BeeStage motion={mood} size={300} speech={speech} />
                   </div>
                 </div>
               )}

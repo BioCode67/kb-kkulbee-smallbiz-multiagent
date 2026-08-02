@@ -54,6 +54,18 @@ class TestGuardrail:
         assert report.violations
         assert report.original_excerpt
 
+    def test_조사와_부정형_변형도_잡는다(self):
+        """2차 시험이 찾은 구멍 — 조사를 끼우거나('원금이 보장'),
+        접두어를 빼거나('수익이 보장'), 부정형으로 말해도('손해 볼 일
+        없습니다') 단정은 단정입니다. 재발 방지."""
+        from app.agents.guardrail_agent import apply
+
+        for bad in ("원금이 보장되는 상품입니다",
+                    "이 상품은 무조건 수익이 보장됩니다",
+                    "손해 볼 일 없습니다"):
+            _, report = apply(bad)
+            assert not report.passed, bad
+
 
 # ── 라우터 (규칙 경로) ────────────────────────────────────────────────────
 class TestRouter:
