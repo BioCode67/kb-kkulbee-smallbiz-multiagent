@@ -125,7 +125,7 @@ export default function BeeCharacter3D({
       const stripeTex = makeStripeTexture(THREE);
 
       const hoodMat = new THREE.MeshStandardMaterial({
-        map: makeHoodTexture(THREE), roughness: 0.42, metalness: 0.02,
+        map: makeHeadTexture(THREE), roughness: 0.5, metalness: 0.02,
       });
       const bodyMat = new THREE.MeshStandardMaterial({
         map: stripeTex, roughness: 0.42, metalness: 0.02,
@@ -158,6 +158,9 @@ export default function BeeCharacter3D({
 
       const hood = new THREE.Mesh(new THREE.SphereGeometry(1.28, 64, 48), hoodMat);
       hood.scale.set(1.0, 0.96, 0.94);
+      // SphereGeometry의 u=0.5는 +x(옆면)를 봅니다. 텍스처의 얼굴 패치가
+      // 정면(+z)에 오도록 구체만 -90° 돌립니다. 띠는 균일해서 무관.
+      hood.rotation.y = -Math.PI / 2;
       hood.castShadow = true;
       head.add(hood);
 
@@ -170,25 +173,8 @@ export default function BeeCharacter3D({
       // 레퍼런스를 다시 보니 얼굴은 후드 안에 **끼워 넣은 별개의 덩어리**
       // 입니다. 그러면 텍스처가 필요 없습니다. 구체 하나를 앞으로 밀면
       // 그 모양이 그대로 나오고, 조명도 얼굴과 후드에 각각 맞게 떨어집니다.
-      const faceMat2 = new THREE.MeshStandardMaterial({
-        color: 0xfdeed6, roughness: 0.66, metalness: 0.0,
-      });
-      const face = new THREE.Mesh(new THREE.SphereGeometry(1.08, 48, 36), faceMat2);
-      // 얼굴 뭉치 전체가 x=0.06으로 밀려 있었다 — '일그러져 보인다'의
-      // 정체. 후드는 0에 있는데 얼굴만 오른쪽으로 6% 치우쳐 있었다.
-      face.position.set(0, -0.04, 0.34);
-      face.scale.set(1.0, 0.99, 0.82);
-      face.castShadow = true;
-      head.add(face);
-
-      // 후드 테 — 얼굴을 두르는 노란 링. 레퍼런스의 핵심인데 빠져 있어서
-      // '후드 쓴 아이'가 아니라 '계란에 줄무늬'로 읽혔습니다.
-      const hoodRim = new THREE.Mesh(
-        new THREE.TorusGeometry(1.04, 0.14, 16, 48),
-        new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.38 }));
-      hoodRim.position.set(0, -0.04, 0.6);
-      hoodRim.scale.set(1.0, 1.02, 0.7);
-      head.add(hoodRim);
+      // 얼굴은 머리 텍스처에 그려져 있습니다 — 별도 구체·테 없음.
+      // (구체 두 개를 겹치면 이음새 굴곡이 '두 턱'처럼 보였습니다)
 
       // 눈 — 얼굴 표면에 붙는 구체. 이것 하나로 '3D인가 그림인가'가 갈립니다.
       const eyes: import('three').Mesh[] = [];
@@ -235,19 +221,28 @@ export default function BeeCharacter3D({
       head.add(smile);
 
 
-      // 더듬이
+      // 더듬이 — 짧고 통통해야 아기 같습니다. 길고 곧으면 곤충 표본이
+      // 됩니다. 끝 구슬을 큼직하고 반질하게(클리어코트) — '방울' 느낌.
       const antennae: import('three').Group[] = [];
+      const ballMat = new THREE.MeshPhysicalMaterial({
+        color: DARK, roughness: 0.25, clearcoat: 0.9, clearcoatRoughness: 0.2 });
       for (const sx of [-1, 1]) {
         const g = new THREE.Group();
         const stalk = new THREE.Mesh(
-          new THREE.CapsuleGeometry(0.045, 0.62, 4, 12), darkMat);
-        stalk.position.set(sx * 0.5, 1.42, 0.05);
-        stalk.rotation.z = sx * 0.42;
+          new THREE.CapsuleGeometry(0.05, 0.42, 4, 12), darkMat);
+        stalk.position.set(sx * 0.4, 1.32, 0.05);
+        stalk.rotation.z = sx * 0.3;
         g.add(stalk);
-        const ball = new THREE.Mesh(new THREE.SphereGeometry(0.145, 24, 18), darkMat);
-        ball.position.set(sx * 0.78, 1.74, 0.05);
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(0.17, 24, 18), ballMat);
+        ball.position.set(sx * 0.56, 1.58, 0.05);
         ball.castShadow = true;
         g.add(ball);
+        // 방울 위 작은 광점 — 눈처럼 살아 있게
+        const glint = new THREE.Mesh(
+          new THREE.SphereGeometry(0.045, 10, 8),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 }));
+        glint.position.set(sx * 0.52, 1.64, 0.18);
+        g.add(glint);
         head.add(g);
         antennae.push(g);
       }
@@ -527,20 +522,33 @@ export default function BeeCharacter3D({
  */
 
 /** 후드·몸통의 노란 바탕과 진갈색 줄무늬 */
-// 후드는 민무늬 — 머리에 검은 띠를 두르면 헬멧 이음새처럼 읽혀 어색합니다.
-// '벌 무늬'는 몸통 줄무늬가 담당하고, 머리는 매끈한 꿀색이 예쁩니다.
-function makeHoodTexture(THREE: typeof import('three')) {
+// 머리 텍스처 — 한 구체 위에 전부 그립니다: 꿀색 바탕, 위를 두르는
+// 검은 띠(벌다움), 앞면의 크림 얼굴 패치. 얼굴을 별도 구체로 끼우면
+// 이음새 굴곡이 생겨 '턱이 두 개'처럼 읽힙니다. 표면이 하나면 머리는
+// 완전한 공입니다.
+function makeHeadTexture(THREE: typeof import('three')) {
   const c = document.createElement('canvas');
-  c.width = 64; c.height = 256;
+  c.width = 1024; c.height = 512;
   const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, 0, 256);
+  const grad = g.createLinearGradient(0, 0, 0, 512);
   grad.addColorStop(0, '#FFD96B');
   grad.addColorStop(0.55, '#FFC42E');
   grad.addColorStop(1, '#E89B04');
   g.fillStyle = grad;
-  g.fillRect(0, 0, 64, 256);
+  g.fillRect(0, 0, 1024, 512);
+  // 위를 두르는 검은 띠 — 머리에서 '벌'을 만드는 한 줄
+  g.fillStyle = '#33251A';
+  g.fillRect(0, 58, 1024, 66);
+  // 얼굴 패치 — 앞면 가득한 크림 타원. 가장자리에 살짝 진한 테를 둘러
+  // 후드 안에 얼굴이 들어앉은 깊이감을 만듭니다.
+  const cx = 512, cy = 306, rx = 214, ry = 172;
+  g.fillStyle = '#F2B93C';
+  g.beginPath(); g.ellipse(cx, cy, rx + 16, ry + 14, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#FDEED6';
+  g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.fill();
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return tex;
 }
 
