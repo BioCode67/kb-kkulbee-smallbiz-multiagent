@@ -159,6 +159,46 @@ const GRADE_TONE: Record<string, { ring: string; text: string; label: string }> 
   D: { ring: '#8A7866', text: 'text-kb-ink/82', label: '신중할 자리' },
 };
 
+/** 등급 사다리 — 지금 몇 점인지보다 '다음 등급까지 몇 점 남았는지'가
+ *  행동을 만듭니다. 컷은 백엔드 등급 산식(45/58/72/85)과 같은 값. */
+function GradeLadder({ score }: { score: number }) {
+  const cuts = [
+    { g: 'D', from: 0 }, { g: 'C', from: 45 }, { g: 'B', from: 58 },
+    { g: 'A', from: 72 }, { g: 'S', from: 85 },
+  ];
+  const next = cuts.find((c) => score < c.from);
+  return (
+    <div className="mt-3 w-full max-w-[240px]">
+      <div className="relative flex h-[18px] overflow-hidden rounded-full
+                      ring-1 ring-kb-ink/[.1]">
+        {cuts.map((c, i) => {
+          const end = cuts[i + 1]?.from ?? 100;
+          const active = score >= c.from;
+          return (
+            <div key={c.g}
+              className={`grid place-items-center text-[10px] font-black ${active
+                ? 'bg-kb-yellow/[.55] text-kb-ink' : 'bg-kb-ink/[.05] text-kb-ink/45'}`}
+              style={{ width: `${end - c.from}%` }}>
+              {c.g}
+            </div>
+          );
+        })}
+        <motion.div
+          initial={{ left: 0 }} animate={{ left: `${score}%` }}
+          transition={{ duration: 0.9, ease: [0.22, 0.9, 0.3, 1] }}
+          className="absolute top-0 h-full w-[3px] -translate-x-1/2 rounded
+                     bg-kb-ink shadow" />
+      </div>
+      <p className="mt-1.5 text-center text-[12.5px] font-semibold text-kb-ink/72">
+        {next
+          ? <>다음 등급 <b className="text-kb-amber">{next.g}</b>까지{' '}
+             <b className="text-kb-ink">+{(next.from - score).toFixed(1)}점</b></>
+          : '최고 등급입니다'}
+      </p>
+    </div>
+  );
+}
+
 function ScoreCard({ s }: { s: LocationScore }) {
   const g = GRADE_TONE[s.grade] ?? GRADE_TONE.C;
 
@@ -225,6 +265,8 @@ function ScoreCard({ s }: { s: LocationScore }) {
             </span>
           </p>
         )}
+
+        <GradeLadder score={s.total_score} />
       </div>
 
       {/* 서울이면 실측 유동인구가 붙습니다 — "없다"던 칸이 채워지는 자리.
@@ -323,6 +365,82 @@ function IndustryChips({ region }: { region: string }) {
 }
 
 /* ── 요인 기여 (SHAP 방식) ─────────────────────────────────────────────── */
+/* 요인별 만점 무게 — 백엔드 location_agent.FACTORS의 weight와 같은 값.
+   레이더의 반지름 = 기여도/무게(전국 평균 대비 유리함, -1~+1)입니다.
+   백엔드가 바뀌면 여기도 바꿔야 합니다(무게는 손으로 정한 값이라 자주
+   안 바뀝니다). */
+const FACTOR_WEIGHT: Record<string, number> = {
+  market_size: 12, competition: 13, cluster: 9,
+  diversity: 6, density: 10, infra: 6,
+};
+
+/** 상권 레이더 — 전국 평균(점선 링)보다 바깥이면 유리, 안쪽이면 불리.
+ *  숫자 여섯 개를 훑는 것보다 '모양'이 먼저 들어옵니다: 연남동 카페는
+ *  규모·밀집이 부풀고 경쟁 축이 움푹한 육각형입니다. */
+function FactorRadar({ factors }: { factors: FactorContribution[] }) {
+  if (factors.length < 3) return null;
+  const n = factors.length;
+  const cx = 150, cy = 118, R = 74;
+  const pt = (i: number, r: number): [number, number] => {
+    const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    return [cx + Math.cos(a) * r * R, cy + Math.sin(a) * r * R];
+  };
+  const fav = (f: FactorContribution) =>
+    Math.max(-1, Math.min(1, f.contribution / (FACTOR_WEIGHT[f.key] ?? 10)));
+  const rad = (f: FactorContribution) => 0.08 + 0.92 * ((fav(f) + 1) / 2);
+  const ringPts = (r: number) =>
+    factors.map((_, i) => pt(i, r).join(',')).join(' ');
+  const poly = factors.map((f, i) => pt(i, rad(f)).join(',')).join(' ');
+
+  return (
+    <svg viewBox="0 0 300 236" className="w-full max-w-[320px]"
+         role="img" aria-label="요인별 전국 평균 대비 레이더">
+      {[1, 0.75, 0.25].map((r) => (
+        <polygon key={r} points={ringPts(r)} fill="none"
+                 stroke="rgba(56,50,42,.09)" strokeWidth="1" />
+      ))}
+      {/* 전국 평균 링 — 이 선이 기준입니다 */}
+      <polygon points={ringPts(0.5)} fill="none"
+               stroke="rgba(224,144,0,.55)" strokeWidth="1.5"
+               strokeDasharray="4 3" />
+      {factors.map((_, i) => {
+        const [x, y] = pt(i, 1);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y}
+                     stroke="rgba(56,50,42,.08)" strokeWidth="1" />;
+      })}
+      <motion.polygon
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7, ease: [0.22, 0.9, 0.3, 1] }}
+        style={{ transformOrigin: `${cx}px ${cy}px` }}
+        points={poly} fill="rgba(255,188,0,.28)"
+        stroke="#E09A00" strokeWidth="2.2" strokeLinejoin="round" />
+      {factors.map((f, i) => {
+        const [x, y] = pt(i, rad(f));
+        return <circle key={f.key} cx={x} cy={y} r="3.4"
+                       fill={fav(f) >= 0 ? '#E09A00' : '#E05A6B'}
+                       stroke="#fff" strokeWidth="1.4" />;
+      })}
+      {factors.map((f, i) => {
+        const [x, y] = pt(i, 1.24);
+        const anchor = Math.abs(x - cx) < 12 ? 'middle' : x > cx ? 'start' : 'end';
+        return (
+          <g key={f.key} textAnchor={anchor}>
+            <text x={x} y={y - 2} fontSize="11" fontWeight="700"
+                  fill="rgba(56,50,42,.85)">{f.label}</text>
+            <text x={x} y={y + 11} fontSize="10.5" fontWeight="700"
+                  fill={f.contribution >= 0 ? '#9A6B00' : '#C04456'}>
+              {f.contribution > 0 ? '+' : ''}{f.contribution.toFixed(1)}
+            </text>
+          </g>
+        );
+      })}
+      <text x={cx} y={cy + R * 0.5 + 12} fontSize="9.5" textAnchor="middle"
+            fill="rgba(154,107,0,.9)">─ ─ 전국 평균</text>
+    </svg>
+  );
+}
+
 function FactorsCard({ base, factors }: { base: number; factors: FactorContribution[] }) {
   const max = Math.max(...factors.map((f) => Math.abs(f.contribution)), 1);
   const total = base + factors.reduce((a, f) => a + f.contribution, 0);
@@ -337,6 +455,10 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
         </span>
       </div>
 
+      <div className="grid items-center gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="flex justify-center">
+        <FactorRadar factors={factors} />
+      </div>
       <ul className="space-y-2.5">
         {factors.map((f) => {
           const w = (Math.abs(f.contribution) / max) * 46;
@@ -377,6 +499,7 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           );
         })}
       </ul>
+      </div>
 
       {/* 재지 못한 것을 같은 자리에 적습니다.
           유동인구·매출을 점수에 넣지 않았다는 사실을 다른 화면에서 찾아봐야
