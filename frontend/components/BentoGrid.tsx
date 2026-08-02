@@ -69,6 +69,7 @@ function Card({ c, i }: { c: BentoCard; i: number }) {
   const [open, setOpen] = useState(OPEN_BY_DEFAULT.has(c.kind));
   return (
     <motion.section
+      id={`card-${c.id}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: i * 0.06, duration: 0.42, ease: [0.22, 0.9, 0.3, 1] }}

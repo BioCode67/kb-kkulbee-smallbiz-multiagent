@@ -121,6 +121,14 @@ function ModeIcon({ name, on }: { name: string; on: boolean }) {
   );
 }
 
+
+/** 점프 내비 — 긴 결과에서 원하는 카드로 한 번에. 라벨은 카드 kind 기준. */
+const JUMP_LABEL: Record<string, string> = {
+  score: '점수', factors: '이유', gaps: '기회 업종', similar: '닮은 동네',
+  map: '지도', policy: '지원사업', compare: '비교', procedure: '절차',
+  terms: '용어', rates: '금리',
+};
+
 const AGENT_LABEL: Record<string, string> = {
   router: '질문 알아듣기', location: '동네 분석', policy: '지원금 찾기',
   protection: '권리 확인', guardrail: '표현 안전 검사(금소법)',
@@ -496,7 +504,8 @@ export default function Page() {
                     <AskBox value={input} onChange={setInput}
                             placeholder={MODES[mode].placeholder}
                             onSubmit={() => { ask(input); setInput(''); }}
-                            loading={loading} />
+                            loading={loading}
+                            lastQ={history[history.length - 1]?.q} />
                   </motion.div>
 
                   <motion.div
@@ -607,7 +616,8 @@ export default function Page() {
             <section className="min-w-0">
               <motion.div layoutId="askbox" transition={SPRING} className="print:hidden">
                 <AskBox value={input} onChange={setInput}
-                        onSubmit={() => { ask(input); setInput(''); }} loading={loading} />
+                        onSubmit={() => { ask(input); setInput(''); }} loading={loading}
+                        lastQ={history[history.length - 1]?.q} />
               </motion.div>
 
               {/* 인쇄에만 나오는 머리말 — 은행·지원센터 창구에 들고 갈 수
@@ -655,6 +665,24 @@ export default function Page() {
                       </p>
                     </div>
                     <Answer res={r} />
+                    {/* 점프 내비 — 결과가 길어질수록 필요한 것. 마지막 답에만. */}
+                    {i === history.length - 1 && r.cards.length > 2 && (
+                      <div className="sticky top-[60px] z-30 -my-1 flex flex-wrap
+                                      gap-1.5 rounded-full bg-kb-cream/95 px-2 py-1.5
+                                      backdrop-blur-sm print:hidden">
+                        {r.cards.filter((c) => JUMP_LABEL[c.kind]).map((c) => (
+                          <button key={c.id}
+                            onClick={() => document.getElementById(`card-${c.id}`)
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                            className="rounded-full border border-kb-ink/[.14] bg-white
+                                       px-3 py-1 text-[12.5px] font-semibold
+                                       text-kb-ink/72 transition hover:border-kb-amber/50
+                                       hover:text-kb-amber">
+                            {JUMP_LABEL[c.kind]}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <BentoGrid cards={r.cards} />
                     {/* 상권 답변엔 손익분기 계산기가 따라옵니다 — "그래서
                         하루 몇 명이면 버티나"가 사장님의 진짜 질문이라서. */}
@@ -714,6 +742,7 @@ export default function Page() {
         {/* 어디서든 대화 — 우하단 꿀비. 히어로에선 큰 꿀비가 있으니 숨깁니다. */}
         <BeeChatbot history={history} loading={loading} onAsk={ask} hidden={hero} />
       </main>
+      <Coachmark />
       <SiteFooter />
     </LayoutGroup>
   );
@@ -787,9 +816,9 @@ function useSpeechInput(onText: (t: string) => void) {
   return { supported, listening, toggle };
 }
 
-function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
+function AskBox({ value, onChange, onSubmit, loading, placeholder, lastQ }: {
   value: string; onChange: (v: string) => void; onSubmit: () => void;
-  loading: boolean; placeholder?: string;
+  loading: boolean; placeholder?: string; lastQ?: string;
 }) {
   const mic = useSpeechInput(onChange);
   return (
@@ -800,7 +829,11 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit(); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit();
+          // ↑ = 직전 질문 다시 불러오기 — 터미널의 히스토리 감각
+          if (e.key === 'ArrowUp' && !value && lastQ) { e.preventDefault(); onChange(lastQ); }
+        }}
         placeholder={placeholder ?? '꿀비에게 물어보세요'}
         disabled={loading}
         className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[16.5px] text-kb-ink
@@ -1051,5 +1084,38 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         {res.elapsed_ms}ms
       </p>
     </div>
+  );
+}
+
+/** 첫 방문 1회 코치마크 — 서비스가 스스로 노는 법을 알려줍니다. */
+function Coachmark() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem('kkulbee:onboarded')) {
+      const t = setTimeout(() => setShow(true), 2500);
+      return () => clearTimeout(t);
+    }
+  }, []);
+  const close = () => { localStorage.setItem('kkulbee:onboarded', '1'); setShow(false); };
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+      className="fixed bottom-6 left-1/2 z-[75] w-[min(420px,calc(100vw-2rem))]
+                 -translate-x-1/2 rounded-2xl border border-kb-ink/[.14] bg-white
+                 p-4 shadow-2xl print:hidden"
+    >
+      <p className="text-[15px] font-bold text-kb-ink">🐝 처음이시죠? 세 가지만 알려드릴게요</p>
+      <ul className="mt-2 space-y-1.5 text-[13.5px] leading-relaxed text-kb-ink/78">
+        <li><b className="text-kb-amber">①</b> 아래 다섯 배너에서 갈래를 고르면 예시 질문이 바뀌어요</li>
+        <li><b className="text-kb-amber">②</b> 꿀비를 잡아 늘이거나 휙 던져 보세요 — 진짜 날아가요</li>
+        <li><b className="text-kb-amber">③</b> 지원사업의 ⭐를 누르면 상단 ☆ 서랍에 모여요</li>
+      </ul>
+      <button onClick={close}
+        className="mt-3 w-full rounded-xl bg-kb-yellow py-2 text-[13.5px] font-bold
+                   text-kb-ink transition hover:brightness-105">
+        알겠어요, 시작할게요!
+      </button>
+    </motion.div>
   );
 }

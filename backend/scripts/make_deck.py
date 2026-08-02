@@ -487,7 +487,7 @@ def build() -> str:
          size=13, color=GRAY)
     shots = [("F1.png", Inches(0.75), Inches(3.9), "첫 화면 — 다섯 갈래 선택"),
              ("tour.png", Inches(5.15), Inches(3.9), "지도 투어 — 점포 위 자막"),
-             ("policy.png", Inches(9.15), Inches(3.3), "자금 — 성격·추천 이유")]
+             ("policy.png", Inches(9.15), Inches(3.1), "자금 — 성격·추천 이유")]
     for fn, x, hh, cap in shots:
         fp = os.path.join(SHOTS, fn)
         if os.path.exists(fp):
