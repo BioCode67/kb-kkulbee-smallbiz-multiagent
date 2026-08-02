@@ -19,6 +19,11 @@ RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
 # STATIC_EXPORT=1이면 next.config.mjs가 output:'export'로 바뀝니다.
 ENV STATIC_EXPORT=1
+# 카카오 지도 JS 키 — NEXT_PUBLIC_*은 빌드 때 정적 파일에 박히므로
+# 런타임 env로는 늦습니다. Render가 빌드 시 env를 ARG처럼 넘겨 줍니다.
+# 없으면 빈 값 → Leaflet 지도로 폴백 (기능 동일).
+ARG NEXT_PUBLIC_KAKAO_MAP_KEY=
+ENV NEXT_PUBLIC_KAKAO_MAP_KEY=${NEXT_PUBLIC_KAKAO_MAP_KEY}
 RUN npm run build
 
 

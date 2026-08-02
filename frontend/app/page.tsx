@@ -215,6 +215,21 @@ export default function Page() {
     return () => window.removeEventListener('kkulbee:ask', h);
   }, [ask]);
 
+  // 상단바의 다섯 갈래 — 누르면 그 갈래가 선택된 첫 화면으로 돌아갑니다.
+  // 결과를 보던 중이라도 '기능으로 이동'은 새로 시작이 자연스럽습니다.
+  useEffect(() => {
+    const h = (e: Event) => {
+      const i = (e as CustomEvent<number>).detail;
+      setMode(i);
+      setHistory([]);
+      setMood('fly_happy');
+      setSpeech(GREETING);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    window.addEventListener('kkulbee:mode', h);
+    return () => window.removeEventListener('kkulbee:mode', h);
+  }, []);
+
   // '/' 한 번으로 입력창 — 검색이 있는 서비스의 관습(GitHub·유튜브)을
   // 따릅니다. 타이핑 중일 때는 물론 가로채지 않습니다.
   useEffect(() => {
@@ -251,9 +266,34 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="hero-glow flex min-h-[calc(100vh-3.5rem)] flex-col
-                         items-center pt-14"
+              className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)]
+                         flex-col items-center pt-14"
             >
+              {/* 떠 있는 실측 배지 — "비어 보인다"는 여백에 리듬을 줍니다.
+                  장식이지만 내용은 전부 사실(실측 수치)입니다. */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 hidden xl:block">
+                {[
+                  ['🏪 272만 점포 실측', 'left-[4%] top-[22%]', 0],
+                  ['📋 공고 900건 매일 갱신', 'right-[3%] top-[30%]', 1.2],
+                  ['🛡️ 금소법 가드레일', 'left-[7%] top-[55%]', 0.6],
+                  ['🗺️ 동네 3,450곳 백분위', 'right-[6%] top-[62%]', 1.8],
+                ].map(([label, pos, delay]) => (
+                  <motion.span
+                    key={label as string}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, y: [0, -10, 0] }}
+                    transition={{ opacity: { delay: 0.5 + (delay as number) * 0.2 },
+                                  y: { duration: 4.6, repeat: Infinity,
+                                       ease: 'easeInOut', delay: delay as number } }}
+                    className={`absolute ${pos} rounded-full border border-kb-ink/[.1]
+                                bg-white/80 px-3.5 py-2 text-[12px] font-semibold
+                                text-kb-ink/70 shadow-[0_8px_24px_-12px_rgba(56,50,42,.3)]
+                                backdrop-blur-sm`}
+                  >
+                    {label}
+                  </motion.span>
+                ))}
+              </div>
               {/* v0 랜딩의 순서 그대로 — 배지, 헤드라인, 서브, CTA, 그 아래
                   제품. 다른 점 하나: 제품 스크린샷 자리에 **살아 있는 앱**을
                   프레임에 넣어 앉혔습니다. 목업이 아니라 그 자리에서 바로

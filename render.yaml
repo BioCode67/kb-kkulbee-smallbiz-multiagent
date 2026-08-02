@@ -28,3 +28,11 @@ services:
         value: https://kb-kkulbee.onrender.com
       - key: PYTHONUNBUFFERED
         value: "1"
+      # 서울 생활인구 (선택) — 없으면 그 칸만 안 보입니다.
+      - key: SEOUL_API_KEY
+        sync: false
+      # 카카오 지도 JS 키 (선택) — NEXT_PUBLIC_*은 빌드 때 박히는 값이라
+      # Dockerfile의 ARG로 받습니다. 없으면 Leaflet 지도로 폴백.
+      # 값을 바꾸면 Manual Deploy로 재빌드해야 반영됩니다.
+      - key: NEXT_PUBLIC_KAKAO_MAP_KEY
+        sync: false

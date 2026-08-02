@@ -45,6 +45,12 @@ const ACCENT: Record<string, string> = {
   neutral: 'ring-kb-ink/[.12] bg-white/70',
 };
 
+// 처음부터 펼칠 것과 접어 둘 것 — "정보가 너무 많아 뭘 봐야 할지 모르겠다"는
+// 피드백의 답입니다. 결론(점수·매칭·절차)은 펼치고, 근거와 곁가지(요인 분해·
+// 지도·기회 업종·닮은 동네·금리·용어)는 제목만 보이게 접습니다. 접힌 카드도
+// 제목·부제가 있어 무엇이 들었는지 알고 누를 수 있습니다.
+const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice']);
+
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
   // 6칸 격자를 씁니다. 3칸이었을 때는 폭 2짜리 카드(지도·지원사업)가 늘
@@ -53,31 +59,51 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   return (
     <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-6">
       {cards.map((c, i) => (
-        <motion.section
-          key={c.id}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.06, duration: 0.42, ease: [0.22, 0.9, 0.3, 1] }}
-          className={`${SPAN[c.span]} relative overflow-hidden rounded-2xl p-5
-                      shadow-glass ring-1 backdrop-blur-xl
-                      ${c.kind === 'map' ? 'print:hidden ' : ''}${ACCENT[c.accent] ?? ACCENT.neutral}`}
-        >
-          {/* 카드 머리의 가는 색띠. 카드가 여럿일 때 종류를 색으로 먼저
-              구분하게 해 줍니다 — 제목을 읽기 전에 눈이 갈래를 잡습니다. */}
-          <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px]
-                                        ${BAR[c.accent] ?? BAR.neutral}`} />
-          <header className="mb-4">
-            <h3 className="font-display text-[16px] font-bold text-kb-ink">{c.title}</h3>
-            {c.subtitle && (
-              <p className="mt-0.5 text-[12px] leading-relaxed text-kb-ink/60">
-                {c.subtitle}
-              </p>
-            )}
-          </header>
-          <CardBody card={c} />
-        </motion.section>
+        <Card key={c.id} c={c} i={i} />
       ))}
     </div>
+  );
+}
+
+function Card({ c, i }: { c: BentoCard; i: number }) {
+  const [open, setOpen] = useState(OPEN_BY_DEFAULT.has(c.kind));
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: i * 0.06, duration: 0.42, ease: [0.22, 0.9, 0.3, 1] }}
+      className={`${SPAN[c.span]} relative overflow-hidden rounded-2xl
+                  shadow-glass ring-1 backdrop-blur-xl
+                  ${open ? 'p-5' : 'p-0'}
+                  ${c.kind === 'map' ? 'print:hidden ' : ''}${ACCENT[c.accent] ?? ACCENT.neutral}`}
+    >
+      {/* 카드 머리의 가는 색띠. 카드가 여럿일 때 종류를 색으로 먼저
+          구분하게 해 줍니다 — 제목을 읽기 전에 눈이 갈래를 잡습니다. */}
+      <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px]
+                                    ${BAR[c.accent] ?? BAR.neutral}`} />
+      <header
+        role="button" tabIndex={0}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen((v) => !v); }}
+        className={`flex cursor-pointer items-start justify-between gap-3
+                    ${open ? 'mb-4' : 'p-5'}`}
+      >
+        <div>
+          <h3 className="font-display text-[16px] text-kb-ink">{c.title}</h3>
+          {c.subtitle && (
+            <p className="mt-0.5 text-[12px] leading-relaxed text-kb-ink/60">
+              {c.subtitle}
+            </p>
+          )}
+        </div>
+        <span aria-hidden
+              className={`mt-0.5 shrink-0 text-[13px] text-kb-ink/35 transition-transform
+                          ${open ? 'rotate-180' : ''}`}>
+          ▾
+        </span>
+      </header>
+      {open && <CardBody card={c} />}
+    </motion.section>
   );
 }
 

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * 푸터 — 신뢰 정보가 사는 곳.
  *
@@ -28,12 +30,21 @@ export default function SiteFooter() {
               소상공인 사장님의 입지·자금·권리를
               <br />실제 자료로 함께 살피는 AI 동료
             </p>
-            <a href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
-               target="_blank" rel="noreferrer"
-               className="mt-3 inline-block text-[11.5px] font-semibold text-kb-amber
-                          underline-offset-2 hover:underline">
-              소스코드 (GitHub) →
-            </a>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+              {/* 상단바에서 내려온 것들 — 매일 쓰는 기능이 아니라서 여기가 자리 */}
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('kkulbee:protection'))}
+                className="text-[11.5px] font-semibold text-kb-amber
+                           underline-offset-2 hover:underline">
+                소비자 보호 도구 (쉬운 용어·금소법 검사기)
+              </button>
+              <a href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
+                 target="_blank" rel="noreferrer"
+                 className="text-[11.5px] font-semibold text-kb-amber
+                            underline-offset-2 hover:underline">
+                소스코드 (GitHub) →
+              </a>
+            </div>
           </div>
 
           <div>

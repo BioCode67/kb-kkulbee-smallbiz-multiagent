@@ -302,13 +302,41 @@ export default function BeeCharacter3D({
 
       // ── 마우스 추적 ──────────────────────────────────────────────────
       let tx = 0, ty = 0, cx = 0, cy = 0;
+      // ── 쫀득 드래그 — 잡아 늘이면 슬라임처럼 따라오고, 놓으면 출렁이며
+      // 돌아옵니다. 핵심은 저감쇠 스프링: 놓았을 때 한 번에 서지 않고
+      // 두어 번 출렁여야 '쫀득'이 됩니다.
+      let dragging = false, grabX = 0, grabY = 0;
+      let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
+      let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
       const onMove = (e: PointerEvent) => {
         tx = Math.max(-1, Math.min(1,
           (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2)));
         ty = Math.max(-1, Math.min(1,
           (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2)));
+        if (dragging) {
+          pullX = Math.max(-1.7, Math.min(1.7, (e.clientX - grabX) / 70));
+          pullY = Math.max(-1.4, Math.min(1.4, -(e.clientY - grabY) / 70));
+        }
       };
-      if (interactive) window.addEventListener('pointermove', onMove, { passive: true });
+      const onDown = (e: PointerEvent) => {
+        dragging = true;
+        grabX = e.clientX; grabY = e.clientY;
+        renderer.domElement.setPointerCapture?.(e.pointerId);
+        renderer.domElement.style.cursor = 'grabbing';
+      };
+      const onUp = () => {
+        dragging = false;
+        pullX = 0; pullY = 0;             // 스프링이 출렁이며 제자리로
+        renderer.domElement.style.cursor = 'grab';
+      };
+      if (interactive) {
+        window.addEventListener('pointermove', onMove, { passive: true });
+        renderer.domElement.style.cursor = 'grab';
+        renderer.domElement.style.touchAction = 'none';
+        renderer.domElement.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
+      }
 
       // ── 애니메이션 ───────────────────────────────────────────────────
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -333,7 +361,25 @@ export default function BeeCharacter3D({
         // 통통 튈 때 살짝 눌렸다 늘어납니다(스쿼시·스트레치). 이게 없으면
         // 딱딱한 물체가 위아래로 움직이는 것처럼 보입니다.
         const squash = reduce ? 1 : 1 + Math.sin(phase - Math.PI / 2) * (happy ? 0.05 : 0.022);
-        bee.scale.set(2 - squash, squash, 2 - squash);
+
+        // 쫀득 스프링 — 잡는 동안은 무겁게 따라오고(감쇠 큼), 놓으면
+        // 감쇠를 확 줄여 두어 번 출렁이고 멈춥니다.
+        const damp = dragging ? 0.45 : 0.1;
+        jvx += (pullX - jx) * 0.14 - jvx * damp;
+        jvy += (pullY - jy) * 0.14 - jvy * damp;
+        jx += jvx; jy += jvy;
+        const len = Math.hypot(jx, jy);
+        const s = Math.min(len * 0.42, 0.62);          // 늘어나는 정도
+        const uy = len > 0.01 ? Math.abs(jy) / len : 0.5;
+        // 당긴 방향 성분만큼 그쪽으로 길어지고, 부피 보존하듯 나머지가 줄어듭니다
+        const stretchY = 1 + s * (0.35 + 0.65 * uy);
+        const shrink = 1 / Math.sqrt(stretchY);
+        bee.scale.set((2 - squash) * shrink * (1 + s * (1 - uy) * 0.55),
+                      squash * stretchY,
+                      (2 - squash) * shrink);
+        bee.position.x = jx * 0.75;
+        bee.position.y += jy * 0.75;
+        bee.rotation.z = -jx * 0.3;                     // 당긴 쪽으로 기울어짐
 
         // 마우스를 향해 천천히 고개를 돌립니다
         cx += (tx - cx) * 0.07;
@@ -380,6 +426,9 @@ export default function BeeCharacter3D({
       cleanup = () => {
         cancelAnimationFrame(raf);
         window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+        renderer.domElement.removeEventListener('pointerdown', onDown);
         // WebGL 자원은 가비지 컬렉터가 안 걷어 갑니다. 화면을 오갈 때마다
         // 텍스처와 버퍼가 GPU에 쌓이면 결국 탭이 죽습니다.
         scene.traverse((o) => {

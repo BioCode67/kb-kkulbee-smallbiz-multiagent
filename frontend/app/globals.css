@@ -86,11 +86,13 @@
     @apply overflow-hidden rounded-2xl border border-kb-ink/[.12]
            bg-white shadow-[0_40px_100px_-36px_rgba(56,50,42,.35)];
   }
-  /* 헤드라인 세리프 — 고운바탕(OFL). 시스템 바탕체는 기기마다 제각각이라
-     직접 담았습니다. 쓰는 글자만 남겨 R 220KB대 · B 220KB대입니다. */
+  /* 헤드라인 — 세리프(고운바탕)를 썼다가 "폰트가 구리다"는 피드백으로
+     Pretendard 헤비로 교체. 금융 서비스의 신뢰감은 명조의 감성보다
+     굵고 단단한 고딕에서 나온다. 자간을 바짝 줄여 제목답게. */
   .font-display {
-    font-family: 'Gowun Batang', 'Nanum Myeongjo', Batang, Georgia, serif;
-    letter-spacing: -0.015em;
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.04em;
   }
 
   ::selection { @apply bg-kb-yellow/30; }
@@ -215,4 +217,15 @@
   }
   /* 지도·3D는 종이에서 의미가 없고 잉크만 씁니다 */
   .leaflet-container, canvas { display: none !important; }
+}
+
+/* ── 벌집 무늬 — "비어 보인다"는 피드백의 답 ──────────────────────────────
+   여백 자체는 죄가 없지만, 아무 결도 없는 여백은 심심합니다. 꿀비의
+   정체성(벌집)을 아주 옅게 깔아 여백에 결을 만듭니다. 글보다 앞에
+   나서면 안 되므로 호박색 3% 선으로만. */
+.honeycomb-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cg fill='none' stroke='%23E09A00' stroke-opacity='.07' stroke-width='1.5'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16zM28 64l28 16v17M28 64 0 80v17'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 56px 97px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
 }
