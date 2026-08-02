@@ -332,6 +332,26 @@ export default function Page() {
               className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)]
                          flex-col items-center pt-14"
             >
+              {/* 가장자리 장식 — 좌우 여백이 '비어 있는 것'과 '숨 쉬는 것'은
+                  다릅니다. 꿀 방울·벌집 조각이 아주 옅게 떠다니며 결을 만듭니다.
+                  내용을 가리지 않도록 xl 이상에서만, 클릭은 통과. */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 hidden xl:block">
+                {[
+                  ['left-[2%] top-[16%]', 'h-16 w-16 rotate-12 rounded-[22px] border-[3px] border-kb-yellow/35', 0],
+                  ['left-[5%] top-[46%]', 'h-7 w-7 rounded-full bg-kb-yellow/30', 1.4],
+                  ['left-[2.5%] top-[68%]', 'h-10 w-10 -rotate-6 rounded-2xl bg-kb-yellow/[.15] ring-2 ring-kb-yellow/25', 0.7],
+                  ['right-[2%] top-[12%]', 'h-9 w-9 rotate-45 rounded-xl bg-kb-yellow/25', 1.0],
+                  ['right-[4.5%] top-[70%]', 'h-14 w-14 rotate-12 rounded-[20px] border-[3px] border-kb-yellow/30', 0.3],
+                  ['right-[1.5%] top-[44%]', 'h-6 w-6 rounded-full bg-kb-amber/25', 1.8],
+                ].map(([pos, look, delay]) => (
+                  <motion.span key={pos as string}
+                    animate={{ y: [0, -14, 0], rotate: [0, 6, 0] }}
+                    transition={{ duration: 5.5, repeat: Infinity,
+                                  ease: 'easeInOut', delay: delay as number }}
+                    className={`absolute ${pos} ${look}`} />
+                ))}
+              </div>
+
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
@@ -494,8 +514,8 @@ export default function Page() {
               </motion.div>
 
               {/* ── 마퀴 밴드 — 기능이 흘러갑니다 (젠지 랜딩 문법) ── */}
-              <div className="mt-14 w-full overflow-hidden border-y
-                              border-kb-ink/[.08] bg-white/60 py-3"
+              <div className="relative left-1/2 mt-14 w-screen -translate-x-1/2 overflow-hidden
+                              border-y border-kb-ink/[.08] bg-white/60 py-3.5"
                    aria-hidden>
                 <div className="marquee-track">
                   {[0, 1].map((rep) => (
@@ -532,7 +552,7 @@ export default function Page() {
               </div>
 
               {/* ── 무엇이 다른가 ── */}
-              <div className="mb-20 mt-14 grid w-full max-w-[980px] gap-4
+              <div className="mb-20 mt-14 grid w-full max-w-[1200px] gap-5
                               sm:grid-cols-3">
                 {[
                   ['지어내지 않습니다',
