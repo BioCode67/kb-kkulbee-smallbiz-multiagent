@@ -22,6 +22,7 @@ import BeeStage from '@/components/BeeStage';
 import TopBar from '@/components/TopBar';
 import MyShop, { type ShopProfile } from '@/components/MyShop';
 import BreakEven from '@/components/BreakEven';
+import LoanCalc from '@/components/LoanCalc';
 import BeeChatbot from '@/components/BeeChatbot';
 import SiteFooter from '@/components/SiteFooter';
 import HeroTicker from '@/components/HeroTicker';
@@ -615,6 +616,9 @@ export default function Page() {
                     {/* 상권 답변엔 손익분기 계산기가 따라옵니다 — "그래서
                         하루 몇 명이면 버티나"가 사장님의 진짜 질문이라서. */}
                     {r.location && <BreakEven loc={r.location} />}
+                    {/* 융자 답변엔 상환 계산기 — "한 달에 얼마 갚는데?"가
+                        융자를 본 사장님의 다음 질문이라서. */}
+                    {r.policies.length > 0 && <LoanCalc policies={r.policies} />}
 
                     {/* 다음 걸음 — 마지막 답에만 답니다. 지나간 답의 칩은
                         지금 맥락과 어긋날 수 있습니다. */}
