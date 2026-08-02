@@ -12,6 +12,9 @@
 - **글라스박스 콘솔** — ChatResponse.steps: 노드별 실측 로그(_lap(), workflow.py).
   AgentTrace가 다크 콘솔로 실측 비율 재생. /plan benchmark: 시중 금리
   '가정' 대비 5년 절감액(사용자 조정 가능)
+- **E2E 스모크** — `python -m scripts.e2e_smoke` (BASE 환경변수로 프로덕션도).
+  시연 전 5분 확인용. 주의: 지도 카드는 기본 열림(헤더 클릭=닫힘),
+  `title*='찜'`은 헤더 ☆에도 걸림
 - **골든타임** — POST /api/v1/golden-time: 법정 기한 D-day 계산
   (services/golden_time.py, 금소법 §46/§47·상임법 §10/§10-4),
   GoldenTime.tsx가 ?mode=protection에 렌더, .ics 내보내기
