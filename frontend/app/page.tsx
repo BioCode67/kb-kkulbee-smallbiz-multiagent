@@ -469,7 +469,34 @@ export default function Page() {
 
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
                 <motion.div layoutId="bee" transition={SPRING}
-                            className="z-10 flex justify-center lg:justify-center lg:-translate-x-6">
+                            className="relative z-10 flex justify-center
+                                       lg:justify-center lg:-translate-x-6">
+                  {/* 무대 장식 — 벌 주변이 휑하지 않게. 플랫폼 글로우와
+                      실측 미니 배지 둘이 벌을 감쌉니다(클릭 통과). */}
+                  <div aria-hidden className="pointer-events-none absolute inset-0">
+                    <span className="absolute left-1/2 top-[58%] h-[46%] w-[86%]
+                                     -translate-x-1/2 rounded-full
+                                     bg-[radial-gradient(ellipse_at_center,rgba(255,188,0,.22),transparent_65%)]" />
+                    <motion.span
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="absolute -left-2 top-[24%] hidden rounded-full
+                                 border border-kb-ink/[.1] bg-white/90 px-3 py-1.5
+                                 text-[12px] font-bold text-kb-ink/72 shadow-md
+                                 lg:block">
+                      🏪 272만 점포 실측
+                    </motion.span>
+                    <motion.span
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 4.2, repeat: Infinity,
+                                    ease: 'easeInOut', delay: 1.6 }}
+                      className="absolute -right-3 top-[64%] hidden rounded-full
+                                 border border-kb-ink/[.1] bg-white/90 px-3 py-1.5
+                                 text-[12px] font-bold text-kb-ink/72 shadow-md
+                                 lg:block">
+                      🛡️ 금소법 가드레일 ON
+                    </motion.span>
+                  </div>
                   <BeeStage motion={mood} size={430} speech={speech} />
                 </motion.div>
               </div>

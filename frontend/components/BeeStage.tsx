@@ -70,13 +70,14 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.34, ease: [0.22, 0.9, 0.3, 1] }}
-            className="relative z-10 mb-1 max-w-[30ch] rounded-2xl bg-white px-4 py-2.5
-                       text-center text-[15px] font-medium leading-relaxed text-kb-brownDeep
-                       shadow-[0_10px_30px_rgba(0,0,0,.35)]"
+            className="relative z-[45] mb-2 max-w-[30ch] rounded-2xl border-2
+                       border-kb-yellow/70 bg-white px-5 py-3 text-center text-[16px]
+                       font-semibold leading-[1.65] text-kb-ink
+                       shadow-[0_14px_36px_-10px_rgba(56,50,42,.4)]"
           >
             {speech}
-            <span className="absolute -bottom-[7px] left-1/2 h-4 w-4 -translate-x-1/2
-                             rotate-45 bg-white" />
+            <span className="absolute -bottom-[9px] left-1/2 h-4 w-4 -translate-x-1/2
+                             rotate-45 border-b-2 border-r-2 border-kb-yellow/70 bg-white" />
           </m.div>
         )}
       </AnimatePresence>
