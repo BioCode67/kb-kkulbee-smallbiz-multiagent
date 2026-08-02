@@ -125,7 +125,7 @@ export default function BeeCharacter3D({
       const stripeTex = makeStripeTexture(THREE);
 
       const hoodMat = new THREE.MeshStandardMaterial({
-        map: stripeTex, roughness: 0.42, metalness: 0.02,
+        map: makeHoodTexture(THREE), roughness: 0.42, metalness: 0.02,
       });
       const bodyMat = new THREE.MeshStandardMaterial({
         map: stripeTex, roughness: 0.42, metalness: 0.02,
@@ -173,10 +173,10 @@ export default function BeeCharacter3D({
       const faceMat2 = new THREE.MeshStandardMaterial({
         color: 0xfdeed6, roughness: 0.66, metalness: 0.0,
       });
-      const face = new THREE.Mesh(new THREE.SphereGeometry(1.03, 48, 36), faceMat2);
+      const face = new THREE.Mesh(new THREE.SphereGeometry(1.08, 48, 36), faceMat2);
       // 얼굴 뭉치 전체가 x=0.06으로 밀려 있었다 — '일그러져 보인다'의
       // 정체. 후드는 0에 있는데 얼굴만 오른쪽으로 6% 치우쳐 있었다.
-      face.position.set(0, -0.02, 0.42);
+      face.position.set(0, -0.04, 0.34);
       face.scale.set(1.0, 0.99, 0.82);
       face.castShadow = true;
       head.add(face);
@@ -184,9 +184,9 @@ export default function BeeCharacter3D({
       // 후드 테 — 얼굴을 두르는 노란 링. 레퍼런스의 핵심인데 빠져 있어서
       // '후드 쓴 아이'가 아니라 '계란에 줄무늬'로 읽혔습니다.
       const hoodRim = new THREE.Mesh(
-        new THREE.TorusGeometry(1.0, 0.13, 16, 48),
+        new THREE.TorusGeometry(1.04, 0.14, 16, 48),
         new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.38 }));
-      hoodRim.position.set(0, -0.02, 0.62);
+      hoodRim.position.set(0, -0.04, 0.6);
       hoodRim.scale.set(1.0, 1.02, 0.7);
       head.add(hoodRim);
 
@@ -527,6 +527,23 @@ export default function BeeCharacter3D({
  */
 
 /** 후드·몸통의 노란 바탕과 진갈색 줄무늬 */
+// 후드는 민무늬 — 머리에 검은 띠를 두르면 헬멧 이음새처럼 읽혀 어색합니다.
+// '벌 무늬'는 몸통 줄무늬가 담당하고, 머리는 매끈한 꿀색이 예쁩니다.
+function makeHoodTexture(THREE: typeof import('three')) {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 256;
+  const g = c.getContext('2d')!;
+  const grad = g.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, '#FFD96B');
+  grad.addColorStop(0.55, '#FFC42E');
+  grad.addColorStop(1, '#E89B04');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function makeStripeTexture(THREE: typeof import('three')) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 256;
