@@ -238,6 +238,20 @@ def contract_scan(payload: dict) -> dict:
     return cs.scan(str(payload.get("text", "")))
 
 
+@app.post("/api/v1/golden-time")
+def golden_time(payload: dict) -> dict:
+    """골든타임 — 권리의 마감일을 D-day로 계산.
+
+    분쟁에서 지는 흔한 이유는 내용이 아니라 시기입니다. 청약철회 14일,
+    위법계약 해지 1년/5년, 갱신요구 만료 1개월 전 — 법에 기간이 명시된
+    것만 계산하고, 기산점 주의와 상담처를 항상 함께 냅니다.
+    """
+    from app.services import golden_time as gt
+    return gt.compute(str(payload.get("kind", "")),
+                      str(payload.get("base_date", "")),
+                      payload.get("known_date") or None)
+
+
 @app.post("/api/v1/plan")
 def funding_plan(payload: dict) -> dict:
     """자금 설계사 — 필요 금액을 '주는 돈부터' 실공고로 쌓는 조달 설계.

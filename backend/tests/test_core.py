@@ -417,3 +417,33 @@ def test_contract_scan_clean_text_stays_clean():
     r = scan("제1조 목적. 본 계약은 상호 신뢰를 바탕으로 성실히 이행한다. "
              "제2조 임대차 기간은 2년으로 한다.")
     assert r["ok"] and r["clean"] and r["findings"] == []
+
+
+# ── 골든타임 — 권리 마감일 계산이 조문 기간과 일치하는지 ──
+
+def test_golden_time_loan_deadlines():
+    from datetime import date
+    from app.services.golden_time import compute
+
+    r = compute("loan", "2026-08-01", known_date="2026-08-01",
+                today=date(2026, 8, 2))
+    # 청약철회 14일: 8/1 + 14일 = 8/15, 오늘이 8/2면 13일 남음
+    w = next(i for i in r["items"] if i["name"].startswith("청약철회권"))
+    assert w["due"] == "2026-08-15" and w["days_left"] == 13
+    # 안 날 1년(2027-08-01), 계약일 5년(2031-08-01)
+    dues = {i["due"] for i in r["items"]}
+    assert {"2027-08-01", "2031-08-01"} <= dues
+    assert "법률 자문이 아닙니다" in r["note"]
+
+
+def test_golden_time_lease_window_and_expiry():
+    from datetime import date
+    from app.services.golden_time import compute
+
+    # 만료 2026-12-31 → 갱신요구 마감 11/30(1개월 전), 보호기간 종료 12/31
+    r = compute("lease", "2026-12-31", today=date(2026, 8, 2))
+    assert [i["due"] for i in r["items"]] == ["2026-11-30", "2026-12-31"]
+    assert not r["expired_all"]
+    # 이미 만료된 계약이면 전부 expired로 표시된다
+    r = compute("lease", "2025-01-31", today=date(2026, 8, 2))
+    assert r["expired_all"] and all(i["days_left"] < 0 for i in r["items"])

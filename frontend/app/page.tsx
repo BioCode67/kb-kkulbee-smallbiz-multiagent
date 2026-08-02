@@ -29,6 +29,7 @@ import SiteFooter from '@/components/SiteFooter';
 import HeroTicker from '@/components/HeroTicker';
 import FundingPlan from '@/components/FundingPlan';
 import ContractScan from '@/components/ContractScan';
+import GoldenTime from '@/components/GoldenTime';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -609,9 +610,10 @@ export default function Page() {
                 <FundingPlan region={shop?.region} industry={shop?.industry} />
               )}
 
-              {view === 'mode' && MODES[mode].key === 'protection' && (
+              {view === 'mode' && MODES[mode].key === 'protection' && (<>
                 <ContractScan />
-              )}
+                <GoldenTime />
+              </>)}
 
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은
                   목업 냄새가 났고 흰 상자 속 흰 입력창은 흐릿했습니다.
