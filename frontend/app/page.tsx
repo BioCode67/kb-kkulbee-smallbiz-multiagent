@@ -405,7 +405,7 @@ export default function Page() {
               <motion.div
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="app-frame w-full max-w-[880px]"
+                className="app-frame mt-6 w-full max-w-[880px]"
               >
                 <div className="flex items-center gap-2 border-b border-kb-ink/[.1]
                                 px-4 py-3">

@@ -83,7 +83,7 @@ export default function BeeCharacter3D({
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       // 드래그하면 벌이 캔버스 밖으로 나가며 잘렸다 — 보이지 않는 박스.
       // 가로 1.7배·세로 1.18배로 무대를 넓혀 늘어나도 안 가로막힌다.
-      const W = Math.round(size * 1.7), H = Math.round(size * 1.18);
+      const W = Math.round(size * 1.7), H = Math.round(size * 1.1);
       renderer.setSize(W, H);
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -97,8 +97,10 @@ export default function BeeCharacter3D({
       // 처음엔 8.2에 두었더니 화면 높이가 4.70이라 통통 튈 때 더듬이가
       // 잘려 나갔습니다. 9.4에서 5.39가 되어 여유가 생깁니다.
       const camera = new THREE.PerspectiveCamera(32, W / H, 0.1, 100);
-      camera.position.set(0, 0.28, 9.8);
-      camera.lookAt(0, 0.28, 0);
+      // 시선을 위로 올려 발끝이 캔버스 바닥선에 붙습니다 — 캔버스 아래
+      // 빈 띠가 다음 요소를 덮던 것이 사라집니다.
+      camera.position.set(0, 0.62, 9.8);
+      camera.lookAt(0, 0.55, 0);
 
       // ── 빛 ───────────────────────────────────────────────────────────
       //
@@ -543,7 +545,7 @@ export default function BeeCharacter3D({
       className={`relative select-none ${className}`}
       // 무대(캔버스)는 가로 1.7배로 넓지만 차지하는 자리는 size 기준 —
       // 음수 마진으로 겹치게 두어 레이아웃을 밀지 않습니다.
-      style={{ width: Math.round(size * 1.7), height: Math.round(size * 1.18),
+      style={{ width: Math.round(size * 1.7), height: Math.round(size * 1.1),
                margin: `0 ${-Math.round(size * 0.35)}px` }}
       aria-label="마스코트 꿀비"
       role="img"
