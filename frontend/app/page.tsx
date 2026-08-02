@@ -179,6 +179,9 @@ export default function Page() {
   const res = history.length ? history[history.length - 1].res : null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  // 실패한 질문을 기억해야 '다시 물어보기' 한 번으로 잇습니다 — 무료
+  // 서버 콜드스타트에서 첫 질문이 가장 자주 실패합니다.
+  const [failedQ, setFailedQ] = useState('');
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
   const [speech, setSpeech] = useState(GREETING);
   const [mode, setMode] = useState(0);
@@ -229,6 +232,7 @@ export default function Page() {
     setLoading(true);
     setPendingQ(q);
     setError('');
+    setFailedQ('');
     setMood('thinking');
     setSpeech('잠깐만요, 자료를 살펴볼게요…');
     // 무료 서버는 15분 놀면 잠들고 깨는 데 수십 초가 걸립니다. 이유를
@@ -273,8 +277,9 @@ export default function Page() {
       setSpeech(summarize(data));
     } catch (e) {
       setError(e instanceof Error ? e.message : '연결하지 못했습니다');
+      setFailedQ(q);
       setMood('explaining');
-      setSpeech('앗, 서버에 닿질 않네요.');
+      setSpeech('앗, 서버에 닿질 않네요. 잠시 뒤 다시 물어봐 주세요.');
     } finally {
       clearTimeout(slowTimer);
       setLoading(false);
@@ -582,6 +587,11 @@ export default function Page() {
                               lastQ={history[history.length - 1]?.q} />
                     </motion.div>
 
+                    {error && hero && (
+                      <RetryCard error={error}
+                                 onRetry={failedQ ? () => ask(failedQ) : undefined} />
+                    )}
+
                     <motion.div
                       key={MODES[mode].key}
                       initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
@@ -689,6 +699,11 @@ export default function Page() {
                             loading={loading}
                             lastQ={history[history.length - 1]?.q} />
                   </motion.div>
+
+                  {error && hero && (
+                    <RetryCard error={error}
+                               onRetry={failedQ ? () => ask(failedQ) : undefined} />
+                  )}
 
                   <motion.div
                     key={MODES[mode].key}
@@ -818,17 +833,8 @@ export default function Page() {
 
               <AnimatePresence>
                 {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-4 rounded-xl bg-rose-500/10 px-4 py-3 ring-1 ring-rose-400/25"
-                  >
-                    <p className="text-[14.5px] text-rose-700">{error}</p>
-                    <p className="mt-1 text-[13.5px] text-rose-700">
-                      백엔드를 먼저 실행하세요 —{' '}
-                      <code className="font-mono">uvicorn app.main:app --port 8000</code>
-                    </p>
-                  </motion.div>
+                  <RetryCard error={error}
+                             onRetry={failedQ ? () => ask(failedQ) : undefined} />
                 )}
               </AnimatePresence>
 
@@ -1160,6 +1166,37 @@ function Thinking() {
         })}
       </ol>
     </div>
+  );
+}
+
+/* ── 실패 카드 ──────────────────────────────────────────────────────────
+ * 개발자 문구(uvicorn 실행법) 대신 사장님 말로. 무료 서버는 15분 놀면
+ * 잠들어 첫 질문이 곧잘 끊깁니다 — 질문을 기억해 두고 버튼 한 번으로
+ * 다시 잇습니다. */
+function RetryCard({ error, onRetry }: { error: string; onRetry?: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="mt-4 w-full rounded-xl bg-rose-500/[.08] px-4 py-3.5
+                 ring-1 ring-rose-400/30"
+    >
+      <p className="text-[15px] font-bold text-rose-700">
+        서버에 닿지 못했어요{' '}
+        <span className="font-normal text-rose-700/80">({error})</span>
+      </p>
+      <p className="mt-1 text-[13.5px] leading-relaxed text-kb-ink/75">
+        무료 서버가 잠에서 깨는 중일 수 있어요 — 보통 30초면 일어나요.
+        질문은 그대로 두었으니 버튼만 눌러 주세요.
+      </p>
+      {onRetry && (
+        <button onClick={onRetry}
+          className="mt-2.5 rounded-lg bg-rose-600 px-4 py-2 text-[13.5px]
+                     font-bold text-white transition hover:brightness-105">
+          다시 물어보기
+        </button>
+      )}
+    </motion.div>
   );
 }
 
