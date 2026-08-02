@@ -80,7 +80,7 @@ export default function BeeCharacter3D({
       }
 
       // ── 무대 ─────────────────────────────────────────────────────────
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       // '보이지 않는 박스'를 아예 없앱니다 — 무대가 화면 전체입니다.
       // 캔버스를 화면에 고정(fixed)하고 클릭은 통과, 벌은 레이아웃 속
       // 앵커(host)의 위치를 매 프레임 따라갑니다. 드래그하면 화면
@@ -96,7 +96,7 @@ export default function BeeCharacter3D({
       renderer.toneMappingExposure = 1.05;
       document.body.appendChild(renderer.domElement);
       Object.assign(renderer.domElement.style, {
-        position: 'fixed', inset: '0', zIndex: '55',
+        position: 'fixed', inset: '0', zIndex: '34',
         pointerEvents: 'none', display: 'block',
       });
       // 스크롤은 '이동'이 아니라 '세상이 움직인 것' — 러프 없이 즉시
@@ -357,6 +357,7 @@ export default function BeeCharacter3D({
       };
       const onFlyHome = () => { flyOverride = null; };
       let flipFrom = -10;                  // 축하 백덤블링 시작 시각
+      let prevT = 0;
       const onCelebrate = () => { flipFrom = clock.getElapsedTime(); jvy += 0.4; };
       window.addEventListener('kkulbee:celebrate', onCelebrate);
       window.addEventListener('kkulbee:flyto', onFlyTo);
@@ -521,10 +522,14 @@ export default function BeeCharacter3D({
           beeRoot.position.set(txw, tyw, 0);
           placed = true;
         } else {
-          // 관성 비행 — 순간이동이 아니라 날아갑니다. 멀수록 빠르게.
-          beeRoot.position.x += (txw - beeRoot.position.x) * 0.085;
-          beeRoot.position.y += (tyw - beeRoot.position.y) * 0.085;
+          // 시간 기반 추적 — 프레임이 20fps로 떨어져도 같은 속도로 붙습니다.
+          // 앵커(스크롤 포함)는 강하게, flyto 비행만 여유 있게.
+          const dt = Math.min(0.05, t - prevT);
+          const kFollow = 1 - Math.exp(-(flyOverride ? 6 : 22) * dt);
+          beeRoot.position.x += (txw - beeRoot.position.x) * kFollow;
+          beeRoot.position.y += (tyw - beeRoot.position.y) * kFollow;
         }
+        prevT = t;
         // 비행 방향으로 살짝 기울기 — 이동감 (탄도 중엔 탄도가 기울기 결정)
         if (!ball.on) {
           const vx = txw - beeRoot.position.x;
@@ -581,7 +586,8 @@ export default function BeeCharacter3D({
         // 실례인 순간이 있습니다.
         head.rotation.x = cy * 0.26 + (sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0);
         head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : cx * -0.08;
-        bee.rotation.y = cx * 0.2 + spin;
+        // 기본 시선은 왼쪽(본문·사용자 쪽) — 무대 오른쪽에 서 있으니까
+        bee.rotation.y = -0.26 + cx * 0.2 + spin;
         // 축하 백덤블링 — 뒤로 한 바퀴 (S·A등급 콘페티와 함께)
         const fp = (t - flipFrom) / 1.0;
         const flip = fp >= 0 && fp < 1 ? -(1 - Math.pow(1 - fp, 3)) * Math.PI * 2 : 0;

@@ -469,7 +469,7 @@ export default function Page() {
 
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
                 <motion.div layoutId="bee" transition={SPRING}
-                            className="z-10 flex justify-center lg:justify-end">
+                            className="z-10 flex justify-center lg:justify-center lg:-translate-x-6">
                   <BeeStage motion={mood} size={430} speech={speech} />
                 </motion.div>
               </div>
