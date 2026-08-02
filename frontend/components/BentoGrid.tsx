@@ -694,7 +694,9 @@ function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
     <div>
       {/* VS 매치 — 두 동네가 양쪽에서 입장하고 가운데 VS가 쾅. 비교는
           정보이기 전에 승부라서, 화면도 그렇게 말해야 합니다. */}
-      <div className="relative grid grid-cols-2 gap-3">
+      {/* gap-10 — 가운데 VS 배지가 카드 사이 골에만 앉고 안쪽 글자를
+          가리지 않는 간격입니다(배지 폭 ~40px ≤ 골 40px) */}
+      <div className="relative grid grid-cols-2 gap-10">
         <motion.div initial={{ x: -36, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
                     transition={{ type: 'spring', stiffness: 240, damping: 22 }}>
           <Side s={a} win={winA} />
@@ -708,35 +710,59 @@ function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
           animate={{ scale: 1, rotate: -6 }}
           transition={{ delay: 0.35, type: 'spring', stiffness: 380, damping: 14 }}
           className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2
-                     rounded-2xl bg-kb-ink px-3 py-1.5 text-[18px] font-black
+                     rounded-xl bg-kb-ink px-2.5 py-1 text-[16px] font-black
                      italic text-kb-yellow shadow-lg"
         >
           VS
         </motion.span>
       </div>
-      <ul className="mt-4 space-y-1.5">
-        {rows.map((r) => {
-          const d = r.va - r.vb;
-          const even = Math.abs(d) < 0.8;
-          return (
-            <li key={r.label} className="grid grid-cols-[1fr_auto_1fr] items-center
-                                         gap-2 text-[13.5px]">
-              <span className={`text-right [font-variant-numeric:tabular-nums] ${
-                !even && d > 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/62'}`}>
-                {r.va > 0 ? '+' : ''}{r.va.toFixed(1)}
-                {!even && d > 0 && ' ◀'}
-              </span>
-              <span className="w-24 text-center text-[13px] text-kb-ink/78 sm:w-28">
-                {r.label}
-              </span>
-              <span className={`[font-variant-numeric:tabular-nums] ${
-                !even && d < 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/62'}`}>
-                {!even && d < 0 && '▶ '}
-                {r.vb > 0 ? '+' : ''}{r.vb.toFixed(1)}
-              </span>
-            </li>
-          );
-        })}
+      {/* 줄다리기 승부표 — 숫자만 세로로 나열하면 좌우 빈 땅이 크고
+          훑어 읽기도 어렵습니다. 가운데 라벨에서 양쪽으로 기여도만큼
+          막대가 뻗습니다. 플러스는 꿀색, 마이너스는 장미색 — 길이는
+          이번 비교의 최대 절대값 기준이라 두 동네가 같은 자입니다. */}
+      <ul className="mt-4 space-y-2">
+        {(() => {
+          const maxAbs = Math.max(...rows.map((r) =>
+            Math.max(Math.abs(r.va), Math.abs(r.vb))), 1);
+          return rows.map((r) => {
+            const d = r.va - r.vb;
+            const even = Math.abs(d) < 0.8;
+            const pct = (v: number) =>
+              `${Math.max(4, (Math.abs(v) / maxAbs) * 100)}%`;
+            return (
+              <li key={r.label} className="grid grid-cols-[1fr_auto_1fr]
+                                           items-center gap-2 text-[13.5px]">
+                <div className="relative flex h-6 items-center justify-end">
+                  <span aria-hidden
+                    className={`absolute right-0 h-4 rounded-l-md ${
+                      r.va >= 0 ? 'bg-kb-yellow/45' : 'bg-rose-400/30'}`}
+                    style={{ width: pct(r.va) }} />
+                  <span className={`relative z-10 pr-1.5
+                                    [font-variant-numeric:tabular-nums] ${
+                    !even && d > 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/72'}`}>
+                    {r.va > 0 ? '+' : ''}{r.va.toFixed(1)}
+                    {!even && d > 0 && ' ◀'}
+                  </span>
+                </div>
+                <span className="w-24 text-center text-[13px] text-kb-ink/78 sm:w-28">
+                  {r.label}
+                </span>
+                <div className="relative flex h-6 items-center">
+                  <span aria-hidden
+                    className={`absolute left-0 h-4 rounded-r-md ${
+                      r.vb >= 0 ? 'bg-kb-yellow/45' : 'bg-rose-400/30'}`}
+                    style={{ width: pct(r.vb) }} />
+                  <span className={`relative z-10 pl-1.5
+                                    [font-variant-numeric:tabular-nums] ${
+                    !even && d < 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/72'}`}>
+                    {!even && d < 0 && '▶ '}
+                    {r.vb > 0 ? '+' : ''}{r.vb.toFixed(1)}
+                  </span>
+                </div>
+              </li>
+            );
+          });
+        })()}
       </ul>
       <p className="mt-3 rounded-lg bg-kb-ink/[.04] px-2.5 py-2 text-[12.5px]
                     leading-relaxed text-kb-ink/72">
@@ -848,7 +874,9 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
           ))}
         </div>
       )}
-    <ul className="space-y-3">
+    {/* 카드가 전폭일 때(은행 금리 카드가 없을 때) 공고 2개씩 나란히 —
+        한 줄 하나로 늘어지면 빈 땅이 생깁니다. 항목이 하나면 한 단. */}
+    <ul className={`grid gap-3 ${shown.length > 1 ? 'lg:grid-cols-2' : ''}`}>
       {shown.map((m) => (
         <li key={m.program_id}
             className="rounded-xl bg-kb-ink/[.05] p-3.5 ring-1 ring-kb-ink/[.1]

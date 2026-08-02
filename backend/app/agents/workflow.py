@@ -526,9 +526,12 @@ def _cards(state: GraphState) -> list[BentoCard]:
             subtitle="융자·보증은 결국 은행 창구에서 실행됩니다", span=3,
             accent="yellow", payload=state["bank_rates"]))
     if state.get("policies"):
+        # 은행 금리 카드(키 필요)가 옆에 없으면 반쪽이 텅 빕니다 —
+        # 짝이 없을 때는 전폭으로 서서 빈 땅을 만들지 않습니다.
+        pol_span = 3 if state.get("bank_rates") else 6
         cards.append(BentoCard(
             id="policy", kind=BentoCardKind.POLICY, title="사장님께 맞는 지원사업",
-            subtitle="왜 골랐는지 이유를 함께 적었어요", span=3, accent="green",
+            subtitle="왜 골랐는지 이유를 함께 적었어요", span=pol_span, accent="green",
             payload={"items": [p.model_dump(mode="json") for p in state["policies"]]}))
     pack = state.get("protection")
     if pack:
