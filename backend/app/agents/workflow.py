@@ -17,6 +17,7 @@ LangGraph 오케스트레이션 — Router ▸ Location ▸ Policy ▸ Guardrail
 """
 from __future__ import annotations
 
+import re
 import time
 import uuid
 
@@ -92,6 +93,7 @@ class GraphState(TypedDict, total=False):
     composed_by: str
     parts: Annotated[dict, _pick]
     location: object
+    compare: object
     pins: list
     policies: list
     protection: object
@@ -136,10 +138,69 @@ async def route(state: GraphState) -> GraphState:
 
 
 # ── 각 갈래 ───────────────────────────────────────────────────────────────
+# "A랑 B 중 어디가 나아?" — 사장님의 실제 고민은 한 동네가 아니라 후보
+# 둘 사이에 있습니다. 비교 낱말이 있고 연결어로 갈랐을 때 서로 다른 두
+# 동네가 잡히면 비교 모드로 갑니다. 못 가르면 조용히 단일 분석으로.
+_CMP_MARK = re.compile(r"비교|어디가|어느\s*쪽|나을|나아|낫|vs", re.I)
+_CMP_SPLIT = re.compile(r"\s*(?:vs|VS|이랑|랑|하고|이나|또는)\s*|[,·]")
+
+
+def _detect_pair(message: str):
+    if not _CMP_MARK.search(message):
+        return None
+    parts = [p.strip() for p in _CMP_SPLIT.split(message) if p and p.strip()]
+    if len(parts) < 2:
+        return None
+    found: list[dict] = []
+    for p in parts:
+        d = market_data.find_dong(p)
+        if d and all(d["code"] != f["code"] for f in found):
+            found.append(d)
+        if len(found) == 2:
+            break
+    return tuple(found) if len(found) == 2 else None
+
+
 async def run_location(state: GraphState) -> GraphState:
     req = state["request"]
     region = req.region or state.get("region") or req.message
     industry = req.industry or state.get("industry") or _guess_industry(req.message)
+
+    # 두 동네 비교 — 명시 지역 없이 물었을 때만 (화면에서 고른 지역이 우선)
+    pair = _detect_pair(req.message) if not req.region else None
+    if pair:
+        name_a = f"{pair[0]['sido']} {pair[0]['sgg']} {pair[0]['dong']}"
+        name_b = f"{pair[1]['sido']} {pair[1]['sgg']} {pair[1]['dong']}"
+        a = await location_agent.analyze_location(name_a, industry)
+        b = await location_agent.analyze_location(name_b, industry)
+        if a and b:
+            from app.services import seoul_pop
+            for s in (a, b):
+                if getattr(s, "dong_code", None):
+                    s.living_pop = await seoul_pop.living_pop(s.dong_code)
+            hi, lo = (a, b) if a.total_score >= b.total_score else (b, a)
+            gap = hi.total_score - lo.total_score
+            lead = (f"{a.region_name} {a.total_score}점({a.grade}) vs "
+                    f"{b.region_name} {b.total_score}점({b.grade}) — ")
+            lead += (f"종합으로는 {hi.region_name}이(가) {gap:.1f}점 앞섭니다. "
+                     if gap >= 1 else "종합 점수는 사실상 비슷합니다. ")
+            # 승부를 가른 요인 하나 — 총점만 던지면 근거가 없습니다
+            diff = {}
+            for f in hi.factors:
+                diff[f.label] = f.contribution
+            best = None
+            for f in lo.factors:
+                d = diff.get(f.label, 0) - f.contribution
+                if best is None or abs(d) > abs(best[1]):
+                    best = (f.label, d)
+            if best and abs(best[1]) >= 1:
+                who = hi.region_name if best[1] > 0 else lo.region_name
+                lead += f"가장 크게 갈린 요인은 {best[0]}({who} 우세)입니다."
+            pins = await location_agent.nearby_pins(hi)
+            return {"parts": {"location": lead}, "location": hi,
+                    "compare": (a, b), "pins": pins,
+                    "motion": CharacterMotion.FLY_HAPPY.value,
+                    "trace": [AgentKind.LOCATION.value]}
 
     score = await location_agent.analyze_location(region, industry)
     if score is not None and getattr(score, "dong_code", None):
@@ -332,8 +393,36 @@ def _cards(state: GraphState) -> list[BentoCard]:
     고르면 됩니다. 화면에 분기 로직을 두면 새 카드를 늘릴 때마다 화면을
     고쳐야 합니다.
     """
+    def _plain(v):
+        # 생활인구는 서비스가 dict로 주기도, 스키마 모델로 실려 오기도 합니다
+        return v.model_dump(mode="json") if hasattr(v, "model_dump") else v
+
     cards: list[BentoCard] = []
     loc = state.get("location")
+    cmp_pair = state.get("compare")
+    if cmp_pair:
+        # 비교 모드 — 두 동네를 나란히. 단일 분석 카드들은 접어 두고
+        # 비교 카드가 화면의 주인공이 됩니다.
+        def side(s) -> dict:
+            return {"region_name": s.region_name, "total_score": s.total_score,
+                    "grade": s.grade, "industry": s.industry,
+                    "same_industry_count": s.same_industry_count,
+                    "factors": [f.model_dump(mode="json") for f in s.factors],
+                    "living_pop": _plain(getattr(s, "living_pop", None))}
+        cards.append(BentoCard(
+            id="compare", kind=BentoCardKind.COMPARE, title="두 동네 나란히 보기",
+            subtitle="같은 자로 잰 전국 백분위 점수입니다", span=6, accent="yellow",
+            payload={"a": side(cmp_pair[0]), "b": side(cmp_pair[1])}))
+        if state.get("pins"):
+            cards.append(BentoCard(
+                id="map", kind=BentoCardKind.MAP, title="지도로 보기",
+                subtitle=f"점수가 높은 {loc.region_name} 쪽입니다", span=6,
+                payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
+                         "dong_code": getattr(loc, "dong_code", None),
+                         "industry_code": getattr(loc, "industry_code", None),
+                         "industry": getattr(loc, "industry", None),
+                         "same_industry_count": getattr(loc, "same_industry_count", None)}))
+        loc = None   # 아래 단일 분석 카드들은 건너뜁니다
     if loc:
         cards.append(BentoCard(
             id="score", kind=BentoCardKind.SCORE, title="상권 점수",
@@ -365,7 +454,7 @@ def _cards(state: GraphState) -> list[BentoCard]:
                 span=3, accent="neutral",
                 payload={"items": sim, "industry": loc.industry,
                          "base": loc.region_name}))
-    if state.get("pins"):
+    if state.get("pins") and not cmp_pair:
         cards.append(BentoCard(
             id="map", kind=BentoCardKind.MAP, title="지도로 보기",
             subtitle="주황 점이 실제 경쟁 가게예요", span=3,

@@ -49,7 +49,7 @@ const ACCENT: Record<string, string> = {
 // 피드백의 답입니다. 결론(점수·매칭·절차)은 펼치고, 근거와 곁가지(요인 분해·
 // 지도·기회 업종·닮은 동네·금리·용어)는 제목만 보이게 접습니다. 접힌 카드도
 // 제목·부제가 있어 무엇이 들었는지 알고 누를 수 있습니다.
-const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice']);
+const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice', 'compare']);
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
@@ -136,6 +136,7 @@ function CardBody({ card }: { card: BentoCard }) {
                                   crowded={p.crowded as unknown as IndustryGap[]}
                                   region={p.region as unknown as string} />;
     case 'rates': return <RatesCard d={p as unknown as BankRates} />;
+    case 'compare': return <CompareCard a={p.a as never} b={p.b as never} />;
     case 'similar': return <SimilarCard items={p.items as unknown as SimilarDong[]}
                                         industry={p.industry as unknown as string} />;
     default: return null;
@@ -602,6 +603,108 @@ const FUNDING_TONE: Record<string, string> = {
   '컨설팅·교육': 'bg-amber-500/[.14] text-amber-800 ring-amber-400/22',
   '기타': 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.14]',
 };
+
+/* ── 두 동네 비교 ──────────────────────────────────────────────────────── */
+
+interface CompareSide {
+  region_name: string; total_score: number; grade: string; industry: string;
+  same_industry_count: number | null;
+  factors: FactorContribution[];
+  living_pop: { avg: number; peak_hour: number } | null;
+}
+
+/** "A랑 B 중 어디가 나아?" — 사장님의 실제 고민은 후보 둘 사이에 있습니다.
+    같은 자(전국 백분위)로 잰 두 동네를 나란히 놓고, 요인별로 어느 쪽이
+    우세한지 화살로 보여 줍니다. */
+function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
+  const winA = a.total_score >= b.total_score;
+  const ask = (name: string) =>
+    window.dispatchEvent(new CustomEvent('kkulbee:ask',
+      { detail: `${name} ${a.industry} 상권 자세히 알려줘` }));
+
+  const Side = ({ s, win }: { s: CompareSide; win: boolean }) => (
+    <div className={`rounded-xl p-4 ring-1 transition ${win
+      ? 'bg-kb-yellow/[.1] ring-kb-yellow/40'
+      : 'bg-kb-ink/[.03] ring-kb-ink/[.08]'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-[13px] font-bold text-kb-ink">
+          {s.region_name}
+        </p>
+        {win && <span className="shrink-0 rounded-full bg-kb-yellow px-2 py-0.5
+                                 text-[10px] font-bold text-kb-ink">우세</span>}
+      </div>
+      <p className="mt-2 text-[34px] font-extrabold leading-none text-kb-ink
+                    [font-variant-numeric:tabular-nums]">
+        <CountUp value={s.total_score} />
+        <span className="ml-1.5 text-[15px] font-bold text-kb-amber">{s.grade}</span>
+      </p>
+      <dl className="mt-3 space-y-1 text-[11.5px] text-kb-ink/65">
+        <div className="flex justify-between">
+          <dt>이 동네 {s.industry}</dt>
+          <dd className="font-semibold text-kb-ink">
+            {s.same_industry_count?.toLocaleString() ?? '—'}곳
+          </dd>
+        </div>
+        <div className="flex justify-between">
+          <dt>실제로 있는 사람</dt>
+          <dd className="font-semibold text-kb-ink">
+            {s.living_pop ? `일평균 ${s.living_pop.avg.toLocaleString()}명` : '서울만 제공'}
+          </dd>
+        </div>
+      </dl>
+      <button onClick={() => ask(s.region_name)}
+        className="mt-3 w-full rounded-lg bg-kb-ink/[.05] py-1.5 text-[11px]
+                   font-semibold text-kb-ink/65 transition hover:bg-kb-ink/[.09]
+                   hover:text-kb-ink">
+        이 동네 자세히 →
+      </button>
+    </div>
+  );
+
+  // 요인별 승부 — 이름을 가운데 두고 우세한 쪽으로 화살표
+  const rows = a.factors.map((fa) => {
+    const fb = b.factors.find((f) => f.label === fa.label);
+    return { label: fa.label, va: fa.contribution, vb: fb?.contribution ?? 0 };
+  });
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-3">
+        <Side s={a} win={winA} />
+        <Side s={b} win={!winA} />
+      </div>
+      <ul className="mt-4 space-y-1.5">
+        {rows.map((r) => {
+          const d = r.va - r.vb;
+          const even = Math.abs(d) < 0.8;
+          return (
+            <li key={r.label} className="grid grid-cols-[1fr_auto_1fr] items-center
+                                         gap-2 text-[11.5px]">
+              <span className={`text-right [font-variant-numeric:tabular-nums] ${
+                !even && d > 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/45'}`}>
+                {r.va > 0 ? '+' : ''}{r.va.toFixed(1)}
+                {!even && d > 0 && ' ◀'}
+              </span>
+              <span className="w-24 text-center text-[11px] text-kb-ink/60 sm:w-28">
+                {r.label}
+              </span>
+              <span className={`[font-variant-numeric:tabular-nums] ${
+                !even && d < 0 ? 'font-bold text-kb-amber' : 'text-kb-ink/45'}`}>
+                {!even && d < 0 && '▶ '}
+                {r.vb > 0 ? '+' : ''}{r.vb.toFixed(1)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-3 rounded-lg bg-kb-ink/[.04] px-2.5 py-2 text-[10.5px]
+                    leading-relaxed text-kb-ink/55">
+        점수는 참고용입니다 — 임대료·권리금은 자료에 없어 반영되지 않았어요.
+        발품 전에 후보를 좁히는 용도로 봐 주세요.
+      </p>
+    </div>
+  );
+}
 
 /** 점수가 0에서 차오릅니다 — "점수를 받았다"는 감각은 이런 1초가 만듭니다.
     최종 숫자는 물론 실제 값 그대로. 연출은 도착 과정에만 있습니다. */

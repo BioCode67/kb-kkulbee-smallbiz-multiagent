@@ -252,6 +252,7 @@ class BentoCardKind(str, Enum):
     GAPS = "gaps"
     RATES = "rates"
     SIMILAR = "similar"
+    COMPARE = "compare"
 
 
 class BentoCard(BaseModel):

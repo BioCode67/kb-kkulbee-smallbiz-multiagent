@@ -333,3 +333,22 @@ def test_rpa_refuses_non_bizinfo_url():
                 ""):
         r = check_notice(bad)
         assert r["ok"] is False and "reason" in r
+
+
+# ── 두 동네 비교 감지 ─────────────────────────────────────────────────────
+
+from app.agents.workflow import _detect_pair
+
+
+def test_compare_detects_two_dongs():
+    pair = _detect_pair("연남동이랑 성수동 카페 상권 비교해줘")
+    assert pair is not None
+    names = {p["dong"] for p in pair}
+    assert "연남동" in names
+
+
+def test_compare_needs_marker_and_two_regions():
+    # 비교 낱말이 없으면 단일 분석으로 — 오탐이 더 나쁩니다
+    assert _detect_pair("연남동 카페 상권 어때?") is None
+    # 비교 낱말이 있어도 동네가 하나뿐이면 비교가 아닙니다
+    assert _detect_pair("연남동 상권 다른 곳과 비교하면 어때?") is None
