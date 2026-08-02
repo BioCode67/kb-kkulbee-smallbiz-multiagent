@@ -472,6 +472,10 @@ def build() -> str:
             s.shapes.add_picture(fp, x, Inches(2.5), height=hh)
             text(s, x, Inches(6.55), Inches(3.8), Inches(0.35),
                  cap, size=11, bold=True, color=BROWN)
+    text(s, Inches(0.75), Inches(7.0), Inches(11.8), Inches(0.35),
+         "그 밖의 결: 지원사업 찜(마감 D-day 모아보기) · 상담 리포트 인쇄/PDF · "
+         "음성으로 묻고 듣기 · 쉬운 용어 사전 · 금소법 검사기 직접 시험",
+         size=10.5, color=GRAY)
 
     # ── 8. 시스템 ────────────────────────────────────────────────────────
     s = blank(prs)
