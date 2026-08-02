@@ -383,3 +383,25 @@ def test_industry_aliases_point_to_sane_names():
     for alias, name in expect.items():
         code = m._INDUSTRY_ALIAS[alias]
         assert sn.get(code) == name, f"{alias} → {sn.get(code)} (기대: {name})"
+
+
+# ── 계약서 신호등 — 독소조항 탐지가 진짜 문구에만 반응하는지 ──
+
+def test_contract_scan_finds_poison_clauses():
+    from app.services.contract_scan import scan
+    text = ("제5조 임차인은 권리금을 일체 주장하지 않는다. "
+            "제7조 차임은 임대인이 임의로 인상할 수 있다. "
+            "제9조 계약 만료 시 이의가 없으면 자동 연장된다.")
+    r = scan(text)
+    names = {f["name"] for f in r["findings"]}
+    assert "권리금 포기 특약" in names
+    assert "과도한 차임 인상 여지" in names
+    assert "자동 연장·자동 갱신" in names
+    assert r["danger"] >= 2
+
+
+def test_contract_scan_clean_text_stays_clean():
+    from app.services.contract_scan import scan
+    r = scan("제1조 목적. 본 계약은 상호 신뢰를 바탕으로 성실히 이행한다. "
+             "제2조 임대차 기간은 2년으로 한다.")
+    assert r["ok"] and r["clean"] and r["findings"] == []

@@ -28,6 +28,7 @@ import BeeChatbot from '@/components/BeeChatbot';
 import SiteFooter from '@/components/SiteFooter';
 import HeroTicker from '@/components/HeroTicker';
 import FundingPlan from '@/components/FundingPlan';
+import ContractScan from '@/components/ContractScan';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -544,6 +545,10 @@ export default function Page() {
 
               {view === 'mode' && MODES[mode].key === 'policy' && (
                 <FundingPlan region={shop?.region} industry={shop?.industry} />
+              )}
+
+              {view === 'mode' && MODES[mode].key === 'protection' && (
+                <ContractScan />
               )}
 
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은

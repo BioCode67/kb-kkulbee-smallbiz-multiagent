@@ -227,6 +227,17 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.post("/api/v1/contract-scan")
+def contract_scan(payload: dict) -> dict:
+    """계약서 신호등 — 붙여넣은 계약 문구에서 독소조항을 규칙으로 탐지.
+
+    사장님이 지는 계약은 서명 전에 결정됩니다. 임대차·프랜차이즈에서
+    반복되는 위험 조항 10유형을 패턴으로 찾아 근거 법과 함께 보여줍니다.
+    """
+    from app.services import contract_scan as cs
+    return cs.scan(str(payload.get("text", "")))
+
+
 @app.post("/api/v1/plan")
 def funding_plan(payload: dict) -> dict:
     """자금 설계사 — 필요 금액을 '주는 돈부터' 실공고로 쌓는 조달 설계.
