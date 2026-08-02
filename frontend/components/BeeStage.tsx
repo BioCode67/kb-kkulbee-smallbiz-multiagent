@@ -90,7 +90,7 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       {speech && <div className="h-[70px]" aria-hidden />}
       {mounted && createPortal(
         <div ref={bubbleRef}
-             className="pointer-events-none fixed z-[38] -translate-x-1/2">
+             className="print:hidden pointer-events-none fixed z-[38] -translate-x-1/2">
           <AnimatePresence>
             {speech && (
               <m.div

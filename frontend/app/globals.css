@@ -207,9 +207,15 @@
    깨지기 쉬운 것들을 잡습니다: 카드가 페이지 사이에서 반으로 잘리는 것,
    배경색이 빠져 배지 글자만 남는 것. */
 @media print {
-  .surface-1, .surface-2 {
+  .surface-1, .surface-2, [id^='card-'] {
     break-inside: avoid;
     box-shadow: none !important;
+  }
+  /* 종이는 한 단입니다 — 화면의 벤토 배치(span 4/6/12)를 그대로 찍으면
+     좁은 카드 하나가 페이지를 통째로 차지합니다. 전폭으로 쌓습니다. */
+  [id^='card-'] {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
   }
   * {
     -webkit-print-color-adjust: exact;
