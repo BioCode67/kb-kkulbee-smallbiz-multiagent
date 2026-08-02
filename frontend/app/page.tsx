@@ -23,6 +23,7 @@ import TopBar from '@/components/TopBar';
 import MyShop, { type ShopProfile } from '@/components/MyShop';
 import BreakEven from '@/components/BreakEven';
 import BeeChatbot from '@/components/BeeChatbot';
+import SiteFooter from '@/components/SiteFooter';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -540,6 +541,7 @@ export default function Page() {
         {/* 어디서든 대화 — 우하단 꿀비. 히어로에선 큰 꿀비가 있으니 숨깁니다. */}
         <BeeChatbot history={history} loading={loading} onAsk={ask} hidden={hero} />
       </main>
+      <SiteFooter />
     </LayoutGroup>
   );
 }
