@@ -541,9 +541,11 @@ function makeHeadTexture(THREE: typeof import('three')) {
   g.fillRect(0, 58, 1024, 66);
   // 얼굴 패치 — 앞면 가득한 크림 타원. 가장자리에 살짝 진한 테를 둘러
   // 후드 안에 얼굴이 들어앉은 깊이감을 만듭니다.
-  const cx = 512, cy = 306, rx = 214, ry = 172;
-  g.fillStyle = '#F2B93C';
-  g.beginPath(); g.ellipse(cx, cy, rx + 16, ry + 14, 0, 0, Math.PI * 2); g.fill();
+  // 얼굴은 조금 작게, 둘레에는 검은 띠 — 얼굴을 두르는 이 띠가
+  // '벌 후드'를 완성합니다 (위 가로 띠와 한 세트로 읽힘)
+  const cx = 512, cy = 306, rx = 188, ry = 152;
+  g.fillStyle = '#33251A';
+  g.beginPath(); g.ellipse(cx, cy, rx + 30, ry + 26, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = '#FDEED6';
   g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.fill();
   const tex = new THREE.CanvasTexture(c);
