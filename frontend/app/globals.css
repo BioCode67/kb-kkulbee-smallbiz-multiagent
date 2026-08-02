@@ -202,6 +202,22 @@
   20%, 45% { opacity: 1; transform: translateY(0); }
 }
 
+/* ── 접근성 — 키보드로 다니는 사람에게도 지금 어디인지 보여줍니다 ─────────
+   마우스 클릭에는 안 나타나고(:focus-visible), 탭 이동에만 호박색 링. */
+:focus-visible {
+  outline: 3px solid rgba(224, 144, 0, 0.85);
+  outline-offset: 2px;
+}
+/* 움직임을 줄여 달라는 시스템 설정 존중 — CSS 애니메이션(마퀴·핑 등)을
+   멈춥니다. framer 쪽은 MotionConfig reducedMotion="user"가 맡습니다. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── 인쇄 — 상담을 종이로 들고 가는 사장님을 위해 ─────────────────────────
    화면 장식(입력창·꿀비·칩)은 print:hidden으로 빠지고, 여기서는 종이에서
    깨지기 쉬운 것들을 잡습니다: 카드가 페이지 사이에서 반으로 잘리는 것,

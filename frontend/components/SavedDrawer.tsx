@@ -103,6 +103,13 @@ export default function SavedDrawer({ open, onClose }: {
   const [sweeping, setSweeping] = useState(false);
   const [host, setHost] = useState<HTMLElement | null>(null);
   useEffect(() => setHost(document.body), []);
+  // Esc로 닫기 — 서랍은 모달입니다. 마우스 없이도 나갈 수 있어야 합니다.
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [open, onClose]);
   useEffect(() => {
     const load = () => setItems(loadSaved());
     load();
@@ -166,6 +173,7 @@ export default function SavedDrawer({ open, onClose }: {
             exit={{ opacity: 0 }} onClick={onClose}
             className="fixed inset-0 z-[80] bg-kb-ink/30 backdrop-blur-[2px]" />
           <motion.aside
+            role="dialog" aria-modal="true" aria-label="찜한 지원사업 서랍"
             initial={{ x: 420 }} animate={{ x: 0 }} exit={{ x: 420 }}
             transition={{ type: 'spring', stiffness: 300, damping: 32 }}
             className="fixed right-0 top-0 z-[90] flex h-full w-full max-w-[400px]

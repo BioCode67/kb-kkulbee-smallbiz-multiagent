@@ -16,7 +16,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
+import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion';
 import BentoGrid from '@/components/BentoGrid';
 import BeeStage from '@/components/BeeStage';
 import TopBar from '@/components/TopBar';
@@ -431,6 +431,7 @@ export default function Page() {
   }, [history.length, loading]);
 
   return (
+    <MotionConfig reducedMotion="user">
     <LayoutGroup>
       <TopBar />
       <main className="mx-auto min-h-screen max-w-[1760px] px-5 pb-24 lg:px-12">
@@ -957,6 +958,7 @@ export default function Page() {
       <Coachmark />
       <SiteFooter />
     </LayoutGroup>
+    </MotionConfig>
   );
 }
 
