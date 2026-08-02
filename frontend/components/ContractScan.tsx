@@ -53,7 +53,7 @@ export default function ContractScan() {
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         임대차·프랜차이즈 계약서 문구를 붙여넣으면, 사장님께 불리한 조항
-        10유형을 찾아 <b>근거 법과 함께</b> 짚어 드려요.
+        10유형을 찾아 <b>근거 법과 함께</b> 짚어 드립니다.
       </p>
 
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
@@ -87,7 +87,7 @@ export default function ContractScan() {
             ? 'bg-emerald-500/[.12] text-emerald-700'
             : 'bg-rose-500/[.1] text-rose-700'}`}>
             {r.clean
-              ? '✓ 등록된 위험 유형 10가지는 안 보여요 — 그래도 서명 전 전문 상담을 권해요'
+              ? '✓ 등록된 위험 유형 10가지는 보이지 않습니다 — 그래도 서명 전 전문 상담을 권합니다'
               : `🚨 위험 ${r.danger}건 · ⚠️ 주의 ${r.warn}건 — 서명 전에 꼭 짚고 넘어가세요`}
           </p>
 

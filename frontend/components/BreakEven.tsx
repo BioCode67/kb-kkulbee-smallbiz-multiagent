@@ -61,7 +61,7 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
             하루 몇 명이면 본전일까
           </h3>
           <p className="mt-0.5 text-[14px] text-kb-ink/68">
-            월세·인건비를 넣으면 손익분기 손님 수를 계산해 드려요
+            월세·인건비를 넣으면 손익분기 손님 수를 계산해 드립니다
           </p>
         </div>
         <span className="text-[15px] text-kb-ink/55">{open ? '접기 ▲' : '계산해 보기 ▼'}</span>
@@ -84,7 +84,7 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
               </div>
             ))}
             <p className="text-[12.5px] leading-relaxed text-kb-ink/55">
-              처음 보이는 숫자는 입력 예시일 뿐이에요. 사장님 상황에 맞게
+              처음 보이는 숫자는 입력 예시일 뿐입니다. 사장님 상황에 맞게
               바꿔 주세요. 계산은 이 화면에서만 하고 어디에도 저장하지 않아요.
             </p>
           </div>
@@ -97,7 +97,7 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
               {perDay > 0 ? `${won(perDay)}명` : '—'}
             </p>
             <p className="text-[14px] text-kb-ink/78">
-              오시면 본전이에요
+              오시면 본전입니다
               <br />
               <span className="text-[13px] text-kb-ink/62">
                 (한 달 {perMonth > 0 ? won(perMonth) : '—'}명 · 고정비 {won(fixed)}원)

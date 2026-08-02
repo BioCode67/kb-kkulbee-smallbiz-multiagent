@@ -49,8 +49,8 @@ export default function AllBriefing({ onAsk }: { onAsk: (q: string) => void }) {
         🐝 한 번에 브리핑 <span className="text-violet-700">— 두 칸이면 세 에이전트가 움직여요</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
-        동네와 업종만 고르면 <b>입지 점수와 정책자금을 한 번에</b> 살펴 드려요.
-        문장은 꿀비가 만들게요.
+        동네와 업종만 고르면 <b>입지 점수와 정책자금을 한 번에</b> 살펴 드립니다.
+        문장은 꿀비가 만듭니다.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2.5">
@@ -82,7 +82,7 @@ export default function AllBriefing({ onAsk }: { onAsk: (q: string) => void }) {
       </div>
       <p className="mt-3 text-[12.5px] text-kb-ink/55">
         예: &ldquo;서울 마포구 연남동에서 카페 하려는데 자리랑 자금이랑 다
-        봐줘&rdquo; — 이렇게 물은 것과 같아요.
+        봐줘&rdquo; — 이렇게 물은 것과 같습니다.
       </p>
     </section>
   );

@@ -190,7 +190,7 @@ def analyze(region: str, industry: str | None = None) -> LocationScore | None:
         peer_median=50.0,
         data_source="public_api",
         note=("실제 전국 가게 272만 곳 자료(공공데이터포털 상가정보, 2026-03)로 "
-              "계산했어요. 매출·폐업률은 공개 자료가 없어 점수에 넣지 않았습니다."),
+              "계산했습니다. 매출·폐업률은 공개 자료가 없어 점수에 넣지 않았습니다."),
     )
 
 

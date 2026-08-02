@@ -69,7 +69,7 @@ export default function FundingPlan({ region, industry }: {
             💰 자금 설계사 <span className="text-kb-amber">— 얼마가 필요하세요?</span>
           </h2>
           <p className="mt-1 text-[14.5px] text-kb-ink/70">
-            실제 접수 중인 공고로 <b>그냥 받는 돈부터</b> 쌓아 드려요.
+            실제 접수 중인 공고로 <b>그냥 받는 돈부터</b> 쌓아 드립니다.
             빌리는 돈은 한 달에 얼마 갚는지까지.
           </p>
         </div>

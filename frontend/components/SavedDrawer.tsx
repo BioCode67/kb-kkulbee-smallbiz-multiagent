@@ -58,7 +58,7 @@ function LiveCheckRow({ s, r, busy, onRun }: {
           {changed && (
             <p className="rounded-md bg-amber-400/[.14] px-2 py-1 font-semibold
                           text-amber-800">
-              ⚠ 담아 둘 때({s.deadline})와 마감이 달라졌어요 → 원문은 {r.deadline}
+              ⚠ 담아 둘 때({s.deadline})와 마감이 달라졌습니다 → 원문은 {r.deadline}
             </p>
           )}
           {(r.attachments ?? []).slice(0, 3).map((a) => (
@@ -126,7 +126,7 @@ export default function SavedDrawer({ open, onClose }: {
       const r = await res.json();
       setChecks((c) => ({ ...c, [s.id]: r }));
     } catch {
-      setChecks((c) => ({ ...c, [s.id]: { ok: false, reason: '서버에 닿지 못했어요' } }));
+      setChecks((c) => ({ ...c, [s.id]: { ok: false, reason: '서버에 닿지 못했습니다' } }));
     } finally {
       setBusy((b) => ({ ...b, [s.id]: false }));
     }
@@ -208,7 +208,7 @@ export default function SavedDrawer({ open, onClose }: {
             <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3.5">
               {sorted.length === 0 && (
                 <p className="py-10 text-center text-[15px] leading-relaxed text-kb-ink/62">
-                  아직 담은 공고가 없어요.
+                  아직 담은 공고가 없습니다.
                   <br />지원사업 카드의 ⭐를 눌러 담아 두세요 —
                   <br />마감 가까운 순으로 여기 모입니다.
                 </p>

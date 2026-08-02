@@ -58,7 +58,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
             만약 업종을 바꾼다면 <span className="text-kb-amber">What-If</span>
           </h3>
           <p className="mt-0.5 text-[14px] text-kb-ink/78">
-            같은 동네를 40개 업종으로 다시 재 봤어요 — 점수를 바꾸는 변수를 역계산
+            같은 동네를 40개 업종으로 전부 다시 쟀습니다 — 점수를 바꾸는 변수를 역계산
           </p>
         </div>
         <span className="text-[15px] text-kb-ink/55">
@@ -108,7 +108,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
                 </li>
               ))}
               <p className="pt-1 text-[12px] text-kb-ink/62">
-                가게 구성이 닮은 동네(2호점 후보)를 같은 업종으로 다시 잰 값이에요.
+                가게 구성이 닮은 동네(2호점 후보)를 같은 업종으로 다시 잰 값입니다.
               </p>
             </ul>
           ) : (

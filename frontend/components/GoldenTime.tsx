@@ -83,7 +83,7 @@ export default function GoldenTime() {
         ⏳ 골든타임 <span className="text-kb-amber">— 권리에는 마감일이 있습니다</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
-        분쟁에서 지는 흔한 이유는 내용이 아니라 <b>시기</b>예요. 날짜를 넣으면
+        분쟁에서 지는 흔한 이유는 내용이 아니라 <b>시기</b>입니다. 날짜를 넣으면
         법이 정한 기한을 D-day로 계산해 드립니다.
       </p>
 
@@ -132,7 +132,7 @@ export default function GoldenTime() {
           {r.expired_all && (
             <p className="mb-3 rounded-xl bg-kb-ink/[.05] px-4 py-3 text-[14px]
                           leading-relaxed text-kb-ink/80">
-              계산된 기한은 모두 지났습니다. 그래도 끝은 아닐 수 있어요 —
+              계산된 기한은 모두 지났습니다. 그래도 끝이 아닐 수 있습니다 —
               분쟁조정 신청이나 소멸시효(상사채권 5년)가 남아 있는 경우가
               있으니 금융감독원 1332 또는 법률구조공단 132에 문의해 보세요.
             </p>

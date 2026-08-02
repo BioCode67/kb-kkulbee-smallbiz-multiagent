@@ -59,7 +59,7 @@ export default function GapRadar() {
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         주요 업종을 전국 백분위 같은 자로 전부 다시 재서, <b>점수는 높은데
-        같은 가게가 적은 자리</b>를 찾아 드려요.
+        같은 가게가 적은 자리</b>를 찾아 드립니다.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2.5">

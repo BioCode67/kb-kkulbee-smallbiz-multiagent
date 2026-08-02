@@ -346,7 +346,7 @@ function IndustryChips({ region }: { region: string }) {
   return (
     <div className="mt-4">
       <p className="text-[13px] text-kb-ink/72">
-        업종을 고르시면 경쟁까지 재 드려요
+        업종을 고르시면 경쟁까지 재 드립니다
       </p>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {items.map((i) => (
@@ -595,7 +595,7 @@ function GapsCard({ gaps, crowded, region }: {
 
       <p className="text-[13px] leading-relaxed text-kb-ink/68 md:col-span-2">
         규모가 비슷한 전국 동네들과 비교한 것입니다. 적다고 무조건 기회는
-        아니에요 — 임대료나 동네 특성 때문일 수도 있으니, 무엇을 알아볼지
+        아닙니다 — 임대료나 동네 특성 때문일 수도 있으니, 무엇을 알아볼지
         정하는 출발점으로 봐 주세요.
       </p>
     </div>
@@ -894,7 +894,7 @@ function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
       </ul>
       <p className="mt-3 rounded-lg bg-kb-ink/[.04] px-2.5 py-2 text-[12.5px]
                     leading-relaxed text-kb-ink/72">
-        점수는 참고용입니다 — 임대료·권리금은 자료에 없어 반영되지 않았어요.
+        점수는 참고용입니다 — 임대료·권리금은 자료에 없어 반영되지 않았습니다.
         발품 전에 후보를 좁히는 용도로 봐 주세요.
       </p>
     </div>

@@ -163,11 +163,11 @@ const MODE_PROOF: Record<string, string[]> = {
 };
 
 const MODE_EASY: Record<string, string> = {
-  location: '동네 이름만 말하면, 실제 가게 숫자로 그 자리가 어떤지 알려드려요',
-  gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드려요',
-  policy: '사장님 상황에 맞는 정부 지원금을 찾아드려요 — 제도 이름 몰라도 돼요',
-  protection: '억울한 일이 생겼을 때, 어떤 순서로 해결하는지 알려드려요',
-  all: '자리도, 돈도, 권리도 — 한 번에 같이 봐드려요',
+  location: '동네 이름만 말씀하시면, 실제 가게 숫자로 그 자리가 어떤지 알려드립니다',
+  gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드립니다',
+  policy: '사장님 상황에 맞는 정부 지원금을 찾아드립니다 — 제도 이름은 몰라도 됩니다',
+  protection: '억울한 일이 생겼을 때, 어떤 순서로 해결하는지 알려드립니다',
+  all: '자리도, 돈도, 권리도 — 한 번에 함께 살펴드립니다',
 };
 
 export default function Page() {
@@ -221,7 +221,7 @@ export default function Page() {
       if (Array.isArray(saved) && saved.length) {
         restoredRef.current = true;
         setHistory(saved);
-        setSpeech(`지난 상담 ${saved.length}건을 이어왔어요. 이어서 물어보세요!`);
+        setSpeech(`지난 상담 ${saved.length}건을 이어왔습니다. 이어서 물어보세요!`);
       }
     } catch {/* 깨진 저장분은 무시 */}
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -255,11 +255,11 @@ export default function Page() {
     setError('');
     setFailedQ('');
     setMood('thinking');
-    setSpeech('잠깐만요, 자료를 살펴볼게요…');
+    setSpeech('잠깐만요, 자료를 살펴보고 있습니다…');
     // 무료 서버는 15분 놀면 잠들고 깨는 데 수십 초가 걸립니다. 이유를
     // 모른 채 기다리는 것과 알고 기다리는 것은 전혀 다른 경험입니다.
     const slowTimer = setTimeout(() => {
-      setSpeech('무료 서버가 기지개를 켜는 중이에요. 처음 한 번만 이래요!');
+      setSpeech('무료 서버가 기지개를 켜는 중입니다. 처음 한 번만 느립니다!');
     }, 3000);
     try {
       const r = await fetch('/api/v1/chat', {
@@ -321,10 +321,10 @@ export default function Page() {
     const LINES = [
       '아이 간지러워요! 🐝',
       '저를 잡아 늘여 보세요 — 쫀득해요!',
-      '⭐를 누르면 공고를 찜할 수 있어요',
-      '☆ 서랍에서 "모두 재확인"을 누르면 제가 원문을 순찰해요!',
-      '📄 저장을 누르면 상담을 종이로 들고 가실 수 있어요',
-      "키보드 '/'를 누르면 바로 물어볼 수 있어요",
+      '⭐를 누르면 공고를 찜할 수 있습니다',
+      '☆ 서랍에서 "모두 재확인"을 누르면 제가 원문을 순찰합니다!',
+      '📄 저장을 누르면 상담을 종이로 들고 가실 수 있습니다',
+      "키보드 '/'를 누르면 바로 물어볼 수 있습니다",
       '지도 카드에서 "지도 투어"를 눌러 보세요!',
     ];
     let i = Math.floor(Math.random() * LINES.length);
@@ -347,10 +347,10 @@ export default function Page() {
   useEffect(() => {
     if (!hero) return;
     const TIPS = [
-      '"연남동이랑 성수동 비교해줘"라고 물어보세요 — 나란히 보여 드려요',
+      '"연남동이랑 성수동 비교해줘"라고 물어보세요 — 나란히 보여 드립니다',
       '내 가게를 등록하면 ☀️ 원클릭 브리핑이 생겨요',
       '융자 답변 밑에는 "한 달에 얼마 갚나" 계산기가 따라와요',
-      '저를 콕 찔러 보세요. 네 번 빠르게 찌르면… 비밀이에요 🌀',
+      '저를 콕 찔러 보세요. 네 번 빠르게 찌르면… 비밀입니다 🌀',
       '아래 "⏰ 곧 마감"은 진짜 공고예요 — 눌러 보세요',
     ];
     let i = Math.floor(Math.random() * TIPS.length);
@@ -989,16 +989,16 @@ function summarize(d: ChatResponse): string {
   // 힘든 이야기에는 결과보다 공감이 먼저 — 몸짓(consoling)과 말이 같이 갑니다
   const warm = d.character_motion === 'consoling' ? '많이 힘드셨죠. ' : '';
   if (d.policies.length && warm)
-    return `${warm}도움이 될 만한 걸 ${d.policies.length}건 찾아 뒀어요.`;
+    return `${warm}도움이 될 만한 걸 ${d.policies.length}건 찾아 두었습니다.`;
   if (d.location) {
     const g = d.location.grade;
     return g === 'S' || g === 'A'
       ? `${d.location.total_score}점이면 좋은 자리예요!`
-      : `${d.location.total_score}점이에요. 아래에서 이유를 볼까요?`;
+      : `${d.location.total_score}점입니다. 아래에 이유를 정리했습니다.`;
   }
-  if (d.policies.length) return `맞는 지원사업 ${d.policies.length}건을 찾았어요!`;
-  if (d.protection) return '절차를 4단계로 정리해 뒀어요.';
-  return '이렇게 도와드릴 수 있어요.';
+  if (d.policies.length) return `맞는 지원사업 ${d.policies.length}건을 찾았습니다!`;
+  if (d.protection) return '절차를 4단계로 정리해 두었습니다.';
+  return '이렇게 도와드릴 수 있습니다.';
 }
 
 /* ── 입력 ──────────────────────────────────────────────────────────────── */
@@ -1318,11 +1318,11 @@ function RetryCard({ error, onRetry }: { error: string; onRetry?: () => void }) 
                  ring-1 ring-rose-400/30"
     >
       <p className="text-[15px] font-bold text-rose-700">
-        서버에 닿지 못했어요{' '}
+        서버에 닿지 못했습니다{' '}
         <span className="font-normal text-rose-700/80">({error})</span>
       </p>
       <p className="mt-1 text-[13.5px] leading-relaxed text-kb-ink/75">
-        무료 서버가 잠에서 깨는 중일 수 있어요 — 보통 30초면 일어나요.
+        무료 서버가 잠에서 깨는 중일 수 있습니다 — 보통 30초면 일어납니다.
         질문은 그대로 두었으니 버튼만 눌러 주세요.
       </p>
       {onRetry && (
@@ -1395,7 +1395,7 @@ function Answer({ res }: { res: ChatResponse }) {
       {(understood?.region || understood?.industry) && (
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
                         border-kb-ink/[.1] pb-3">
-          <span className="text-[12.5px] text-kb-ink/62">이렇게 이해했어요</span>
+          <span className="text-[12.5px] text-kb-ink/62">이렇게 이해했습니다</span>
           {understood.region && (
             <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[13.5px]
                              font-medium text-kb-ink/80">📍 {understood.region}</span>
@@ -1425,7 +1425,7 @@ function Answer({ res }: { res: ChatResponse }) {
         </ul>
       )}
       <p className="mt-3 text-right text-[12.5px] text-kb-ink/55">
-        {elapsed}ms 만에 답했어요
+        {elapsed}ms 만에 답했습니다
       </p>
     </div>
   );
@@ -1546,11 +1546,11 @@ function Coachmark() {
                  rounded-2xl border border-kb-ink/[.14] bg-white
                  p-4 shadow-2xl print:hidden"
     >
-      <p className="text-[15px] font-bold text-kb-ink">🐝 처음이시죠? 세 가지만 알려드릴게요</p>
+      <p className="text-[15px] font-bold text-kb-ink">🐝 처음이시죠? 세 가지만 알려드리겠습니다</p>
       <ul className="mt-2 space-y-1.5 text-[13.5px] leading-relaxed text-kb-ink/78">
-        <li><b className="text-kb-amber">①</b> 아래 다섯 배너에서 갈래를 고르면 예시 질문이 바뀌어요</li>
+        <li><b className="text-kb-amber">①</b> 아래 다섯 배너에서 갈래를 고르면 예시 질문이 바뀝니다</li>
         <li><b className="text-kb-amber">②</b> 꿀비를 잡아 늘이거나 휙 던져 보세요 — 진짜 날아가요</li>
-        <li><b className="text-kb-amber">③</b> 지원사업의 ⭐를 누르면 상단 ☆ 서랍에 모여요</li>
+        <li><b className="text-kb-amber">③</b> 지원사업의 ⭐를 누르면 상단 ☆ 서랍에 모입니다</li>
       </ul>
       <button onClick={close}
         className="mt-3 w-full rounded-xl bg-kb-yellow py-2 text-[13.5px] font-bold

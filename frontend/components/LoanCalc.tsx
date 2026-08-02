@@ -19,7 +19,7 @@ type Method = 'annuity' | 'equal' | 'bullet';
 
 const METHOD_LABEL: Record<Method, [string, string]> = {
   annuity: ['원리금균등', '매달 같은 금액'],
-  equal: ['원금균등', '처음 많고 점점 줄어요'],
+  equal: ['원금균등', '처음 많고 점점 줄어듭니다'],
   bullet: ['만기일시', '이자만 내다 마지막에 원금'],
 };
 
@@ -74,8 +74,8 @@ export default function LoanCalc({ policies }: { policies: PolicyMatch[] }) {
         <div>
           <h3 className="font-display text-[18px] text-kb-ink">이 돈 빌리면 한 달에 얼마 갚을까</h3>
           <p className="mt-0.5 text-[14px] text-kb-ink/78">
-            {loan ? `위 공고의 한도·금리(${won((loan.limit_krw!))}·${loan.rate_pct ?? '—'}%)로 채워 뒀어요`
-              : '금액·금리·기간을 넣으면 상환 방식별로 비교해 드려요'}
+            {loan ? `위 공고의 한도·금리(${won((loan.limit_krw!))}·${loan.rate_pct ?? '—'}%)로 채워 두었습니다`
+              : '금액·금리·기간을 넣으면 상환 방식별로 비교해 드립니다'}
           </p>
         </div>
         <span className="text-[15px] text-kb-ink/55">{openCalc ? '접기 ▲' : '계산해 보기 ▼'}</span>

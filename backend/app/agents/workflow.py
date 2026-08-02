@@ -489,7 +489,7 @@ def _cards(state: GraphState) -> list[BentoCard]:
         if state.get("pins") and not cmp_pair:
             cards.append(BentoCard(
                 id="map", kind=BentoCardKind.MAP, title="지도로 보기",
-                subtitle="주황 점 하나가 실제 경쟁 가게 하나예요", span=4,
+                subtitle="주황 점 하나가 실제 경쟁 가게 하나입니다", span=4,
                 payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
                          "dong_code": getattr(loc, "dong_code", None),
                          "industry_code": getattr(loc, "industry_code", None),
@@ -506,7 +506,7 @@ def _cards(state: GraphState) -> list[BentoCard]:
             id="gaps", kind=BentoCardKind.GAPS, title="이 동네에 아직 부족한 가게",
             # 폭을 3으로 두었더니 카드 안을 다시 둘로 나누면서 한 칸이
             # 200px밖에 안 됐습니다. 이름·막대·숫자가 겹쳐 막대가 사라졌습니다.
-            subtitle="비슷한 크기의 다른 동네와 비교했어요", span=6, accent="green",
+            subtitle="비슷한 크기의 다른 동네와 비교했습니다", span=6, accent="green",
             payload={"gaps": [g.model_dump(mode="json") for g in loc.gaps],
                      "crowded": [g.model_dump(mode="json") for g in loc.crowded],
                      "region": loc.region_name}))
@@ -531,7 +531,7 @@ def _cards(state: GraphState) -> list[BentoCard]:
         pol_span = 3 if state.get("bank_rates") else 6
         cards.append(BentoCard(
             id="policy", kind=BentoCardKind.POLICY, title="사장님께 맞는 지원사업",
-            subtitle="왜 골랐는지 이유를 함께 적었어요", span=pol_span, accent="green",
+            subtitle="왜 골랐는지 이유를 함께 적었습니다", span=pol_span, accent="green",
             payload={"items": [p.model_dump(mode="json") for p in state["policies"]]}))
     pack = state.get("protection")
     if pack:
