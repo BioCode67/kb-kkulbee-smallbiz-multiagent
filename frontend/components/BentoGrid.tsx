@@ -102,7 +102,13 @@ function Card({ c, i }: { c: BentoCard; i: number }) {
           ▾
         </span>
       </header>
-      {open && <CardBody card={c} />}
+      {/* 접혀 있어도 DOM에는 둡니다(지도 제외) — 화면에서는 숨고 인쇄에서는
+          나옵니다. 종이 리포트는 근거까지 실려야 창구에서 통합니다. */}
+      {(open || c.kind !== 'map') && (
+        <div className={open ? '' : 'hidden print:block px-5 pb-5'}>
+          <CardBody card={c} />
+        </div>
+      )}
     </motion.section>
   );
 }
