@@ -81,7 +81,10 @@ export default function BeeCharacter3D({
 
       // ── 무대 ─────────────────────────────────────────────────────────
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(size, size);
+      // 드래그하면 벌이 캔버스 밖으로 나가며 잘렸다 — 보이지 않는 박스.
+      // 가로 1.7배·세로 1.18배로 무대를 넓혀 늘어나도 안 가로막힌다.
+      const W = Math.round(size * 1.7), H = Math.round(size * 1.18);
+      renderer.setSize(W, H);
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -93,8 +96,8 @@ export default function BeeCharacter3D({
       // 프레이밍 — 더듬이 끝(y≈2.5)부터 발끝(y≈-1.6)까지가 들어와야 합니다.
       // 처음엔 8.2에 두었더니 화면 높이가 4.70이라 통통 튈 때 더듬이가
       // 잘려 나갔습니다. 9.4에서 5.39가 되어 여유가 생깁니다.
-      const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-      camera.position.set(0, 0.32, 9.4);
+      const camera = new THREE.PerspectiveCamera(32, W / H, 0.1, 100);
+      camera.position.set(0, 0.28, 9.8);
       camera.lookAt(0, 0.28, 0);
 
       // ── 빛 ───────────────────────────────────────────────────────────
@@ -190,10 +193,17 @@ export default function BeeCharacter3D({
         // 캐치라이트 — 조명만으로 생기는 반사는 각도에 따라 사라집니다.
         // 눈빛은 늘 있어야 하므로 스스로 빛나는 작은 구슬을 하나 박습니다.
         const spark = new THREE.Mesh(
-          new THREE.SphereGeometry(0.058, 16, 12),
+          new THREE.SphereGeometry(0.075, 16, 12),
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        spark.position.set(sx * 0.29 - 0.055, 0.15, 1.32);
+        spark.position.set(sx * 0.29 - 0.06, 0.15, 1.31);
         head.add(spark);
+
+        // 보조 광점 — 반짝임은 둘일 때 산다 ('예전이 낫다'는 피드백으로 복원)
+        const spark2 = new THREE.Mesh(
+          new THREE.SphereGeometry(0.03, 12, 10),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
+        spark2.position.set(sx * 0.29 + 0.07, 0.0, 1.31);
+        head.add(spark2);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
         //
@@ -248,22 +258,23 @@ export default function BeeCharacter3D({
       }
 
       // 몸통
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.86, 48, 36), bodyMat);
-      body.position.y = -0.62;
+      // 몸통을 한 단계 크게 — 머리:몸 비율이 벌보다 올챙이에 가까웠다
+      const body = new THREE.Mesh(new THREE.SphereGeometry(1.0, 48, 36), bodyMat);
+      body.position.y = -0.74;
       body.scale.set(1.0, 0.94, 0.92);
       body.castShadow = true;
       bee.add(body);
 
       // 팔·다리
       for (const sx of [-1, 1]) {
-        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.2, 4, 12), darkMat);
-        arm.position.set(sx * 0.84, -0.56, 0.1);
+        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.22, 4, 12), darkMat);
+        arm.position.set(sx * 0.96, -0.66, 0.1);
         arm.rotation.z = sx * 0.5;
         arm.castShadow = true;
         bee.add(arm);
 
-        const leg = new THREE.Mesh(new THREE.SphereGeometry(0.19, 20, 14), darkMat);
-        leg.position.set(sx * 0.3, -1.42, 0.12);
+        const leg = new THREE.Mesh(new THREE.SphereGeometry(0.21, 20, 14), darkMat);
+        leg.position.set(sx * 0.34, -1.62, 0.12);
         leg.scale.set(1.15, 0.72, 1.35);
         leg.castShadow = true;
         bee.add(leg);
@@ -273,8 +284,8 @@ export default function BeeCharacter3D({
       const wings: import('three').Group[] = [];
       for (const sx of [-1, 1]) {
         const pivot = new THREE.Group();
-        pivot.position.set(sx * 0.5, 0.08, -0.34);
-        const w = new THREE.Mesh(new THREE.CircleGeometry(0.78, 32), wingMat);
+        pivot.position.set(sx * 0.52, 0.02, -0.36);
+        const w = new THREE.Mesh(new THREE.CircleGeometry(0.88, 32), wingMat);
         w.position.set(sx * 0.84, 0.3, -0.06);
         w.scale.set(1.05, 0.52, 1);
         w.rotation.z = sx * 0.52;
@@ -289,7 +300,7 @@ export default function BeeCharacter3D({
         new THREE.PlaneGeometry(9, 9),
         new THREE.ShadowMaterial({ opacity: 0.3 }));
       floor.rotation.x = -Math.PI / 2;
-      floor.position.y = -1.95;
+      floor.position.y = -2.05;
       floor.receiveShadow = true;
       scene.add(floor);
 
@@ -508,7 +519,10 @@ export default function BeeCharacter3D({
     <div
       ref={hostRef}
       className={`relative select-none ${className}`}
-      style={{ width: size, height: size }}
+      // 무대(캔버스)는 가로 1.7배로 넓지만 차지하는 자리는 size 기준 —
+      // 음수 마진으로 겹치게 두어 레이아웃을 밀지 않습니다.
+      style={{ width: Math.round(size * 1.7), height: Math.round(size * 1.18),
+               margin: `0 ${-Math.round(size * 0.35)}px` }}
       aria-label="마스코트 꿀비"
       role="img"
     />
@@ -536,9 +550,8 @@ function makeHeadTexture(THREE: typeof import('three')) {
   grad.addColorStop(1, '#E89B04');
   g.fillStyle = grad;
   g.fillRect(0, 0, 1024, 512);
-  // 위를 두르는 검은 띠 — 머리에서 '벌'을 만드는 한 줄
-  g.fillStyle = '#33251A';
-  g.fillRect(0, 58, 1024, 66);
+  // 위 가로 띠는 뺐습니다 — 얼굴 둘레 띠와 겹치니 과했습니다.
+  // 머리의 '벌다움'은 얼굴을 두르는 링 하나가 담당합니다.
   // 얼굴 패치 — 앞면 가득한 크림 타원. 가장자리에 살짝 진한 테를 둘러
   // 후드 안에 얼굴이 들어앉은 깊이감을 만듭니다.
   // 얼굴은 조금 작게, 둘레에는 검은 띠 — 얼굴을 두르는 이 띠가

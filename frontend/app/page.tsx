@@ -318,122 +318,88 @@ export default function Page() {
               className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)]
                          flex-col items-center pt-14"
             >
-              {/* 떠 있는 실측 배지 — "비어 보인다"는 여백에 리듬을 줍니다.
-                  장식이지만 내용은 전부 사실(실측 수치)입니다. */}
-              <div aria-hidden className="pointer-events-none absolute inset-0 hidden xl:block">
-                {[
-                  ['🏪 272만 점포 실측', 'left-[4%] top-[22%]', 0],
-                  ['📋 공고 900건 매일 갱신', 'right-[3%] top-[30%]', 1.2],
-                  ['🛡️ 금소법 가드레일', 'left-[7%] top-[55%]', 0.6],
-                  ['🗺️ 동네 3,450곳 백분위', 'right-[6%] top-[62%]', 1.8],
-                ].map(([label, pos, delay]) => (
+              {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
+                  벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
+                  화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
+              <div className="grid w-full max-w-[1080px] items-center gap-6
+                              lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="flex flex-col items-center text-center
+                                lg:items-start lg:text-left">
                   <motion.span
-                    key={label as string}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, y: [0, -10, 0] }}
-                    transition={{ opacity: { delay: 0.5 + (delay as number) * 0.2 },
-                                  y: { duration: 4.6, repeat: Infinity,
-                                       ease: 'easeInOut', delay: delay as number } }}
-                    className={`absolute ${pos} rounded-full border border-kb-ink/[.1]
-                                bg-white/80 px-3.5 py-2 text-[12px] font-semibold
-                                text-kb-ink/70 shadow-[0_8px_24px_-12px_rgba(56,50,42,.3)]
-                                backdrop-blur-sm`}
+                    initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-1.5 rounded-full
+                               border border-kb-ink/[.14] bg-white/70 px-3.5 py-1.5
+                               text-[12px] text-kb-ink/70"
                   >
-                    {label}
+                    <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
+                    전국 점포 272만 개 실측으로 답하는 소상공인 AI
                   </motion.span>
-                ))}
-              </div>
-              {/* v0 랜딩의 순서 그대로 — 배지, 헤드라인, 서브, CTA, 그 아래
-                  제품. 다른 점 하나: 제품 스크린샷 자리에 **살아 있는 앱**을
-                  프레임에 넣어 앉혔습니다. 목업이 아니라 그 자리에서 바로
-                  물어볼 수 있습니다. */}
-              <motion.span
-                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-1.5 rounded-full
-                           border border-kb-ink/[.14] bg-white/70 px-3.5 py-1.5
-                           text-[12px] text-kb-ink/70"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
-                전국 점포 272만 개 실측으로 답하는 소상공인 AI
-              </motion.span>
 
-              {/* 내 가게 — 한 번 등록하면 모든 질문에 동네·업종이 자동으로.
-                  상담소에 갈 때마다 이름부터 다시 댈 이유가 없습니다. */}
-              <div className="mt-3 flex items-center gap-2">
-                <MyShop onChange={setShop} />
-                {/* 등록해 둔 사장님께는 원클릭 브리핑 — 크로스오버 파이프라인
-                    (입지+자금 동시)을 내 가게 조건으로 그대로 돌립니다 */}
-                {shop?.region && (
-                  <button
-                    onClick={() => ask(
-                      `${shop.region}${shop.industry ? ` ${shop.industry}` : ''} `
-                      + '상권 상황이랑 지금 받을 수 있는 지원사업 한 번에 봐줘')}
-                    className="rounded-full bg-kb-yellow px-3.5 py-1.5 text-[12px]
-                               font-bold text-kb-ink shadow-sm transition
-                               hover:brightness-105"
+                  <motion.h1
+                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.08 }}
+                    className="font-display mt-5 text-[40px] font-bold
+                               leading-[1.14] text-kb-ink sm:text-[56px]"
                   >
-                    ☀️ 내 가게 브리핑
-                  </button>
-                )}
+                    사장님의
+                    <br />
+                    세 가지 고민,
+                    <br />
+                    <span className="bg-gradient-to-r from-[#E09A00] to-kb-yellow
+                                     bg-clip-text text-transparent">
+                      한 번에 물어보세요
+                    </span>
+                  </motion.h1>
+
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: 0.16 }}
+                    className="mt-5 max-w-[46ch] text-[15px] leading-[1.75]
+                               text-kb-ink/60"
+                  >
+                    어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
+                    제도 이름을 몰라도 괜찮습니다 — 상황을 그대로 말씀하시면
+                    실제 자료에서 찾아 근거까지 보여 드립니다.
+                  </motion.p>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.22 }}
+                    className="mt-6 flex flex-wrap items-center justify-center gap-3
+                               lg:justify-start"
+                  >
+                    <button
+                      onClick={() => document.querySelector<HTMLInputElement>('#ask input')?.focus()}
+                      className="rounded-full bg-kb-yellow px-6 py-3 text-[14.5px] font-bold
+                                 text-kb-ink transition hover:brightness-105
+                                 active:translate-y-px"
+                    >
+                      지금 물어보기
+                    </button>
+                    <MyShop onChange={setShop} />
+                    {shop?.region && (
+                      <button
+                        onClick={() => ask(
+                          `${shop.region}${shop.industry ? ` ${shop.industry}` : ''} `
+                          + '상권 상황이랑 지금 받을 수 있는 지원사업 한 번에 봐줘')}
+                        className="rounded-full bg-kb-yellow/[.25] px-4 py-3 text-[13px]
+                                   font-bold text-kb-amber transition hover:bg-kb-yellow/[.4]"
+                      >
+                        ☀️ 내 가게 브리핑
+                      </button>
+                    )}
+                  </motion.div>
+
+                  {/* 곧 마감 공고가 흐릅니다 — 묻기 전에도 살아 있는 화면 */}
+                  <HeroTicker />
+                </div>
+
+                {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
+                <motion.div layoutId="bee" transition={SPRING}
+                            className="z-10 flex justify-center lg:justify-end">
+                  <BeeStage motion={mood} size={330} speech={speech} />
+                </motion.div>
               </div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 }}
-                className="font-display mt-5 text-center text-[40px] font-bold
-                           leading-[1.16] text-kb-ink sm:text-[58px]"
-              >
-                사장님의 세 가지 고민,
-                <br />
-                <span className="bg-gradient-to-r from-[#E09A00] to-kb-yellow
-                                 bg-clip-text text-transparent">
-                  한 번에 물어보세요
-                </span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ delay: 0.16 }}
-                className="mt-5 max-w-[54ch] text-center text-[15.5px] leading-[1.75]
-                           text-kb-ink/60"
-              >
-                어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
-                제도 이름을 몰라도 괜찮습니다 — 처한 상황을 그대로 말씀하시면
-                실제 자료에서 찾아 근거까지 보여 드립니다.
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.22 }}
-                className="mt-7 flex items-center gap-3"
-              >
-                <button
-                  onClick={() => document.querySelector<HTMLInputElement>('#ask input')?.focus()}
-                  className="rounded-full bg-kb-yellow px-6 py-3 text-[14.5px] font-bold
-                             text-kb-ink transition hover:brightness-105
-                             active:translate-y-px"
-                >
-                  지금 물어보기
-                </button>
-                <a
-                  href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
-                  target="_blank" rel="noreferrer"
-                  className="rounded-full border border-kb-ink/[.14] px-6 py-3
-                             text-[14.5px] font-semibold text-kb-ink/80 transition
-                             hover:border-kb-ink/[.3] hover:text-kb-ink"
-                >
-                  소스코드 보기
-                </a>
-              </motion.div>
-
-              {/* 곧 마감 공고가 흐릅니다 — 묻기 전에도 살아 있는 화면 */}
-              <HeroTicker />
-
-              {/* 꿀비 — 프레임 위에 살짝 걸쳐 앉습니다 */}
-              <motion.div layoutId="bee" transition={SPRING}
-                          className="z-10 -mb-10 mt-8">
-                <BeeStage motion={mood} size={280} speech={speech} />
-              </motion.div>
 
               {/* ── 앱 프레임 — 목업 대신 진짜 ── */}
               <motion.div
@@ -569,7 +535,7 @@ export default function Page() {
                   동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}
               <div className="flex flex-col items-center">
                 <motion.div layoutId="bee" transition={SPRING}>
-                  <BeeStage motion={mood} size={180} speech={speech} />
+                  <BeeStage motion={mood} size={200} speech={speech} />
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
