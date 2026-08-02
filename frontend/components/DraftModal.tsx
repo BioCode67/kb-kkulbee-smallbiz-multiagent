@@ -46,21 +46,21 @@ export default function DraftModal({ open, onClose, situation }: {
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }} onClick={onClose}
-                      className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-[2px]" />
+                      className="fixed inset-0 z-[80] bg-kb-ink/35 backdrop-blur-[2px]" />
           <motion.div
             initial={{ opacity: 0, y: 24, scale: .97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: .98 }}
             className="fixed left-1/2 top-1/2 z-[90] max-h-[84vh] w-[min(680px,92vw)]
                        -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl
-                       border border-white/[.12] bg-[#111113] shadow-2xl"
+                       border border-kb-ink/[.14] bg-white shadow-2xl"
           >
             <header className="flex items-center justify-between border-b
-                               border-white/[.08] px-5 py-4">
+                               border-kb-ink/[.1] px-5 py-4">
               <div>
-                <p className="text-[15px] font-bold text-white">민원서 초안</p>
+                <p className="text-[15px] font-bold text-kb-ink">민원서 초안</p>
                 {draft && (
-                  <p className="mt-0.5 text-[11.5px] text-white/40">
+                  <p className="mt-0.5 text-[11.5px] text-kb-ink/55">
                     {draft.dispute_type} ·
                     {draft.generated_by === 'llm' ? ' AI가 사실관계를 정리했습니다'
                                                   : ' 서식 뼈대입니다'}
@@ -69,26 +69,26 @@ export default function DraftModal({ open, onClose, situation }: {
               </div>
               <button onClick={onClose}
                       className="grid h-9 w-9 place-items-center rounded-lg
-                                 text-white/50 hover:bg-white/[.07] hover:text-white">
+                                 text-kb-ink/60 hover:bg-kb-ink/[.05] hover:text-kb-ink">
                 ✕
               </button>
             </header>
 
             <div className="max-h-[56vh] overflow-y-auto p-5">
               {busy && (
-                <p className="py-10 text-center text-[13px] text-white/40">
+                <p className="py-10 text-center text-[13px] text-kb-ink/55">
                   겪으신 일을 서식에 앉히는 중…
                 </p>
               )}
               {draft && (
                 <pre className="whitespace-pre-wrap font-sans text-[13px]
-                                leading-[1.8] text-white/85">{draft.draft}</pre>
+                                leading-[1.8] text-kb-ink/90">{draft.draft}</pre>
               )}
             </div>
 
             {draft && (
-              <footer className="space-y-2.5 border-t border-white/[.08] p-4">
-                <p className="text-[11px] leading-relaxed text-amber-200/65">
+              <footer className="space-y-2.5 border-t border-kb-ink/[.1] p-4">
+                <p className="text-[11px] leading-relaxed text-amber-800">
                   {draft.note}
                 </p>
                 <button onClick={copy}

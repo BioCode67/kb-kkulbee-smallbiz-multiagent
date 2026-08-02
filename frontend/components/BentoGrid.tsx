@@ -38,10 +38,10 @@ const BAR: Record<string, string> = {
 
 const ACCENT: Record<string, string> = {
   yellow: 'ring-kb-yellow/[.35] bg-kb-yellow/[.07]',
-  brown: 'ring-white/10 bg-white/[.04]',
+  brown: 'ring-kb-ink/[.12] bg-white/70',
   green: 'ring-emerald-400/25 bg-emerald-400/[.06]',
   red: 'ring-rose-400/30 bg-rose-400/[.07]',
-  neutral: 'ring-white/10 bg-white/[.04]',
+  neutral: 'ring-kb-ink/[.12] bg-white/70',
 };
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
@@ -66,9 +66,9 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
           <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px]
                                         ${BAR[c.accent] ?? BAR.neutral}`} />
           <header className="mb-4">
-            <h3 className="text-[15px] font-bold tracking-tight text-white">{c.title}</h3>
+            <h3 className="text-[15px] font-bold tracking-tight text-kb-ink">{c.title}</h3>
             {c.subtitle && (
-              <p className="mt-0.5 text-[12px] leading-relaxed text-white/[.45]">
+              <p className="mt-0.5 text-[12px] leading-relaxed text-kb-ink/60">
                 {c.subtitle}
               </p>
             )}
@@ -113,11 +113,11 @@ function CardBody({ card }: { card: BentoCard }) {
 
 /** 등급별 색. 노랑이 진할수록 좋은 자리입니다. */
 const GRADE_TONE: Record<string, { ring: string; text: string; label: string }> = {
-  S: { ring: '#FFBC00', text: 'text-kb-yellow', label: '아주 좋은 자리' },
-  A: { ring: '#FFD35C', text: 'text-kb-yellow', label: '좋은 자리' },
-  B: { ring: '#E8DCC6', text: 'text-white', label: '무난한 자리' },
-  C: { ring: '#B9A88F', text: 'text-white/70', label: '따져 볼 자리' },
-  D: { ring: '#8A7866', text: 'text-white/55', label: '신중할 자리' },
+  S: { ring: '#FFBC00', text: 'text-kb-amber', label: '아주 좋은 자리' },
+  A: { ring: '#FFD35C', text: 'text-kb-amber', label: '좋은 자리' },
+  B: { ring: '#E8DCC6', text: 'text-kb-ink', label: '무난한 자리' },
+  C: { ring: '#B9A88F', text: 'text-kb-ink/80', label: '따져 볼 자리' },
+  D: { ring: '#8A7866', text: 'text-kb-ink/65', label: '신중할 자리' },
 };
 
 function ScoreCard({ s }: { s: LocationScore }) {
@@ -151,23 +151,23 @@ function ScoreCard({ s }: { s: LocationScore }) {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[31px] font-extrabold leading-none tracking-tight
-                             text-white [font-variant-numeric:tabular-nums]">
+                             text-kb-ink [font-variant-numeric:tabular-nums]">
               {s.total_score.toFixed(1)}
             </span>
-            <span className="mt-1 text-[10.5px] text-white/35">/ 100점</span>
+            <span className="mt-1 text-[10.5px] text-kb-ink/50">/ 100점</span>
           </div>
         </div>
 
         <div className="mt-2.5 flex items-baseline gap-2">
           <span className={`text-[26px] font-black leading-none ${g.text}`}>{s.grade}</span>
-          <span className="text-[13px] font-semibold text-white/80">{g.label}</span>
+          <span className="text-[13px] font-semibold text-kb-ink/85">{g.label}</span>
         </div>
 
         {s.peer_median != null && (
-          <p className="mt-1.5 text-center text-[11.5px] leading-snug text-white/45">
+          <p className="mt-1.5 text-center text-[11.5px] leading-snug text-kb-ink/60">
             전국 행정동 3,450곳의 한가운데가 {s.peer_median}점
             <span className={s.total_score >= s.peer_median
-              ? ' text-emerald-300/85' : ' text-amber-300/80'}>
+              ? ' text-emerald-700' : ' text-amber-800'}>
               {' · '}{s.total_score >= s.peer_median ? '중간 이상' : '중간 이하'}
             </span>
           </p>
@@ -180,9 +180,9 @@ function ScoreCard({ s }: { s: LocationScore }) {
 
       {s.same_industry_count != null && (
         <div className="mt-4 flex items-center justify-between rounded-xl
-                        bg-black/25 px-3.5 py-3">
-          <span className="text-[12px] text-white/55">이 동네 {s.industry}</span>
-          <span className="text-[16px] font-bold text-white
+                        bg-kb-ink/[.05] px-3.5 py-3">
+          <span className="text-[12px] text-kb-ink/65">이 동네 {s.industry}</span>
+          <span className="text-[16px] font-bold text-kb-ink
                            [font-variant-numeric:tabular-nums]">
             {s.same_industry_count.toLocaleString()}곳
           </span>
@@ -192,8 +192,8 @@ function ScoreCard({ s }: { s: LocationScore }) {
       {/* 표본으로 낸 점수를 실측처럼 보이게 두지 않습니다 */}
       <p className={`mt-3 rounded-lg px-2.5 py-2 text-[11px] leading-relaxed ${
         s.data_source === 'public_api'
-          ? 'bg-emerald-400/10 text-emerald-200/80'
-          : 'bg-amber-400/10 text-amber-200/75'}`}>
+          ? 'bg-emerald-400/10 text-emerald-700'
+          : 'bg-amber-400/10 text-amber-800'}`}>
         {s.note}
       </p>
     </div>
@@ -213,7 +213,7 @@ function IndustryChips({ region }: { region: string }) {
   if (!items.length) return null;
   return (
     <div className="mt-4">
-      <p className="text-[11px] text-white/40">
+      <p className="text-[11px] text-kb-ink/55">
         업종을 고르시면 경쟁까지 재 드려요
       </p>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -221,9 +221,9 @@ function IndustryChips({ region }: { region: string }) {
           <button key={i.code}
             onClick={() => window.dispatchEvent(new CustomEvent('kkulbee:ask',
               { detail: `${region} ${i.name} 상권 어때?` }))}
-            className="rounded-full border border-white/[.1] px-2.5 py-1 text-[11px]
-                       text-white/60 transition hover:border-kb-yellow/50
-                       hover:text-kb-yellow">
+            className="rounded-full border border-kb-ink/[.14] px-2.5 py-1 text-[11px]
+                       text-kb-ink/70 transition hover:border-kb-yellow/50
+                       hover:text-kb-amber">
             {i.name}
           </button>
         ))}
@@ -239,10 +239,10 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 text-[11px] text-white/40">
+      <div className="mb-3 flex items-center gap-2 text-[11px] text-kb-ink/55">
         <span>기준 {base}점</span>
-        <span className="flex-1 border-t border-dashed border-white/[.15]" />
-        <span className="font-semibold text-white/70">
+        <span className="flex-1 border-t border-dashed border-kb-ink/[.14]" />
+        <span className="font-semibold text-kb-ink/80">
           최종 {total.toFixed(1)}점
         </span>
       </div>
@@ -254,7 +254,7 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           return (
             <li key={f.key}>
               <div className="flex items-baseline gap-2 text-[12px]">
-                <span className="w-[86px] shrink-0 text-white/75">{f.label}</span>
+                <span className="w-[86px] shrink-0 text-kb-ink/80">{f.label}</span>
 
                 {/* 0을 가운데 두고 양옆으로 뻗는 막대 */}
                 <div className="relative h-4 flex-1">
@@ -270,11 +270,11 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
 
                 <span className={`w-[52px] shrink-0 text-right font-semibold
                                   [font-variant-numeric:tabular-nums]
-                                  ${up ? 'text-kb-yellow' : 'text-rose-300'}`}>
+                                  ${up ? 'text-kb-amber' : 'text-rose-700'}`}>
                   {f.contribution > 0 ? '+' : ''}{f.contribution.toFixed(1)}
                 </span>
               </div>
-              <p className="ml-[94px] mt-0.5 text-[11px] leading-snug text-white/[.35]">
+              <p className="ml-[94px] mt-0.5 text-[11px] leading-snug text-kb-ink/50">
                 {f.value}{f.unit} · {f.reason}
               </p>
             </li>
@@ -286,11 +286,11 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
           유동인구·매출을 점수에 넣지 않았다는 사실을 다른 화면에서 찾아봐야
           알 수 있게 두면 감춘 것이 됩니다. 예전에는 이 값들을 동네 이름
           해시로 만들어 실측처럼 내보내고 있었습니다. */}
-      <div className="mt-3.5 rounded-lg bg-white/[.03] px-3 py-2.5 ring-1 ring-white/[.06]">
-        <p className="text-[10.5px] font-semibold text-white/50">
+      <div className="mt-3.5 rounded-lg bg-white/70 px-3 py-2.5 ring-1 ring-kb-ink/[.1]">
+        <p className="text-[10.5px] font-semibold text-kb-ink/60">
           점수에 넣지 않은 것
         </p>
-        <p className="mt-1 text-[10.5px] leading-relaxed text-white/[.33]">
+        <p className="mt-1 text-[10.5px] leading-relaxed text-kb-ink/50">
           유동인구 · 매출 · 폐업률 · 임대료 — 상가정보 자료에 없습니다.
           추정해 채우지 않았습니다.
         </p>
@@ -323,13 +323,13 @@ function GapsCard({ gaps, crowded, region }: {
           new CustomEvent('kkulbee:ask',
             { detail: `${region} ${g.name} 상권 어때?` }))}
         className="group flex w-full items-center gap-2.5 rounded-lg px-1.5
-                   py-[5px] text-left transition hover:bg-white/[.04]"
+                   py-[5px] text-left transition hover:bg-white/70"
       >
-        <span className="w-[124px] shrink-0 truncate text-[12px] text-white/[.82]
-                         group-hover:text-white">
+        <span className="w-[124px] shrink-0 truncate text-[12px] text-kb-ink/90
+                         group-hover:text-kb-ink">
           {g.name}
         </span>
-        <div className="relative h-[6px] flex-1 rounded-full bg-white/[.07]">
+        <div className="relative h-[6px] flex-1 rounded-full bg-kb-ink/[.05]">
           <div className={`absolute inset-y-0 left-0 rounded-full ${
             kind === 'gap' ? 'bg-emerald-400/75' : 'bg-rose-400/75'}`}
                style={{ width: `${Math.max(4, w)}%` }} />
@@ -337,9 +337,9 @@ function GapsCard({ gaps, crowded, region }: {
           <span className="absolute inset-y-[-3px] w-px bg-white/30" style={{ left: '50%' }} />
         </div>
         <span className="w-[92px] shrink-0 whitespace-nowrap text-right text-[11px]
-                         text-white/45 [font-variant-numeric:tabular-nums]">
-          <b className="text-white/85">{g.here}</b>
-          <span className="text-white/30"> / </span>{g.expected}
+                         text-kb-ink/60 [font-variant-numeric:tabular-nums]">
+          <b className="text-kb-ink/90">{g.here}</b>
+          <span className="text-kb-ink/45"> / </span>{g.expected}
         </span>
       </button>
       </li>
@@ -349,32 +349,32 @@ function GapsCard({ gaps, crowded, region }: {
   return (
     <div className="grid gap-x-8 gap-y-5 md:grid-cols-2">
       <div>
-        <p className="mb-1.5 text-[12px] font-bold text-emerald-300/90">
+        <p className="mb-1.5 text-[12px] font-bold text-emerald-700">
           비슷한 규모 동네보다 적은 업종
-          <span className="ml-1.5 font-normal text-white/30">이 동네 / 평균</span>
+          <span className="ml-1.5 font-normal text-kb-ink/45">이 동네 / 평균</span>
         </p>
         {gaps.length ? (
           <ul>{gaps.slice(0, 5).map((g) => <Row key={g.code} g={g} kind="gap" />)}</ul>
         ) : (
-          <p className="py-3 text-[12px] leading-relaxed text-white/40">
+          <p className="py-3 text-[12px] leading-relaxed text-kb-ink/55">
             눈에 띄게 적은 업종이 없습니다. 웬만한 업종이 이미 다 들어와 있는
             상권입니다.
           </p>
         )}
       </div>
       <div>
-        <p className="mb-1.5 text-[12px] font-bold text-rose-300/90">
+        <p className="mb-1.5 text-[12px] font-bold text-rose-700">
           이미 많이 들어와 있는 업종
-          <span className="ml-1.5 font-normal text-white/30">이 동네 / 평균</span>
+          <span className="ml-1.5 font-normal text-kb-ink/45">이 동네 / 평균</span>
         </p>
         {crowded.length ? (
           <ul>{crowded.slice(0, 5).map((g) => <Row key={g.code} g={g} kind="crowd" />)}</ul>
         ) : (
-          <p className="py-3 text-[12px] text-white/40">특별히 몰린 업종이 없습니다.</p>
+          <p className="py-3 text-[12px] text-kb-ink/55">특별히 몰린 업종이 없습니다.</p>
         )}
       </div>
 
-      <p className="text-[11px] leading-relaxed text-white/[.38] md:col-span-2">
+      <p className="text-[11px] leading-relaxed text-kb-ink/50 md:col-span-2">
         점포 수가 비슷한 전국 동네들과 견준 값입니다. 적다고 해서 반드시 기회는
         아닙니다 — 임대료나 상권 성격 때문에 안 들어온 것일 수도 있습니다.
         무엇을 알아볼지 정하는 출발점으로 보시면 됩니다.
@@ -407,34 +407,34 @@ function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: str
             <button onClick={() => askAbout(d.name)}
               className="group flex w-full items-center gap-3 rounded-xl border
                          border-transparent px-3 py-2.5 text-left transition
-                         hover:border-white/[.1] hover:bg-white/[.03]">
-              <span className="w-5 shrink-0 text-[12px] font-bold text-white/25">
+                         hover:border-kb-ink/[.14] hover:bg-white/70">
+              <span className="w-5 shrink-0 text-[12px] font-bold text-kb-ink/40">
                 {i + 1}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium text-white/85
-                                 group-hover:text-white">{d.name}</span>
-                <span className="block truncate text-[10.5px] text-white/35">
+                <span className="block truncate text-[13px] font-medium text-kb-ink/90
+                                 group-hover:text-kb-ink">{d.name}</span>
+                <span className="block truncate text-[10.5px] text-kb-ink/50">
                   공통 결: {d.shared.slice(0, 3).join(' · ')}
                 </span>
               </span>
               <span className="w-[74px] shrink-0">
-                <span className="block text-right text-[12px] font-bold text-kb-yellow
+                <span className="block text-right text-[12px] font-bold text-kb-amber
                                  [font-variant-numeric:tabular-nums]">
                   {(d.sim * 100).toFixed(0)}%
                 </span>
-                <span className="mt-0.5 block h-[3px] rounded-full bg-white/[.08]">
+                <span className="mt-0.5 block h-[3px] rounded-full bg-kb-ink/[.05]">
                   <span className="block h-full rounded-full bg-kb-yellow"
                         style={{ width: `${d.sim * 100}%` }} />
                 </span>
               </span>
-              <span className="shrink-0 text-[11px] text-white/20 transition
-                               group-hover:text-kb-yellow">물어보기 →</span>
+              <span className="shrink-0 text-[11px] text-kb-ink/35 transition
+                               group-hover:text-kb-amber">물어보기 →</span>
             </button>
           </li>
         ))}
       </ul>
-      <p className="mt-2.5 text-[10.5px] leading-relaxed text-white/[.35]">
+      <p className="mt-2.5 text-[10.5px] leading-relaxed text-kb-ink/50">
         업종 구성(247종 비중)의 코사인 유사도입니다. 붙어 있는 동네가 아니라
         성격이 닮은 동네를 찾습니다 — 2호점·확장을 알아볼 때 출발점이 됩니다.
       </p>
@@ -460,9 +460,9 @@ function RatesCard({ d }: { d: BankRates }) {
   return (
     <div>
       {d.low != null && (
-        <p className="mb-3 text-[13px] text-white/70">
-          은행권 평균 <b className="text-white">{d.low}% ~ {d.high}%</b>
-          <span className="ml-1.5 text-[11px] text-white/35">({d.n_banks}개 은행)</span>
+        <p className="mb-3 text-[13px] text-kb-ink/80">
+          은행권 평균 <b className="text-kb-ink">{d.low}% ~ {d.high}%</b>
+          <span className="ml-1.5 text-[11px] text-kb-ink/50">({d.n_banks}개 은행)</span>
         </p>
       )}
       <ul className="space-y-1.5">
@@ -471,17 +471,17 @@ function RatesCard({ d }: { d: BankRates }) {
           return (
             <li key={b.bank} className="flex items-center gap-2.5">
               <span className={`w-[96px] shrink-0 truncate text-[12px] ${
-                isKb ? 'font-bold text-kb-yellow' : 'text-white/[.72]'}`}>
+                isKb ? 'font-bold text-kb-amber' : 'text-kb-ink/85'}`}>
                 {b.bank}
               </span>
-              <div className="h-[6px] flex-1 rounded-full bg-white/[.07]">
+              <div className="h-[6px] flex-1 rounded-full bg-kb-ink/[.05]">
                 <div className={`h-full rounded-full ${
                   isKb ? 'bg-kb-yellow' : 'bg-white/[.28]'}`}
                      style={{ width: `${(b.rate_avg / max) * 100}%` }} />
               </div>
               <span className={`w-[52px] shrink-0 text-right text-[12px]
                                 [font-variant-numeric:tabular-nums] ${
-                isKb ? 'font-bold text-kb-yellow' : 'text-white/60'}`}>
+                isKb ? 'font-bold text-kb-amber' : 'text-kb-ink/70'}`}>
                 {b.rate_avg}%
               </span>
             </li>
@@ -489,7 +489,7 @@ function RatesCard({ d }: { d: BankRates }) {
         })}
       </ul>
       <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[10.5px]
-                    leading-relaxed text-amber-200/70">
+                    leading-relaxed text-amber-800">
         {d.note}
       </p>
     </div>
@@ -510,12 +510,12 @@ function StatusChip({ m }: { m: PolicyMatch }) {
     m.open_status === 'open' && days != null
       ? days <= 7
         ? [`마감 ${days}일 전`, 'bg-red-500/[.16] text-red-300 ring-red-400/25']
-        : [`${m.apply_deadline}까지`, 'bg-emerald-500/[.14] text-emerald-300 ring-emerald-400/20']
+        : [`${m.apply_deadline}까지`, 'bg-emerald-500/[.14] text-emerald-700 ring-emerald-400/20']
       : m.open_status === 'rolling'
         ? [m.apply_period || '상시 접수', 'bg-sky-500/[.13] text-sky-300 ring-sky-400/20']
         : m.open_status === 'upcoming'
           ? [`${m.apply_period} 예정`, 'bg-amber-500/[.13] text-amber-300 ring-amber-400/20']
-          : [m.apply_period || '기간 미기재', 'bg-white/[.06] text-white/50 ring-white/10'];
+          : [m.apply_period || '기간 미기재', 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.12]'];
 
   return (
     <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-medium ring-1 ${tone}`}>
@@ -526,13 +526,13 @@ function StatusChip({ m }: { m: PolicyMatch }) {
 
 /** 자금 성격별 색. 빌리는 돈과 주는 돈이 한눈에 갈려야 합니다. */
 const FUNDING_TONE: Record<string, string> = {
-  '융자': 'bg-sky-500/[.16] text-sky-200 ring-sky-400/25',
-  '이차보전': 'bg-indigo-500/[.16] text-indigo-200 ring-indigo-400/25',
-  '보증': 'bg-violet-500/[.16] text-violet-200 ring-violet-400/25',
-  '보조금': 'bg-emerald-500/[.16] text-emerald-200 ring-emerald-400/25',
-  '바우처': 'bg-teal-500/[.16] text-teal-200 ring-teal-400/25',
-  '컨설팅·교육': 'bg-amber-500/[.14] text-amber-200 ring-amber-400/22',
-  '기타': 'bg-white/[.07] text-white/50 ring-white/[.12]',
+  '융자': 'bg-sky-500/[.16] text-sky-700 ring-sky-400/25',
+  '이차보전': 'bg-indigo-500/[.16] text-indigo-700 ring-indigo-400/25',
+  '보증': 'bg-violet-500/[.16] text-violet-700 ring-violet-400/25',
+  '보조금': 'bg-emerald-500/[.16] text-emerald-700 ring-emerald-400/25',
+  '바우처': 'bg-teal-500/[.16] text-teal-700 ring-teal-400/25',
+  '컨설팅·교육': 'bg-amber-500/[.14] text-amber-800 ring-amber-400/22',
+  '기타': 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.14]',
 };
 
 function PolicyCard({ items }: { items: PolicyMatch[] }) {
@@ -555,8 +555,8 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
           <button onClick={() => setKind(null)}
             className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1
                         transition ${kind === null
-              ? 'bg-white/[.12] text-white ring-white/[.2]'
-              : 'text-white/45 ring-white/[.1] hover:text-white'}`}>
+              ? 'bg-kb-ink/[.08] text-kb-ink ring-kb-ink/[.2]'
+              : 'text-kb-ink/60 ring-kb-ink/[.14] hover:text-kb-ink'}`}>
             전체 {items.length}
           </button>
           {kinds.map((k) => (
@@ -564,7 +564,7 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
               className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1
                           transition ${kind === k
                 ? FUNDING_TONE[k] ?? FUNDING_TONE['기타']
-                : 'text-white/45 ring-white/[.1] hover:text-white'}`}>
+                : 'text-kb-ink/60 ring-kb-ink/[.14] hover:text-kb-ink'}`}>
               {k} {items.filter((m) => m.funding_type === k).length}
             </button>
           ))}
@@ -573,25 +573,25 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
     <ul className="space-y-3">
       {shown.map((m) => (
         <li key={m.program_id}
-            className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/[.07]
-                       transition hover:ring-white/[.14]">
+            className="rounded-xl bg-kb-ink/[.05] p-3.5 ring-1 ring-kb-ink/[.1]
+                       transition hover:ring-kb-ink/[.14]">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] font-semibold leading-snug text-white">{m.name}</p>
-              <p className="mt-1 text-[11px] text-white/[.45]">
+              <p className="text-[13.5px] font-semibold leading-snug text-kb-ink">{m.name}</p>
+              <p className="mt-1 text-[11px] text-kb-ink/60">
                 {m.provider} · {m.category}
                 {m.regions.length > 0 ? ` · ${m.regions.join('·')}` : ' · 전국'}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-kb-yellow/[.15] px-2 py-0.5
-                             text-[11px] font-bold text-kb-yellow
+                             text-[11px] font-bold text-kb-amber
                              [font-variant-numeric:tabular-nums]">
               {m.match_score.toFixed(0)}점
             </span>
           </div>
 
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5
-                          text-[11.5px] text-white/[.65]">
+                          text-[11.5px] text-kb-ink/75">
             {/* 주는 돈인지 빌리는 돈인지를 맨 앞에 둡니다. 5천만원 융자를
                 보조금으로 알고 신청하는 일이 실제로 생깁니다. */}
             <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold
@@ -603,16 +603,16 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
                 금액을 '한도'라고 적어 총사업비가 한도로 둔갑했습니다. */}
             {m.limit_krw != null && (
               <span>
-                {m.amount_basis ?? '금액'} <b className="text-white/90">{won(m.limit_krw)}</b>
+                {m.amount_basis ?? '금액'} <b className="text-kb-ink">{won(m.limit_krw)}</b>
               </span>
             )}
             {m.rate_pct != null && (
-              <span>금리 <b className="text-white/90">{m.rate_pct}%</b></span>
+              <span>금리 <b className="text-kb-ink">{m.rate_pct}%</b></span>
             )}
           </div>
 
           {m.funding_note && (
-            <p className="mt-2 text-[11px] leading-snug text-white/45">
+            <p className="mt-2 text-[11px] leading-snug text-kb-ink/60">
               {m.funding_note}
             </p>
           )}
@@ -620,21 +620,21 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
           {/* 공고가 밝힌 지원대상·지원내용. 예전에는 이 칸이 늘 비어 있었습니다
               — 900건 전부에 ☞로 적혀 있는데 뽑아 쓰지 않았습니다. */}
           {(m.eligibility.length > 0 || m.required_docs.length > 0) && (
-            <dl className="mt-2.5 space-y-1.5 rounded-lg bg-black/25 px-3 py-2.5">
+            <dl className="mt-2.5 space-y-1.5 rounded-lg bg-kb-ink/[.05] px-3 py-2.5">
               {m.eligibility.length > 0 && (
                 <div className="flex gap-2">
-                  <dt className="shrink-0 text-[10.5px] font-bold text-white/40">대상</dt>
-                  <dd className="text-[11.5px] leading-snug text-white/[.72]">
+                  <dt className="shrink-0 text-[10.5px] font-bold text-kb-ink/55">대상</dt>
+                  <dd className="text-[11.5px] leading-snug text-kb-ink/85">
                     {m.eligibility[0]}
                   </dd>
                 </div>
               )}
               {m.required_docs.slice(0, 2).map((d, i) => (
                 <div key={i} className="flex gap-2">
-                  <dt className="shrink-0 text-[10.5px] font-bold text-white/40">
+                  <dt className="shrink-0 text-[10.5px] font-bold text-kb-ink/55">
                     {i === 0 ? '내용' : '\u00a0\u00a0\u00a0\u00a0'}
                   </dt>
-                  <dd className="text-[11.5px] leading-snug text-white/[.72]">{d}</dd>
+                  <dd className="text-[11.5px] leading-snug text-kb-ink/85">{d}</dd>
                 </div>
               ))}
             </dl>
@@ -644,8 +644,8 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
           {m.match_reasons.length > 0 && (
             <ul className="mt-2.5 space-y-1">
               {m.match_reasons.map((r, i) => (
-                <li key={i} className="flex gap-1.5 text-[11px] leading-snug text-white/50">
-                  <span className="text-kb-yellow/70">·</span>{r}
+                <li key={i} className="flex gap-1.5 text-[11px] leading-snug text-kb-ink/60">
+                  <span className="text-kb-amber/80">·</span>{r}
                 </li>
               ))}
             </ul>
@@ -654,7 +654,7 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
           <div className="mt-2.5 flex items-center gap-3">
             {m.apply_url && (
               <a href={m.apply_url} target="_blank" rel="noreferrer"
-                 className="text-[11px] font-semibold text-kb-yellow
+                 className="text-[11px] font-semibold text-kb-amber
                             underline-offset-2 hover:underline">
                 신청 안내 보기 →
               </a>
@@ -663,7 +663,7 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
                 직접 대조하실 수 있어야 합니다. */}
             {m.source_url && m.source_url !== m.apply_url && (
               <a href={m.source_url} target="_blank" rel="noreferrer"
-                 className="text-[11px] text-white/40 underline-offset-2 hover:underline">
+                 className="text-[11px] text-kb-ink/55 underline-offset-2 hover:underline">
                 기업마당 공고 원문
               </a>
             )}
@@ -681,10 +681,10 @@ function TermsCard({ terms }: { terms: TermEntry[] }) {
     <ul className="space-y-3">
       {terms.map((t) => (
         <li key={t.term}>
-          <p className="text-[12.5px] font-semibold text-kb-yellow">{t.term}</p>
-          <p className="mt-0.5 text-[12px] leading-relaxed text-white/75">{t.easy}</p>
+          <p className="text-[12.5px] font-semibold text-kb-amber">{t.term}</p>
+          <p className="mt-0.5 text-[12px] leading-relaxed text-kb-ink/80">{t.easy}</p>
           {t.caution && (
-            <p className="mt-1 text-[11px] leading-snug text-rose-200/[.65]">
+            <p className="mt-1 text-[11px] leading-snug text-rose-700/[.65]">
               주의 — {t.caution}
             </p>
           )}
@@ -702,18 +702,18 @@ function ProcedureCard({ steps, rules, checklist, question }:
   const [draftOpen, setDraftOpen] = useState(false);
   return (
     <div>
-      <ol className="relative space-y-4 border-l border-white/[.12] pl-5">
+      <ol className="relative space-y-4 border-l border-kb-ink/[.14] pl-5">
         {steps.map((s) => (
           <li key={s.step} className="relative">
             <span className="absolute -left-[26px] grid h-5 w-5 place-items-center
                              rounded-full bg-kb-yellow text-[11px] font-bold text-kb-ink">
               {s.step}
             </span>
-            <p className="text-[13px] font-semibold text-white">{s.title}</p>
-            <p className="mt-0.5 text-[11.5px] leading-relaxed text-white/[.55]">
+            <p className="text-[13px] font-semibold text-kb-ink">{s.title}</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-kb-ink/65">
               {s.description}
             </p>
-            <div className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-white/[.38]">
+            <div className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-kb-ink/50">
               {s.duration && <span>소요 {s.duration}</span>}
               {s.contact && <span>{s.contact}</span>}
             </div>
@@ -722,11 +722,11 @@ function ProcedureCard({ steps, rules, checklist, question }:
       </ol>
 
       {rules?.length > 0 && (
-        <div className="mt-4 rounded-lg bg-black/20 px-3 py-2.5">
-          <p className="text-[11px] font-semibold text-white/[.55]">근거 규정</p>
+        <div className="mt-4 rounded-lg bg-kb-ink/[.05] px-3 py-2.5">
+          <p className="text-[11px] font-semibold text-kb-ink/65">근거 규정</p>
           <ul className="mt-1 space-y-0.5">
             {rules.map((r) => (
-              <li key={r} className="text-[11px] text-white/[.45]">· {r}</li>
+              <li key={r} className="text-[11px] text-kb-ink/60">· {r}</li>
             ))}
           </ul>
         </div>
@@ -734,11 +734,11 @@ function ProcedureCard({ steps, rules, checklist, question }:
 
       {checklist?.length > 0 && (
         <div className="mt-2.5">
-          <p className="mb-1.5 text-[11px] font-semibold text-white/[.55]">준비 서류</p>
+          <p className="mb-1.5 text-[11px] font-semibold text-kb-ink/65">준비 서류</p>
           <div className="flex flex-wrap gap-1.5">
             {checklist.map((d) => (
-              <span key={d} className="rounded-md bg-white/[.07] px-2 py-1
-                                       text-[11px] text-white/[.65]">{d}</span>
+              <span key={d} className="rounded-md bg-kb-ink/[.05] px-2 py-1
+                                       text-[11px] text-kb-ink/75">{d}</span>
             ))}
           </div>
         </div>
@@ -749,7 +749,7 @@ function ProcedureCard({ steps, rules, checklist, question }:
           <button onClick={() => setDraftOpen(true)}
                   className="mt-4 w-full rounded-xl border border-kb-yellow/[.4]
                              bg-kb-yellow/[.08] py-2.5 text-[13px] font-bold
-                             text-kb-yellow transition hover:bg-kb-yellow/[.15]">
+                             text-kb-amber transition hover:bg-kb-yellow/[.15]">
             ✍ 이 내용으로 민원서 초안 만들기
           </button>
           <DraftModal open={draftOpen} onClose={() => setDraftOpen(false)}
@@ -764,19 +764,19 @@ function ProcedureCard({ steps, rules, checklist, question }:
 function NoticeCard({ r }: { r: GuardrailReport }) {
   return (
     <div>
-      <p className="text-[12px] leading-relaxed text-white/70">
+      <p className="text-[12px] leading-relaxed text-kb-ink/80">
         금융소비자보호법에 따라 단정적인 표현을 안전한 표현으로 바꿨습니다.
       </p>
       <ul className="mt-2.5 space-y-1">
         {r.violations.map((v, i) => (
-          <li key={i} className="flex gap-1.5 text-[11.5px] text-rose-200/75">
+          <li key={i} className="flex gap-1.5 text-[11.5px] text-rose-700">
             <span>·</span>{v}
           </li>
         ))}
       </ul>
       {r.original_excerpt && (
-        <p className="mt-2.5 rounded-md bg-black/25 px-2.5 py-2 text-[11px]
-                      leading-snug text-white/[.35] line-through">
+        <p className="mt-2.5 rounded-md bg-kb-ink/[.05] px-2.5 py-2 text-[11px]
+                      leading-snug text-kb-ink/50 line-through">
           {r.original_excerpt}
         </p>
       )}

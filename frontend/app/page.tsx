@@ -232,8 +232,8 @@ export default function Page() {
               <motion.span
                 initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                 className="inline-flex items-center gap-1.5 rounded-full
-                           border border-white/[.12] bg-white/[.03] px-3.5 py-1.5
-                           text-[12px] text-white/60"
+                           border border-kb-ink/[.14] bg-white/70 px-3.5 py-1.5
+                           text-[12px] text-kb-ink/70"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
                 전국 점포 272만 개 실측으로 답하는 소상공인 AI
@@ -242,12 +242,12 @@ export default function Page() {
               <motion.h1
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 }}
-                className="mt-5 text-center text-[38px] font-extrabold leading-[1.12]
-                           tracking-[-.03em] text-white sm:text-[56px]"
+                className="font-display mt-5 text-center text-[40px] font-bold
+                           leading-[1.16] text-kb-ink sm:text-[58px]"
               >
                 사장님의 세 가지 고민,
                 <br />
-                <span className="bg-gradient-to-r from-kb-yellow to-[#FFDF7E]
+                <span className="bg-gradient-to-r from-[#E09A00] to-kb-yellow
                                  bg-clip-text text-transparent">
                   한 번에 물어보세요
                 </span>
@@ -257,7 +257,7 @@ export default function Page() {
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ delay: 0.16 }}
                 className="mt-5 max-w-[54ch] text-center text-[15.5px] leading-[1.75]
-                           text-white/50"
+                           text-kb-ink/60"
               >
                 어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
                 제도 이름을 몰라도 괜찮습니다 — 처한 상황을 그대로 말씀하시면
@@ -280,9 +280,9 @@ export default function Page() {
                 <a
                   href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
                   target="_blank" rel="noreferrer"
-                  className="rounded-full border border-white/[.14] px-6 py-3
-                             text-[14.5px] font-semibold text-white/70 transition
-                             hover:border-white/[.3] hover:text-white"
+                  className="rounded-full border border-kb-ink/[.14] px-6 py-3
+                             text-[14.5px] font-semibold text-kb-ink/80 transition
+                             hover:border-kb-ink/[.3] hover:text-kb-ink"
                 >
                   소스코드 보기
                 </a>
@@ -300,13 +300,13 @@ export default function Page() {
                 transition={{ delay: 0.3 }}
                 className="app-frame w-full max-w-[880px]"
               >
-                <div className="flex items-center gap-2 border-b border-white/[.07]
+                <div className="flex items-center gap-2 border-b border-kb-ink/[.1]
                                 px-4 py-3">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
                   <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
                   <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-                  <span className="mx-auto rounded-md bg-white/[.05] px-8 py-1
-                                   text-[11px] text-white/35">
+                  <span className="mx-auto rounded-md bg-kb-ink/[.05] px-8 py-1
+                                   text-[11px] text-kb-ink/50">
                     kkulbee — 사장님 곁의 AI 비서
                   </span>
                 </div>
@@ -324,15 +324,15 @@ export default function Page() {
                                       px-2 pb-2.5 pt-3 transition-all duration-200 ${
                             on
                               ? 'border border-kb-yellow/50 bg-kb-yellow/[.08]'
-                              : 'border border-white/[.07] bg-transparent hover:border-white/[.16] hover:bg-white/[.03]'}`}
+                              : 'border border-kb-ink/[.1] bg-transparent hover:border-kb-ink/[.14] hover:bg-white/70'}`}
                         >
                           <ModeIcon name={m.icon} on={on} />
                           <span className={`text-[12px] font-semibold ${
-                            on ? 'text-kb-yellow' : 'text-white/70'}`}>
+                            on ? 'text-kb-amber' : 'text-kb-ink/80'}`}>
                             {m.label}
                           </span>
                           <span className={`hidden text-[10px] sm:block ${
-                            on ? 'text-white/50' : 'text-white/25'}`}>
+                            on ? 'text-kb-ink/60' : 'text-kb-ink/40'}`}>
                             {m.desc}
                           </span>
                         </button>
@@ -360,13 +360,13 @@ export default function Page() {
                         onClick={() => ask(q)}
                         className="group flex items-center gap-2.5 rounded-lg
                                    border border-transparent px-3 py-2 text-left
-                                   transition hover:border-white/[.09]
-                                   hover:bg-white/[.03]"
+                                   transition hover:border-kb-ink/[.1]
+                                   hover:bg-white/70"
                       >
-                        <span className="text-[11px] text-kb-yellow/40 transition
-                                         group-hover:text-kb-yellow">→</span>
-                        <span className="text-[13px] text-white/50
-                                         group-hover:text-white/85">{q}</span>
+                        <span className="text-[11px] text-kb-amber/60 transition
+                                         group-hover:text-kb-amber">→</span>
+                        <span className="text-[13px] text-kb-ink/60
+                                         group-hover:text-kb-ink/90">{q}</span>
                       </button>
                     ))}
                   </motion.div>
@@ -375,17 +375,17 @@ export default function Page() {
 
               {/* ── 신뢰 숫자 ── */}
               <div className="mt-14 grid w-full max-w-[880px] grid-cols-3
-                              divide-x divide-white/[.07] border-y
-                              border-white/[.07] py-6">
+                              divide-x divide-kb-ink/[.1] border-y
+                              border-kb-ink/[.1] py-6">
                 {[
                   ['2,725,318', '전국 점포 실측 좌표'],
                   ['900', '정부 지원사업 공고'],
                   ['3,450', '행정동 백분위 비교'],
                 ].map(([n, l]) => (
                   <div key={l} className="px-4 text-center">
-                    <p className="text-[24px] font-extrabold tracking-tight text-white
+                    <p className="text-[24px] font-extrabold tracking-tight text-kb-ink
                                   [font-variant-numeric:tabular-nums]">{n}</p>
-                    <p className="mt-1 text-[11.5px] text-white/40">{l}</p>
+                    <p className="mt-1 text-[11.5px] text-kb-ink/55">{l}</p>
                   </div>
                 ))}
               </div>
@@ -402,8 +402,8 @@ export default function Page() {
                    'LLM이 쓴 문장까지 예외 없이 검사를 거칩니다. 상단의 검사기에서 아무 문장이나 직접 시험해 보세요.'],
                 ].map(([t, d]) => (
                   <div key={t} className="surface-1 p-5">
-                    <p className="text-[14px] font-bold text-white">{t}</p>
-                    <p className="mt-2 text-[12.5px] leading-[1.7] text-white/45">{d}</p>
+                    <p className="text-[14px] font-bold text-kb-ink">{t}</p>
+                    <p className="mt-2 text-[12.5px] leading-[1.7] text-kb-ink/60">{d}</p>
                   </div>
                 ))}
               </div>
@@ -421,8 +421,8 @@ export default function Page() {
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
-                  className="mt-4 w-full rounded-lg bg-white/[.06] py-2 text-[11.5px]
-                             text-white/[.55] transition hover:bg-white/[.11] hover:text-white"
+                  className="mt-4 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[11.5px]
+                             text-kb-ink/65 transition hover:bg-kb-ink/[.08] hover:text-kb-ink"
                 >
                   처음으로
                 </button>
@@ -444,8 +444,8 @@ export default function Page() {
                     exit={{ opacity: 0 }}
                     className="mt-4 rounded-xl bg-rose-500/10 px-4 py-3 ring-1 ring-rose-400/25"
                   >
-                    <p className="text-[12.5px] text-rose-200">{error}</p>
-                    <p className="mt-1 text-[11.5px] text-rose-200/60">
+                    <p className="text-[12.5px] text-rose-700">{error}</p>
+                    <p className="mt-1 text-[11.5px] text-rose-700">
                       백엔드를 먼저 실행하세요 —{' '}
                       <code className="font-mono">uvicorn app.main:app --port 8000</code>
                     </p>
@@ -465,7 +465,7 @@ export default function Page() {
                     <div className="flex justify-end">
                       <p className="max-w-[75%] rounded-2xl rounded-br-md
                                     bg-kb-yellow/[.14] px-4 py-2.5 text-[13.5px]
-                                    leading-relaxed text-kb-yellow ring-1
+                                    leading-relaxed text-kb-amber ring-1
                                     ring-kb-yellow/[.25]">
                         {q}
                       </p>
@@ -477,15 +477,15 @@ export default function Page() {
                         지금 맥락과 어긋날 수 있습니다. */}
                     {i === history.length - 1 && !loading && r.suggestions.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <span className="text-[11.5px] text-white/35">이어서 물어보기</span>
+                        <span className="text-[11.5px] text-kb-ink/50">이어서 물어보기</span>
                         {r.suggestions.map((sq) => (
                           <button
                             key={sq}
                             onClick={() => ask(sq)}
                             className="rounded-full bg-kb-yellow/[.09] px-3.5 py-1.5
-                                       text-[12.5px] text-kb-yellow/90 ring-1
+                                       text-[12.5px] text-kb-amber ring-1
                                        ring-kb-yellow/[.28] transition
-                                       hover:bg-kb-yellow/[.18] hover:text-kb-yellow"
+                                       hover:bg-kb-yellow/[.18] hover:text-kb-amber"
                           >
                             {sq}
                           </button>
@@ -577,8 +577,8 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit(); }}
         placeholder={placeholder ?? '꿀비에게 물어보세요'}
         disabled={loading}
-        className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[14.5px] text-white
-                   placeholder:text-white/[.38] focus:outline-none disabled:opacity-50"
+        className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[14.5px] text-kb-ink
+                   placeholder:text-kb-ink/50 focus:outline-none disabled:opacity-50"
       />
       {mic.supported && (
         <button
@@ -587,8 +587,8 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
           title="말로 물어보기"
           className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl
                       transition ${mic.listening
-            ? 'animate-pulse bg-rose-500/90 text-white'
-            : 'bg-white/[.06] text-white/55 hover:bg-white/[.12] hover:text-white'}`}
+            ? 'animate-pulse bg-rose-500/90 text-kb-ink'
+            : 'bg-kb-ink/[.05] text-kb-ink/65 hover:bg-kb-ink/[.08] hover:text-kb-ink'}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -647,14 +647,14 @@ function Thinking() {
             <li key={s.label} className="flex items-start gap-3">
               <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center
                                 rounded-full text-[10px] font-bold transition-colors ${
-                state === 'done' ? 'bg-kb-yellow/20 text-kb-yellow'
+                state === 'done' ? 'bg-kb-yellow/20 text-kb-amber'
                 : state === 'now' ? 'bg-kb-yellow text-kb-ink'
-                : 'bg-white/[.07] text-white/25'}`}>
+                : 'bg-kb-ink/[.05] text-kb-ink/40'}`}>
                 {state === 'done' ? '✓' : i + 1}
               </span>
               <div className="min-w-0">
                 <p className={`text-[13px] font-medium transition-colors ${
-                  state === 'wait' ? 'text-white/25' : 'text-white/85'}`}>
+                  state === 'wait' ? 'text-kb-ink/40' : 'text-kb-ink/90'}`}>
                   {s.label}
                   {state === 'now' && (
                     <span className="ml-1.5 inline-flex gap-0.5 align-middle">
@@ -667,7 +667,7 @@ function Thinking() {
                   )}
                 </p>
                 <p className={`mt-0.5 text-[11px] transition-colors ${
-                  state === 'wait' ? 'text-white/15' : 'text-white/40'}`}>
+                  state === 'wait' ? 'text-kb-ink/15' : 'text-kb-ink/55'}`}>
                   {s.hint}
                 </p>
               </div>
@@ -706,17 +706,17 @@ function Answer({ res }: { res: ChatResponse }) {
             speechSynthesis.cancel(); speechSynthesis.speak(u);
           }}
           title="꿀비가 읽어줍니다"
-          className="rounded-lg bg-white/[.06] px-2.5 py-1.5 text-[11px]
-                     text-white/55 ring-1 ring-white/[.09] transition
-                     hover:bg-white/[.1] hover:text-white"
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[11px]
+                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
           🔊 읽어줘
         </button>
         <button
           onClick={share}
-          className="rounded-lg bg-white/[.06] px-2.5 py-1.5 text-[11px]
-                     text-white/55 ring-1 ring-white/[.09] transition
-                     hover:bg-white/[.1] hover:text-white"
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[11px]
+                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
           {copied ? '복사됨 ✓' : '링크 복사'}
         </button>
@@ -726,19 +726,19 @@ function Answer({ res }: { res: ChatResponse }) {
           바로잡을 수 있습니다. */}
       {(understood?.region || understood?.industry) && (
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
-                        border-white/[.06] pb-3">
-          <span className="text-[10.5px] text-white/30">이렇게 알아들었어요</span>
+                        border-kb-ink/[.1] pb-3">
+          <span className="text-[10.5px] text-kb-ink/45">이렇게 알아들었어요</span>
           {understood.region && (
-            <span className="rounded-md bg-white/[.07] px-2 py-0.5 text-[11.5px]
-                             font-medium text-white/75">📍 {understood.region}</span>
+            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[11.5px]
+                             font-medium text-kb-ink/80">📍 {understood.region}</span>
           )}
           {understood.industry && (
-            <span className="rounded-md bg-white/[.07] px-2 py-0.5 text-[11.5px]
-                             font-medium text-white/75">{understood.industry}</span>
+            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[11.5px]
+                             font-medium text-kb-ink/80">{understood.industry}</span>
           )}
           {(understood.intents ?? []).map((i) => (
             <span key={i} className="rounded-md bg-kb-yellow/[.12] px-2 py-0.5
-                                     text-[11px] font-semibold text-kb-yellow/90">
+                                     text-[11px] font-semibold text-kb-amber">
               {INTENT_KO[i] ?? i}
             </span>
           ))}
@@ -746,17 +746,17 @@ function Answer({ res }: { res: ChatResponse }) {
       )}
       <div className="space-y-2.5">
         {body.split('\n').filter(Boolean).map((line, i) => (
-          <p key={i} className="text-[14.5px] leading-[1.8] text-white/[.9]">{line}</p>
+          <p key={i} className="text-[14.5px] leading-[1.8] text-kb-ink">{line}</p>
         ))}
       </div>
       {notes.length > 0 && (
-        <ul className="mt-4 space-y-1 border-t border-white/[.07] pt-3">
+        <ul className="mt-4 space-y-1 border-t border-kb-ink/[.1] pt-3">
           {notes.map((n, i) => (
-            <li key={i} className="text-[11px] leading-relaxed text-white/[.35]">· {n}</li>
+            <li key={i} className="text-[11px] leading-relaxed text-kb-ink/50">· {n}</li>
           ))}
         </ul>
       )}
-      <p className="mt-3 text-right text-[10.5px] text-white/[.25]">
+      <p className="mt-3 text-right text-[10.5px] text-kb-ink/40">
         {elapsed}ms 만에 답했어요
       </p>
     </div>
@@ -772,25 +772,25 @@ function Answer({ res }: { res: ChatResponse }) {
 function AgentTrace({ res }: { res: ChatResponse }) {
   return (
     <div className="surface-1 mt-4 p-4">
-      <p className="text-[10.5px] font-semibold uppercase tracking-wider text-white/[.4]">
+      <p className="text-[10.5px] font-semibold uppercase tracking-wider text-kb-ink/60">
         거쳐 간 에이전트
       </p>
 
       <ol className="relative mt-3 space-y-0">
         {/* 세로줄 — 순서대로 흘렀다는 것이 선 하나로 읽힙니다 */}
         <span aria-hidden
-              className="absolute left-[9px] top-2 bottom-4 w-px bg-white/[.12]" />
+              className="absolute left-[9px] top-2 bottom-4 w-px bg-kb-ink/[.08]" />
         {res.agent_trace.map((a, i) => (
           <li key={`${a}-${i}`} className="relative flex items-center gap-2.5 py-1.5">
             <span className={`z-10 grid h-[19px] w-[19px] shrink-0 place-items-center
                               rounded-full text-[9.5px] font-bold ring-2 ring-kb-ink ${
               a === 'guardrail'
-                ? 'bg-rose-400/25 text-rose-200'
-                : 'bg-kb-yellow/25 text-kb-yellow'}`}>
+                ? 'bg-rose-400/25 text-rose-700'
+                : 'bg-kb-yellow/25 text-kb-amber'}`}>
               {i + 1}
             </span>
             <span className={`text-[12.5px] ${
-              a === 'guardrail' ? 'text-rose-200/85' : 'text-white/[.75]'}`}>
+              a === 'guardrail' ? 'text-rose-700' : 'text-kb-ink/85'}`}>
               {AGENT_LABEL[a] ?? a}
             </span>
           </li>
@@ -801,8 +801,8 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         <p className={`mt-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2
                        text-[11px] leading-snug ${
           res.guardrail.passed
-            ? 'bg-emerald-400/10 text-emerald-200/80'
-            : 'bg-rose-400/10 text-rose-200/85'}`}>
+            ? 'bg-emerald-400/10 text-emerald-700'
+            : 'bg-rose-400/10 text-rose-700'}`}>
           <span className="mt-px">{res.guardrail.passed ? '✓' : '!'}</span>
           {res.guardrail.passed
             ? '금소법 위반 표현 없음'
@@ -810,7 +810,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         </p>
       )}
 
-      <p className="mt-2.5 text-right text-[10px] text-white/25">
+      <p className="mt-2.5 text-right text-[10px] text-kb-ink/40">
         {res.elapsed_ms}ms
       </p>
     </div>

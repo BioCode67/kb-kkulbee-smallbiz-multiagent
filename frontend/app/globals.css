@@ -29,22 +29,23 @@
 }
 
 @layer base {
-  :root { color-scheme: dark; }
+  :root { color-scheme: light; }
 
   html, body {
-    @apply bg-kb-ink text-white antialiased;
+    @apply bg-kb-cream text-kb-ink antialiased;
     /* 한글은 어절 중간에서 끊기면 읽기 흐름이 깨진다 */
     word-break: keep-all;
     overflow-wrap: break-word;
   }
 
-  /* 배경 — 거의 검정 단색. 빛무리는 히어로에만 둡니다(.hero-glow). */
+  /* 배경 — KB 크림 단색. 소상공인 서비스에는 밝은 쪽이 맞고,
+     꿀비(노랑+갈색)도 밝은 바탕에서 훨씬 산다. */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: #0A0A0B;
+    background: #FBF7EE;
   }
   /* 점 그리드 — 위쪽에만 옅게 깔고 아래로 사라집니다. 대각선 벌집 무늬는
      글자 뒤에서 어른거렸는데, 점은 정적이라 조용합니다. */
@@ -54,7 +55,7 @@
     inset: 0;
     z-index: -1;
     opacity: .35;
-    background-image: radial-gradient(rgba(255,255,255,.11) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(56,50,42,.14) 1px, transparent 1px);
     background-size: 26px 26px;
     -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 55%);
     mask-image: linear-gradient(to bottom, #000 0%, transparent 55%);
@@ -64,13 +65,19 @@
      캐릭터가 배경에 붙어 보이지 않게 떼어 놓는 역할입니다. */
   .hero-glow {
     background:
-      radial-gradient(620px 380px at 50% 22%, rgba(255,188,0,.1), transparent 62%),
-      radial-gradient(1100px 520px at 50% 0%, rgba(255,188,0,.04), transparent 70%);
+      radial-gradient(640px 400px at 50% 24%, rgba(255,188,0,.18), transparent 62%),
+      radial-gradient(1100px 520px at 50% 0%, rgba(255,188,0,.07), transparent 70%);
   }
   /* 앱을 담는 창 틀 — v0 목업의 브라우저 프레임 문법 */
   .app-frame {
-    @apply overflow-hidden rounded-2xl border border-white/[.1]
-           bg-[#0E0E10] shadow-[0_40px_120px_-40px_rgba(0,0,0,.9)];
+    @apply overflow-hidden rounded-2xl border border-kb-ink/[.12]
+           bg-white shadow-[0_40px_100px_-36px_rgba(56,50,42,.35)];
+  }
+  /* 참고 사이트(Lovable)의 세리프 헤드라인 감성 — 한국어는 명조 계열로 */
+  .font-display {
+    font-family: 'Nanum Myeongjo', 'Noto Serif KR', Batang,
+                 'DM Serif Display', Georgia, serif;
+    letter-spacing: -0.01em;
   }
 
   ::selection { @apply bg-kb-yellow/30; }
@@ -78,11 +85,11 @@
   /* 스크롤바도 화면의 일부다 */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-white/[.12];
+    @apply rounded-full bg-kb-ink/[.2];
     border: 3px solid transparent;
     background-clip: content-box;
   }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-kb-ink/30; }
 }
 
 @layer components {
@@ -94,14 +101,17 @@
    * 밝고 테두리가 또렷합니다.
    */
   /* v0 계열의 표면 — 그림자보다 1px 보더가 형태를 만듭니다. */
+  /* 라이트 표면 — 흰 카드가 크림 바탕 위에 뜬다. 보더는 웜 그레이. */
   .surface-1 {
-    @apply rounded-2xl border border-white/[.07] bg-white/[.02];
+    @apply rounded-2xl border border-kb-ink/[.09] bg-white/70;
   }
   .surface-2 {
-    @apply rounded-2xl border border-white/[.1] bg-white/[.035];
+    @apply rounded-2xl border border-kb-ink/[.12] bg-white
+           shadow-[0_10px_30px_-18px_rgba(56,50,42,.25)];
   }
   .surface-3 {
-    @apply rounded-2xl border border-white/[.14] bg-white/[.05];
+    @apply rounded-2xl border border-kb-ink/[.16] bg-white
+           shadow-[0_16px_44px_-20px_rgba(56,50,42,.3)];
   }
   .glass {
     @apply rounded-2xl bg-white/[.045] shadow-glass ring-1 ring-white/10 backdrop-blur-xl;
@@ -115,15 +125,15 @@
 
 /* Leaflet 툴팁을 어두운 화면에 맞춘다 */
 .kb-tip {
-  background: rgba(28,24,20,.94) !important;
-  border: 1px solid rgba(255,188,0,.25) !important;
-  color: #fff !important;
+  background: rgba(255,255,255,.97) !important;
+  border: 1px solid rgba(56,50,42,.2) !important;
+  color: #38322A !important;
   font-size: 11.5px !important;
   border-radius: 8px !important;
   box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
 }
-.kb-tip::before { border-top-color: rgba(255,188,0,.25) !important; }
-.leaflet-container { background: #14110E !important; }
+.kb-tip::before { border-top-color: rgba(56,50,42,.2) !important; }
+.leaflet-container { background: #EFE9DC !important; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

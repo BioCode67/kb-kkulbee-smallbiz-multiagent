@@ -137,7 +137,7 @@ export default function BeeCharacter({
       {/* 바닥 그림자 — 떠 있다는 느낌은 그림자가 만듭니다.
           위로 뜰수록 작고 옅어져야 높이가 읽힙니다. */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 rounded-[50%] bg-black/45 blur-[6px]"
+        className="absolute left-1/2 -translate-x-1/2 rounded-[50%] bg-kb-ink/25 blur-[6px]"
         style={{
           bottom: size * 0.015,
           width: size * 0.40,
