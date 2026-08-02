@@ -13,6 +13,75 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { dday, loadSaved, onSavedChange, removeSaved, type SavedProgram } from '@/lib/saved';
 
+/** 원문 재확인 결과 — 백엔드 RPA가 기업마당 원문을 방금 열어 읽은 사실 */
+interface LiveCheck {
+  ok: boolean; reason?: string; checked_at?: string; period_text?: string | null;
+  status?: string; days_left?: number | null;
+  attachments?: { name: string; url: string }[]; apply_link?: string | null;
+}
+
+/** 색인은 수집 시점의 스냅샷 — 신청 직전의 마지막 확인은 오늘의 원문이어야
+    합니다. 마감 연장·조기 마감·서식 교체는 색인이 모릅니다. */
+function LiveCheckRow({ s }: { s: SavedProgram }) {
+  const [r, setR] = useState<LiveCheck | null>(null);
+  const [busy, setBusy] = useState(false);
+  const canCheck = s.url.includes('bizinfo.go.kr');
+  if (!canCheck) return null;
+
+  const run = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch('/api/v1/rpa/check', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: s.url }),
+      });
+      setR(await res.json());
+    } catch { setR({ ok: false, reason: '서버에 닿지 못했어요' }); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="mt-2 border-t border-kb-ink/[.06] pt-2">
+      {!r && (
+        <button onClick={run} disabled={busy}
+          className="text-[11px] font-semibold text-kb-ink/55 transition
+                     hover:text-kb-amber disabled:opacity-50">
+          {busy ? '원문을 여는 중…' : '🔄 원문 재확인 — 마감·서식이 바뀌었는지'}
+        </button>
+      )}
+      {r && !r.ok && (
+        <p className="text-[10.5px] text-rose-700">{r.reason}</p>
+      )}
+      {r?.ok && (
+        <div className="space-y-1 text-[10.5px] leading-relaxed text-kb-ink/65">
+          <p>
+            <b className={r.status === 'closed' ? 'text-rose-700' : 'text-emerald-700'}>
+              {r.status === 'open' ? `접수 중 · ${r.days_left}일 남음`
+                : r.status === 'closed' ? '마감됨'
+                : r.status === 'upcoming' ? '접수 예정'
+                : r.period_text || '기간 표기 없음'}
+            </b>
+            {' '}· 원문 기준 {r.checked_at?.slice(11, 16)} 확인
+          </p>
+          {(r.attachments ?? []).slice(0, 3).map((a) => (
+            <a key={a.url} href={a.url} target="_blank" rel="noreferrer"
+               className="block truncate text-kb-amber underline-offset-2 hover:underline">
+              📎 {a.name}
+            </a>
+          ))}
+          {r.apply_link && (
+            <a href={r.apply_link} target="_blank" rel="noreferrer"
+               className="font-semibold text-kb-amber hover:underline">
+              신청 사이트 바로가기 →
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SavedDrawer({ open, onClose }: {
   open: boolean; onClose: () => void;
 }) {
@@ -101,6 +170,7 @@ export default function SavedDrawer({ open, onClose }: {
                         공고 원문 →
                       </a>
                     </div>
+                    <LiveCheckRow s={s} />
                   </div>
                 );
               })}

@@ -287,3 +287,49 @@ class TestSeoulPop:
         from app.services import seoul_pop
         os.environ.pop("SEOUL_API_KEY", None)
         assert asyncio.run(seoul_pop.living_pop("11440710")) is None
+
+
+# ── RPA 원문 점검 ─────────────────────────────────────────────────────────
+#
+# 색인은 스냅샷이고 공고는 살아 움직입니다. 원문 재확인이 "지어내지 않는지"
+# — 못 찾으면 None인지, 아무 주소나 열어 주지 않는지를 여기서 못박습니다.
+
+from datetime import date as _date
+
+from app.rpa.bizinfo_check import check_notice, parse_notice
+
+_FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "bizinfo_notice.html")
+
+
+def test_rpa_parse_extracts_facts():
+    p = parse_notice(open(_FIXTURE, encoding="utf-8").read(),
+                     today=_date(2026, 8, 2))
+    assert "3D 프린팅" in p["title"]
+    assert p["deadline"] == "2026-12-31"
+    assert p["status"] == "open" and p["days_left"] == 151
+    assert p["attachments"] and p["attachments"][0]["url"].startswith(
+        "https://www.bizinfo.go.kr/cmm/fms/fileDown.do?")
+    assert p["apply_link"] and "&amp;" not in p["apply_link"]
+
+
+def test_rpa_parse_after_deadline_is_closed():
+    p = parse_notice(open(_FIXTURE, encoding="utf-8").read(),
+                     today=_date(2027, 1, 1))
+    assert p["status"] == "closed" and p["days_left"] is None
+
+
+def test_rpa_parse_never_fabricates():
+    # 아무 정보도 없는 문서 — 전부 None/unknown이어야 합니다
+    p = parse_notice("<html><body>빈 페이지</body></html>")
+    assert p["title"] is None and p["period_text"] is None
+    assert p["status"] == "unknown" and p["attachments"] == []
+
+
+def test_rpa_refuses_non_bizinfo_url():
+    # 화이트리스트 밖 — 내부망·타 사이트를 열어 주는 프록시가 되면 안 됩니다
+    for bad in ("https://evil.example.com/x",
+                "http://169.254.169.254/latest/meta-data",
+                "https://www.bizinfo.go.kr.evil.com/sii/siia/selectSIIA200Detail.do",
+                ""):
+        r = check_notice(bad)
+        assert r["ok"] is False and "reason" in r

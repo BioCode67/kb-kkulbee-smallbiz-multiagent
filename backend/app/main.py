@@ -215,6 +215,18 @@ def guardrail_check(payload: dict) -> dict:
     return {"original": text, "safe": safe, "report": report.model_dump(mode="json")}
 
 
+@app.post("/api/v1/rpa/check")
+def rpa_check(payload: dict) -> dict:
+    """찜한 공고의 원문을 지금 열어 마감·첨부를 재확인합니다.
+
+    색인은 수집 시점의 스냅샷입니다. 신청하러 가기 직전의 마지막 확인은
+    오늘의 원문이어야 합니다 — 마감 연장·조기 마감·서식 교체는 색인이
+    모릅니다. bizinfo.go.kr 상세 페이지만 엽니다(화이트리스트).
+    """
+    from app.rpa import check_notice
+    return check_notice(str(payload.get("url", "")))
+
+
 # ── 화면 서빙 ─────────────────────────────────────────────────────────────
 #
 # 배포본에서는 프런트엔드도 이 프로세스가 내보냅니다. 주소가 하나여야
