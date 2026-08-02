@@ -12,7 +12,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { dday, loadSaved, onSavedChange, removeSaved, type SavedProgram } from '@/lib/saved';
+import { dday, loadSaved, onSavedChange, removeSaved, setNote, type SavedProgram } from '@/lib/saved';
 import { downloadIcs } from '@/lib/ics';
 
 /** 원문 재확인 결과 — 백엔드 RPA가 기업마당 원문을 방금 열어 읽은 사실 */
@@ -241,6 +241,17 @@ export default function SavedDrawer({ open, onClose }: {
                         공고 원문 →
                       </a>
                     </div>
+                    {/* 한 줄 메모 — "8/5 담당자 통화, 서류 곧 보냄" 같은 것.
+                        공고 관리의 절반은 이런 흔적이라, 서랍이 수첩이 됩니다. */}
+                    <input
+                      defaultValue={s.note ?? ''}
+                      placeholder="✏️ 메모 — 통화 내용, 준비 상황…"
+                      onBlur={(e) => setNote(s.id, e.target.value)}
+                      className="mt-2 w-full rounded-lg bg-kb-ink/[.04] px-2.5 py-1.5
+                                 text-[12.5px] text-kb-ink/85 ring-1 ring-kb-ink/[.08]
+                                 placeholder:text-kb-ink/35 focus:outline-none
+                                 focus:ring-kb-yellow/50"
+                    />
                     <LiveCheckRow s={s} r={checks[s.id] ?? null}
                                   busy={!!busy[s.id] || sweeping}
                                   onRun={() => runOne(s)} />

@@ -98,6 +98,35 @@ _PLACE_ALIAS = {
 _DONG_RE = re.compile(r"([가-힣]+(?:\d+)?(?:동|읍|면|가))")
 
 
+def suggest_names(prefix: str, k: int = 5) -> dict:
+    """자동완성 — 치는 중인 글자로 동네·업종을 제안합니다.
+
+    사장님은 행정동 정식 이름('성수2가3동')을 모릅니다. 두 글자만 쳐도
+    실제 있는 이름이 내려와야 '아무거나 쳐도 알아듣는구나'가 됩니다.
+    """
+    ix = _load()
+    p = (prefix or "").strip()
+    out_d: list[dict] = []
+    if len(p) >= 2:
+        seen = set()
+        for name, codes in ix["by_name"].items():
+            if not name.startswith(p):
+                continue
+            # 같은 이름 여럿이면 점포 많은 곳 우선
+            best = max(codes, key=lambda c: ix["dong"][c].get("stores", 0))
+            v = ix["dong"][best]
+            full = f'{v["sido"]} {v["sgg"]} {v["dong"]}'
+            if full in seen:
+                continue
+            seen.add(full)
+            out_d.append({"dong": v["dong"], "full": full,
+                          "stores": v.get("stores", 0)})
+        out_d.sort(key=lambda d: -d["stores"])
+    out_i = [it["name"] for it in industry_choices(60)
+             if it["name"].startswith(p)][:k] if len(p) >= 1 else []
+    return {"dongs": out_d[:k], "industries": out_i}
+
+
 def find_dong(text: str) -> dict | None:
     """'서울 마포구 연남동', '연남동', '홍대'에서 행정동 하나를 찾습니다.
 

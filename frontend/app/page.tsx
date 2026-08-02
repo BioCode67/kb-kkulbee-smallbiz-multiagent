@@ -208,6 +208,7 @@ export default function Page() {
       // 좋은 소식은 몸으로도 알립니다. S·A등급이면 꿀색 종이가 잠깐 흩날립니다.
       // 장난 같지만, 점수를 "받았다"는 감각을 만드는 것은 이런 2초입니다.
       if (data.location && (data.location.grade === 'S' || data.location.grade === 'A')) {
+        window.dispatchEvent(new CustomEvent('kkulbee:celebrate'));
         import('canvas-confetti').then(({ default: confetti }) => {
           confetti({ particleCount: 90, spread: 75, origin: { y: 0.3 },
                      colors: ['#FFBC00', '#FFD35C', '#FFF2C4', '#544438'],
@@ -821,11 +822,51 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder, lastQ }: {
   loading: boolean; placeholder?: string; lastQ?: string;
 }) {
   const mic = useSpeechInput(onChange);
+  // 자동완성 — 마지막 어절로 실제 동네·업종을 제안합니다. 사장님은
+  // '성수2가3동' 같은 정식 이름을 모르니, 두 글자면 서비스가 찾아줍니다.
+  const [sug, setSug] = useState<{ dongs: { dong: string; full: string }[];
+                                   industries: string[] } | null>(null);
+  const sugT = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const last = value.split(/\s+/).pop() ?? '';
+    if (sugT.current) clearTimeout(sugT.current);
+    if (last.length < 2 || last.length > 8 || /[?!.]/.test(last)) { setSug(null); return; }
+    sugT.current = setTimeout(() => {
+      fetch(`/api/v1/suggest?q=${encodeURIComponent(last)}`)
+        .then((r) => r.json())
+        .then((d) => setSug((d.dongs?.length || d.industries?.length) ? d : null))
+        .catch(() => setSug(null));
+    }, 180);
+  }, [value]);
+  const pick = (word: string) => {
+    const parts = value.split(/\s+/); parts.pop();
+    onChange([...parts, word, ''].join(' ').replace(/^ /, ''));
+    setSug(null);
+  };
   return (
-    <div className="flex items-center gap-2 rounded-2xl bg-white p-2
+    <div className="relative flex items-center gap-2 rounded-2xl bg-white p-2
                     shadow-[0_16px_44px_-16px_rgba(56,50,42,.35)] ring-[1.5px]
                     ring-kb-ink/[.16] transition focus-within:ring-2
                     focus-within:ring-kb-yellow">
+      {sug && (
+        <div className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden
+                        rounded-xl border border-kb-ink/[.12] bg-white shadow-xl">
+          {sug.dongs.slice(0, 4).map((d) => (
+            <button key={d.full} onMouseDown={(e) => { e.preventDefault(); pick(d.full); }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left
+                         text-[14px] text-kb-ink/85 transition hover:bg-kb-yellow/[.12]">
+              <span className="text-kb-amber">📍</span>{d.full}
+            </button>
+          ))}
+          {sug.industries.slice(0, 3).map((n) => (
+            <button key={n} onMouseDown={(e) => { e.preventDefault(); pick(n); }}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left
+                         text-[14px] text-kb-ink/85 transition hover:bg-kb-yellow/[.12]">
+              <span>🏪</span>{n}
+            </button>
+          ))}
+        </div>
+      )}
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}

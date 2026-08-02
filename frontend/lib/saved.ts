@@ -9,6 +9,7 @@
 export interface SavedProgram {
   id: string; name: string; provider: string; funding_type: string;
   deadline: string | null; apply_period: string; url: string; savedAt: number;
+  note?: string;   // 사장님의 한 줄 메모 — "8/5 담당자 통화함" 같은 것
 }
 
 const KEY = 'kkulbee:saved';
@@ -34,6 +35,14 @@ export function toggleSaved(p: Omit<SavedProgram, 'savedAt'>): boolean {
   if (i >= 0) { list.splice(i, 1); write(list); return false; }
   write([{ ...p, savedAt: Date.now() }, ...list]);
   return true;
+}
+
+export function setNote(id: string, note: string) {
+  const list = loadSaved();
+  const it = list.find((s) => s.id === id);
+  if (!it) return;
+  (it as SavedProgram & { note?: string }).note = note.slice(0, 200);
+  write(list);
 }
 
 export function removeSaved(id: string) {

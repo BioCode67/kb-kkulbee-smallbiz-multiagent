@@ -227,6 +227,13 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.get("/api/v1/suggest")
+def suggest(q: str = "") -> dict:
+    """입력 자동완성 — 실제 있는 동네·업종 이름만 제안합니다."""
+    from app.services import market_data
+    return market_data.suggest_names(q)
+
+
 @app.get("/api/v1/whatif")
 def whatif(region: str, industry: str = "카페") -> dict:
     """반사실(What-If) — "업종만 바꾸면 이 동네 점수는 몇 점인가".

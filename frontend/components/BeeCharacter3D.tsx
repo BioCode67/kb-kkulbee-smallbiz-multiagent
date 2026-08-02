@@ -342,6 +342,9 @@ export default function BeeCharacter3D({
         flyOverride = (e as CustomEvent<{ x: number; y: number }>).detail;
       };
       const onFlyHome = () => { flyOverride = null; };
+      let flipFrom = -10;                  // 축하 백덤블링 시작 시각
+      const onCelebrate = () => { flipFrom = clock.getElapsedTime(); jvy += 0.4; };
+      window.addEventListener('kkulbee:celebrate', onCelebrate);
       window.addEventListener('kkulbee:flyto', onFlyTo);
       window.addEventListener('kkulbee:flyhome', onFlyHome);
       let dizzyFrom = -10;                 // 연타 이스터에그(어지럼) 시작 시각
@@ -565,7 +568,10 @@ export default function BeeCharacter3D({
         head.rotation.x = cy * 0.26 + (sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0);
         head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : cx * -0.08;
         bee.rotation.y = cx * 0.2 + spin;
-        bee.rotation.x = m === 'explaining' ? 0.1 : 0;
+        // 축하 백덤블링 — 뒤로 한 바퀴 (S·A등급 콘페티와 함께)
+        const fp = (t - flipFrom) / 1.0;
+        const flip = fp >= 0 && fp < 1 ? -(1 - Math.pow(1 - fp, 3)) * Math.PI * 2 : 0;
+        bee.rotation.x = (m === 'explaining' ? 0.1 : 0) + flip;
 
         // 날개 — 초당 여러 번 퍼덕여야 벌입니다
         const flap = reduce ? 0
@@ -612,6 +618,7 @@ export default function BeeCharacter3D({
         window.removeEventListener('resize', onResize);
         window.removeEventListener('kkulbee:flyto', onFlyTo);
         window.removeEventListener('kkulbee:flyhome', onFlyHome);
+        window.removeEventListener('kkulbee:celebrate', onCelebrate);
         renderer.domElement.remove();
         document.body.style.cursor = '';
         // WebGL 자원은 가비지 컬렉터가 안 걷어 갑니다. 화면을 오갈 때마다
