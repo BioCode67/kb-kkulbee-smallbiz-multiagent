@@ -244,6 +244,25 @@ export default function Page() {
     };
   }, []);
 
+  // 첫 화면에서 25초쯤 가만히 있으면 꿀비가 기능을 하나씩 소개합니다.
+  // 시연 중 "다음에 뭘 보여 주지" 하는 정적을 캐릭터가 메워 줍니다.
+  useEffect(() => {
+    if (!hero) return;
+    const TIPS = [
+      '"연남동이랑 성수동 비교해줘"라고 물어보세요 — 나란히 보여 드려요',
+      '내 가게를 등록하면 ☀️ 원클릭 브리핑이 생겨요',
+      '융자 답변 밑에는 "한 달에 얼마 갚나" 계산기가 따라와요',
+      '저를 콕 찔러 보세요. 네 번 빠르게 찌르면… 비밀이에요 🌀',
+      '아래 "⏰ 곧 마감"은 진짜 공고예요 — 눌러 보세요',
+    ];
+    let i = Math.floor(Math.random() * TIPS.length);
+    const t = setInterval(() => {
+      setSpeech(TIPS[i % TIPS.length]);
+      i += 1;
+    }, 25_000);
+    return () => clearInterval(t);
+  }, [hero]);
+
   // 상단바의 다섯 갈래 — 누르면 그 갈래가 선택된 첫 화면으로 돌아갑니다.
   // 결과를 보던 중이라도 '기능으로 이동'은 새로 시작이 자연스럽습니다.
   useEffect(() => {
