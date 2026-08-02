@@ -253,21 +253,21 @@ function LeafletMap({
         {tourStep && (
           <div className="absolute bottom-3 left-1/2 z-[600] w-[88%] max-w-[420px]
                           -translate-x-1/2 rounded-xl bg-kb-ink/85 px-4 py-2.5
-                          text-center text-[13.5px] font-medium text-white
+                          text-center text-[14.5px] font-medium text-white
                           shadow-lg backdrop-blur">
             {tourStep}
           </div>
         )}
         <div className="absolute left-2.5 top-2.5 z-[500] flex gap-1.5">
           <button onClick={runTour} disabled={touring}
-            className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[12.5px] font-bold
+            className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[13.5px] font-bold
                        text-kb-ink shadow transition hover:brightness-105
                        disabled:opacity-60">
             {touring ? '투어 중…' : '▶ 지도 투어'}
           </button>
           <button onClick={() => setSpeakOn((v) => !v)}
             title="설명을 소리로"
-            className={`rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold shadow
+            className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
                         transition ${speakOn
               ? 'bg-white text-kb-ink' : 'bg-white/70 text-kb-ink/50'}`}>
             {speakOn ? '🔊' : '🔇'}
@@ -279,7 +279,7 @@ function LeafletMap({
             {([['점', false], ['열지도', true]] as const).map(([label, v]) => (
               <button key={label}
                 onClick={() => setHeat(v)}
-                className={`px-2.5 py-1.5 text-[12px] font-semibold transition ${
+                className={`px-2.5 py-1.5 text-[13px] font-semibold transition ${
                   heat === v
                     ? 'bg-kb-yellow text-kb-ink'
                     : 'bg-white/90 text-kb-ink/70 hover:text-kb-ink'}`}>
@@ -292,7 +292,7 @@ function LeafletMap({
 
       {/* 색이 무엇을 뜻하는지 밝히지 않으면 지도가 장식이 됩니다 */}
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5
-                      text-[12px] text-kb-ink/60">
+                      text-[13px] text-kb-ink/60">
         {shops && shops.total > 0 && (
           <span className="inline-flex items-center gap-1.5 font-medium text-kb-ink/80">
             <i className="h-2 w-2 rounded-full" style={{ background: '#FF7A59' }} />
@@ -319,7 +319,7 @@ function LeafletMap({
       </div>
 
       {shops && shops.total > 0 && sameIndustryCount != null && (
-        <p className="mt-2 text-[12.5px] leading-relaxed text-kb-ink/60">
+        <p className="mt-2 text-[13.5px] leading-relaxed text-kb-ink/60">
           주황 점 하나가 실제 {industry ?? '동종업종'} 점포 한 곳입니다.
           몰려 있는 골목이 보이면 그곳이 이 동네의 경쟁 중심입니다.
         </p>

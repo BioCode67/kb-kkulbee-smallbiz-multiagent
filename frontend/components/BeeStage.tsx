@@ -71,7 +71,7 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.34, ease: [0.22, 0.9, 0.3, 1] }}
             className="relative z-10 mb-1 max-w-[30ch] rounded-2xl bg-white px-4 py-2.5
-                       text-center text-[14px] font-medium leading-relaxed text-kb-brownDeep
+                       text-center text-[15px] font-medium leading-relaxed text-kb-brownDeep
                        shadow-[0_10px_30px_rgba(0,0,0,.35)]"
           >
             {speech}

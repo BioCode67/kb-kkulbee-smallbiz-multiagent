@@ -43,14 +43,14 @@ function LiveCheckRow({ s, r, busy, onRun }: {
     <div className="mt-2 border-t border-kb-ink/[.06] pt-2">
       {!r && (
         <button onClick={onRun} disabled={busy}
-          className="text-[12px] font-semibold text-kb-ink/55 transition
+          className="text-[13px] font-semibold text-kb-ink/55 transition
                      hover:text-kb-amber disabled:opacity-50">
           {busy ? '원문을 여는 중…' : '🔄 원문 재확인 — 마감·서식이 바뀌었는지'}
         </button>
       )}
-      {r && !r.ok && <p className="text-[11.5px] text-rose-700">{r.reason}</p>}
+      {r && !r.ok && <p className="text-[12.5px] text-rose-700">{r.reason}</p>}
       {r?.ok && (
-        <div className="space-y-1 text-[11.5px] leading-relaxed text-kb-ink/65">
+        <div className="space-y-1 text-[12.5px] leading-relaxed text-kb-ink/65">
           <p>
             <b className={statusLabel(r)[1]}>{statusLabel(r)[0]}</b>
             {' '}· 원문 기준 {r.checked_at?.slice(11, 16)} 확인
@@ -173,7 +173,7 @@ export default function SavedDrawer({ open, onClose }: {
           >
             <header className="border-b border-kb-ink/[.1] px-4 py-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[16px] font-bold text-kb-ink">
+                <p className="text-[17px] font-bold text-kb-ink">
                   ⭐ 찜한 지원사업 <span className="text-kb-ink/40">{items.length}</span>
                 </p>
                 <button onClick={onClose}
@@ -182,7 +182,7 @@ export default function SavedDrawer({ open, onClose }: {
               </div>
               {bizItems.length >= 2 && (
                 <button onClick={runAll} disabled={sweeping}
-                  className="mt-2 w-full rounded-lg bg-kb-yellow/[.9] py-2 text-[13px]
+                  className="mt-2 w-full rounded-lg bg-kb-yellow/[.9] py-2 text-[14px]
                              font-bold text-kb-ink transition hover:brightness-105
                              disabled:opacity-50">
                   {sweeping ? `원문 ${bizItems.length}건 순찰 중…`
@@ -190,7 +190,7 @@ export default function SavedDrawer({ open, onClose }: {
                 </button>
               )}
               {done.length > 0 && (
-                <p className="mt-1.5 text-center text-[11.5px] text-kb-ink/55">
+                <p className="mt-1.5 text-center text-[12.5px] text-kb-ink/55">
                   오늘 원문 기준: 접수 중 {nOpen}건
                   {nClosed > 0 && <> · <b className="text-rose-700">마감 {nClosed}건</b></>}
                 </p>
@@ -199,7 +199,7 @@ export default function SavedDrawer({ open, onClose }: {
 
             <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3.5">
               {sorted.length === 0 && (
-                <p className="py-10 text-center text-[14px] leading-relaxed text-kb-ink/45">
+                <p className="py-10 text-center text-[15px] leading-relaxed text-kb-ink/45">
                   아직 담은 공고가 없어요.
                   <br />지원사업 카드의 ⭐를 눌러 담아 두세요 —
                   <br />마감 가까운 순으로 여기 모입니다.
@@ -211,20 +211,20 @@ export default function SavedDrawer({ open, onClose }: {
                   <div key={s.id} className="surface-1 bg-white p-3.5">
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[14px] font-semibold leading-snug text-kb-ink">
+                        <p className="text-[15px] font-semibold leading-snug text-kb-ink">
                           {s.name}
                         </p>
-                        <p className="mt-0.5 text-[12px] text-kb-ink/45">
+                        <p className="mt-0.5 text-[13px] text-kb-ink/45">
                           {s.provider} · {s.funding_type}
                         </p>
                       </div>
                       <button onClick={() => removeSaved(s.id)}
                         title="찜 해제"
-                        className="shrink-0 text-[14px] text-kb-ink/30
+                        className="shrink-0 text-[15px] text-kb-ink/30
                                    hover:text-rose-600">✕</button>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className={`rounded-full px-2 py-0.5 text-[11.5px]
+                      <span className={`rounded-full px-2 py-0.5 text-[12.5px]
                                         font-bold ${
                         d == null ? 'bg-sky-500/[.12] text-sky-700'
                         : d < 0 ? 'bg-kb-ink/[.06] text-kb-ink/40 line-through'
@@ -236,7 +236,7 @@ export default function SavedDrawer({ open, onClose }: {
                           : `마감 D-${d}`}
                       </span>
                       <a href={s.url} target="_blank" rel="noreferrer"
-                        className="text-[12.5px] font-semibold text-kb-amber
+                        className="text-[13.5px] font-semibold text-kb-amber
                                    hover:underline">
                         공고 원문 →
                       </a>
@@ -253,7 +253,7 @@ export default function SavedDrawer({ open, onClose }: {
               {items.some((s) => s.deadline) && (
                 <button
                   onClick={() => downloadIcs(items)}
-                  className="mb-2 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[13px]
+                  className="mb-2 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[14px]
                              font-semibold text-kb-ink/70 transition
                              hover:bg-kb-ink/[.09] hover:text-kb-ink"
                   title="구글·애플·네이버 캘린더에 넣을 수 있는 표준 파일"
@@ -261,7 +261,7 @@ export default function SavedDrawer({ open, onClose }: {
                   📅 마감을 내 캘린더로 — .ics 내려받기
                 </button>
               )}
-              <p className="text-center text-[11.5px] text-kb-ink/40">
+              <p className="text-center text-[12.5px] text-kb-ink/40">
                 이 브라우저에만 저장됩니다 · 최대 50건
               </p>
             </footer>

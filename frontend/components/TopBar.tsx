@@ -50,7 +50,7 @@ export default function TopBar() {
         <a href="/" className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/kkulbee.svg" alt="" width={24} height={28} className="shrink-0" />
-          <span className="text-[16px] font-bold tracking-tight text-kb-ink">꿀비</span>
+          <span className="text-[17px] font-bold tracking-tight text-kb-ink">꿀비</span>
         </a>
 
         {/* 핵심 기능 다섯 — 누르면 그 갈래가 선택된 첫 화면으로 */}
@@ -58,7 +58,7 @@ export default function TopBar() {
                         md:flex">
           {NAV.map((label, i) => (
             <button key={label} onClick={() => go(i)}
-                    className="rounded-lg px-3 py-1.5 text-[14px] text-kb-ink/65
+                    className="rounded-lg px-3 py-1.5 text-[15px] text-kb-ink/65
                                transition hover:bg-kb-ink/[.04] hover:text-kb-ink">
               {label}
             </button>
@@ -67,7 +67,7 @@ export default function TopBar() {
 
         <div className="ml-auto flex items-center gap-2.5">
           {stat.stores && stat.docs && (
-            <span className="hidden items-center gap-1.5 text-[12.5px] text-kb-ink/55
+            <span className="hidden items-center gap-1.5 text-[13.5px] text-kb-ink/55
                              lg:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {(stat.stores / 10000).toFixed(0)}만 점포 · {stat.docs}건 실측
@@ -76,7 +76,7 @@ export default function TopBar() {
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}
                   title="찜한 지원사업 — 마감 가까운 순"
-                  className="relative rounded-lg px-2 py-1.5 text-[16px] text-kb-ink/55
+                  className="relative rounded-lg px-2 py-1.5 text-[17px] text-kb-ink/55
                              transition hover:text-kb-amber">
             ☆
             {savedN > 0 && (
@@ -90,7 +90,7 @@ export default function TopBar() {
           {/* 주 CTA — 입력창으로 데려갑니다 */}
           <button
             onClick={() => document.querySelector<HTMLInputElement>('input')?.focus()}
-            className="rounded-full bg-kb-yellow px-4 py-1.5 text-[14px] font-bold
+            className="rounded-full bg-kb-yellow px-4 py-1.5 text-[15px] font-bold
                        text-kb-ink transition hover:brightness-105"
           >
             물어보기

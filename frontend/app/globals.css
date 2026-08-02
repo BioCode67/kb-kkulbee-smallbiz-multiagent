@@ -91,8 +91,8 @@
      굵고 단단한 고딕에서 나온다. 자간을 바짝 줄여 제목답게. */
   .font-display {
     font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-weight: 900;
+    letter-spacing: -0.05em;
   }
 
   ::selection { @apply bg-kb-yellow/30; }
@@ -223,9 +223,27 @@
    여백 자체는 죄가 없지만, 아무 결도 없는 여백은 심심합니다. 꿀비의
    정체성(벌집)을 아주 옅게 깔아 여백에 결을 만듭니다. 글보다 앞에
    나서면 안 되므로 호박색 3% 선으로만. */
-.honeycomb-bg {
+/* mask를 요소에 직접 걸면 자식 콘텐츠까지 흐려집니다(아래로 갈수록
+   씻겨 보이던 버그의 정체). 무늬는 가상요소에만 걸고 내용은 건드리지
+   않습니다. */
+.honeycomb-bg { position: relative; isolation: isolate; }
+.honeycomb-bg::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cg fill='none' stroke='%23E09A00' stroke-opacity='.07' stroke-width='1.5'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16zM28 64l28 16v17M28 64 0 80v17'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 56px 97px;
   -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
   mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+}
+
+
+/* ── 마퀴 밴드 — 젠지 랜딩의 문법. 기능 이름이 흘러가며 화면에 맥박을 준다 */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 30s linear infinite;
 }

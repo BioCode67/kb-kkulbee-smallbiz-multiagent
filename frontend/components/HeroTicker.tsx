@@ -44,7 +44,7 @@ export default function HeroTicker() {
       title="기업마당 공고 원문 열기"
     >
       <span className="shrink-0 rounded-full bg-rose-500/[.12] px-2 py-0.5
-                       text-[11.5px] font-bold text-rose-700">
+                       text-[12.5px] font-bold text-rose-700">
         ⏰ 곧 마감
       </span>
       {/* absolute 자식만 있으면 폭이 0으로 접힙니다 — 폭을 명시합니다 */}
@@ -54,13 +54,13 @@ export default function HeroTicker() {
             key={cur.url}
             initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
             exit={{ y: -14, opacity: 0 }} transition={{ duration: 0.25 }}
-            className="absolute inset-0 truncate text-[13.5px] text-kb-ink/75"
+            className="absolute inset-0 truncate text-[14.5px] text-kb-ink/75"
           >
             {cur.title}
           </motion.span>
         </AnimatePresence>
       </span>
-      <b className="shrink-0 text-[13px] text-rose-700
+      <b className="shrink-0 text-[14px] text-rose-700
                     [font-variant-numeric:tabular-nums]">
         {cur.days_left === 0 ? '오늘 마감' : `D-${cur.days_left}`}
       </b>

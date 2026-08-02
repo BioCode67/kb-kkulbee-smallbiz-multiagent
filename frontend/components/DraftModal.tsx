@@ -58,9 +58,9 @@ export default function DraftModal({ open, onClose, situation }: {
             <header className="flex items-center justify-between border-b
                                border-kb-ink/[.1] px-5 py-4">
               <div>
-                <p className="text-[16px] font-bold text-kb-ink">민원서 초안</p>
+                <p className="text-[17px] font-bold text-kb-ink">민원서 초안</p>
                 {draft && (
-                  <p className="mt-0.5 text-[12.5px] text-kb-ink/55">
+                  <p className="mt-0.5 text-[13.5px] text-kb-ink/55">
                     {draft.dispute_type} ·
                     {draft.generated_by === 'llm' ? ' AI가 사실관계를 정리했습니다'
                                                   : ' 서식 뼈대입니다'}
@@ -76,23 +76,23 @@ export default function DraftModal({ open, onClose, situation }: {
 
             <div className="max-h-[56vh] overflow-y-auto p-5">
               {busy && (
-                <p className="py-10 text-center text-[14px] text-kb-ink/55">
+                <p className="py-10 text-center text-[15px] text-kb-ink/55">
                   겪으신 일을 서식에 앉히는 중…
                 </p>
               )}
               {draft && (
-                <pre className="whitespace-pre-wrap font-sans text-[14px]
+                <pre className="whitespace-pre-wrap font-sans text-[15px]
                                 leading-[1.8] text-kb-ink/90">{draft.draft}</pre>
               )}
             </div>
 
             {draft && (
               <footer className="space-y-2.5 border-t border-kb-ink/[.1] p-4">
-                <p className="text-[12px] leading-relaxed text-amber-800">
+                <p className="text-[13px] leading-relaxed text-amber-800">
                   {draft.note}
                 </p>
                 <button onClick={copy}
-                        className="w-full rounded-xl bg-kb-yellow py-2.5 text-[14.5px]
+                        className="w-full rounded-xl bg-kb-yellow py-2.5 text-[15.5px]
                                    font-bold text-kb-ink hover:brightness-105">
                   {copied ? '복사됨 ✓' : '전체 복사'}
                 </button>

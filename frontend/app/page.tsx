@@ -343,7 +343,7 @@ export default function Page() {
                     initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                     className="inline-flex items-center gap-1.5 rounded-full
                                border border-kb-ink/[.14] bg-white/70 px-3.5 py-1.5
-                               text-[13px] text-kb-ink/70"
+                               text-[14px] text-kb-ink/70"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
                     전국 점포 272만 개 실측으로 답하는 소상공인 AI
@@ -352,8 +352,8 @@ export default function Page() {
                   <motion.h1
                     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.08 }}
-                    className="font-display mt-5 text-[40px] font-bold
-                               leading-[1.14] text-kb-ink sm:text-[56px]"
+                    className="font-display mt-5 text-[46px] font-bold
+                               leading-[1.08] text-kb-ink sm:text-[70px]"
                   >
                     사장님의
                     <br />
@@ -368,7 +368,7 @@ export default function Page() {
                   <motion.p
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     transition={{ delay: 0.16 }}
-                    className="mt-5 max-w-[46ch] text-[16px] leading-[1.75]
+                    className="mt-5 max-w-[46ch] text-[17px] leading-[1.75]
                                text-kb-ink/60"
                   >
                     어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
@@ -384,7 +384,7 @@ export default function Page() {
                   >
                     <button
                       onClick={() => document.querySelector<HTMLInputElement>('#ask input')?.focus()}
-                      className="rounded-full bg-kb-yellow px-6 py-3 text-[15.5px] font-bold
+                      className="rounded-full bg-kb-yellow px-6 py-3 text-[16.5px] font-bold
                                  text-kb-ink transition hover:brightness-105
                                  active:translate-y-px"
                     >
@@ -396,7 +396,7 @@ export default function Page() {
                         onClick={() => ask(
                           `${shop.region}${shop.industry ? ` ${shop.industry}` : ''} `
                           + '상권 상황이랑 지금 받을 수 있는 지원사업 한 번에 봐줘')}
-                        className="rounded-full bg-kb-yellow/[.25] px-4 py-3 text-[14px]
+                        className="rounded-full bg-kb-yellow/[.25] px-4 py-3 text-[15px]
                                    font-bold text-kb-amber transition hover:bg-kb-yellow/[.4]"
                       >
                         ☀️ 내 가게 브리핑
@@ -448,11 +448,11 @@ export default function Page() {
                               : 'border border-kb-ink/[.12] bg-white/85 shadow-sm hover:-translate-y-0.5 hover:bg-white hover:shadow-md'}`}
                         >
                           <ModeIcon name={m.icon} on={on} />
-                          <span className={`text-[13px] font-semibold ${
+                          <span className={`text-[14px] font-semibold ${
                             on ? 'text-kb-amber' : 'text-kb-ink/80'}`}>
                             {m.label}
                           </span>
-                          <span className={`hidden text-[11px] sm:block ${
+                          <span className={`hidden text-[12px] sm:block ${
                             on ? 'text-kb-ink/60' : 'text-kb-ink/40'}`}>
                             {m.desc}
                           </span>
@@ -484,8 +484,8 @@ export default function Page() {
                                    text-left transition hover:border-kb-amber/40
                                    hover:bg-white hover:shadow-sm"
                       >
-                        <span className="text-[12px] text-kb-amber transition">→</span>
-                        <span className="text-[14px] font-medium text-kb-ink/75
+                        <span className="text-[13px] text-kb-amber transition">→</span>
+                        <span className="text-[15px] font-medium text-kb-ink/75
                                          group-hover:text-kb-ink">{q}</span>
                       </button>
                     ))}
@@ -493,19 +493,40 @@ export default function Page() {
                 </div>
               </motion.div>
 
-              {/* ── 신뢰 숫자 ── */}
-              <div className="mt-14 grid w-full max-w-[880px] grid-cols-3
-                              divide-x divide-kb-ink/[.1] border-y
-                              border-kb-ink/[.1] py-6">
+              {/* ── 마퀴 밴드 — 기능이 흘러갑니다 (젠지 랜딩 문법) ── */}
+              <div className="mt-14 w-full overflow-hidden border-y
+                              border-kb-ink/[.08] bg-white/60 py-3"
+                   aria-hidden>
+                <div className="marquee-track">
+                  {[0, 1].map((rep) => (
+                    <span key={rep} className="flex shrink-0 items-center">
+                      {['272만 점포 실측', '정부 공고 900건', '금소법 가드레일',
+                        '두 동네 비교', 'RPA 원문 순찰', '마감 캘린더',
+                        'What-If 역계산', '상환 시뮬레이터', '3,450개 동네 백분위',
+                        '민원서 초안', '지도 투어'].map((w) => (
+                        <span key={w} className="mx-6 flex items-center gap-6
+                                                 text-[15px] font-bold
+                                                 tracking-tight text-kb-ink/60">
+                          {w} <span className="text-kb-yellow">✦</span>
+                        </span>
+                      ))}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── 신뢰 숫자 — 필 카드 (모두봄 문법) ── */}
+              <div className="mt-12 grid w-full max-w-[880px] grid-cols-3 gap-4">
                 {[
-                  ['2,725,318', '전국 점포 실측 좌표'],
-                  ['900', '정부 지원사업 공고'],
-                  ['3,450', '행정동 백분위 비교'],
+                  ['272만+', '전국 점포 실측 좌표'],
+                  ['900건', '정부 지원사업 공고'],
+                  ['3,450곳', '행정동 백분위 비교'],
                 ].map(([n, l]) => (
-                  <div key={l} className="px-4 text-center">
-                    <p className="text-[24px] font-extrabold tracking-tight text-kb-ink
+                  <div key={l} className="rounded-2xl border border-kb-ink/[.1] bg-white
+                                          px-4 py-6 text-center shadow-sm">
+                    <p className="text-[34px] font-extrabold tracking-tight text-kb-amber
                                   [font-variant-numeric:tabular-nums]">{n}</p>
-                    <p className="mt-1 text-[12.5px] text-kb-ink/55">{l}</p>
+                    <p className="mt-1 text-[14px] font-medium text-kb-ink/60">{l}</p>
                   </div>
                 ))}
               </div>
@@ -522,8 +543,8 @@ export default function Page() {
                    'LLM이 쓴 문장까지 예외 없이 검사를 거칩니다. 상단의 검사기에서 아무 문장이나 직접 시험해 보세요.'],
                 ].map(([t, d]) => (
                   <div key={t} className="surface-1 p-5">
-                    <p className="text-[15px] font-bold text-kb-ink">{t}</p>
-                    <p className="mt-2 text-[13.5px] leading-[1.7] text-kb-ink/60">{d}</p>
+                    <p className="text-[16px] font-bold text-kb-ink">{t}</p>
+                    <p className="mt-2 text-[14.5px] leading-[1.7] text-kb-ink/60">{d}</p>
                   </div>
                 ))}
               </div>
@@ -543,7 +564,7 @@ export default function Page() {
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
-                  className="mt-2 rounded-full px-4 py-1.5 text-[12.5px] text-kb-ink/55
+                  className="mt-2 rounded-full px-4 py-1.5 text-[13.5px] text-kb-ink/55
                              transition hover:bg-kb-ink/[.06] hover:text-kb-ink"
                 >
                   ← 처음으로
@@ -562,8 +583,8 @@ export default function Page() {
               {/* 인쇄에만 나오는 머리말 — 은행·지원센터 창구에 들고 갈 수
                   있는 문서가 되도록 출처와 날짜를 박습니다. */}
               <div className="hidden print:block border-b border-kb-ink/20 pb-3">
-                <p className="text-[17px] font-bold text-kb-ink">🐝 꿀비 상담 리포트</p>
-                <p className="mt-1 text-[11px] text-kb-ink/60">
+                <p className="text-[18px] font-bold text-kb-ink">🐝 꿀비 상담 리포트</p>
+                <p className="mt-1 text-[12px] text-kb-ink/60">
                   kb-kkulbee-smallbiz-multiagent.onrender.com ·
                   인쇄일 {new Date().toLocaleDateString('ko-KR')} ·
                   참고용 정보이며 대출 승인·한도·금리를 보장하지 않습니다
@@ -577,8 +598,8 @@ export default function Page() {
                     exit={{ opacity: 0 }}
                     className="mt-4 rounded-xl bg-rose-500/10 px-4 py-3 ring-1 ring-rose-400/25"
                   >
-                    <p className="text-[13.5px] text-rose-700">{error}</p>
-                    <p className="mt-1 text-[12.5px] text-rose-700">
+                    <p className="text-[14.5px] text-rose-700">{error}</p>
+                    <p className="mt-1 text-[13.5px] text-rose-700">
                       백엔드를 먼저 실행하세요 —{' '}
                       <code className="font-mono">uvicorn app.main:app --port 8000</code>
                     </p>
@@ -597,7 +618,7 @@ export default function Page() {
                         위에서 아래로 읽힙니다. */}
                     <div className="flex justify-end">
                       <p className="max-w-[75%] rounded-2xl rounded-br-md
-                                    bg-kb-yellow/[.14] px-4 py-2.5 text-[14.5px]
+                                    bg-kb-yellow/[.14] px-4 py-2.5 text-[15.5px]
                                     leading-relaxed text-kb-amber ring-1
                                     ring-kb-yellow/[.25]">
                         {q}
@@ -621,13 +642,13 @@ export default function Page() {
                         지금 맥락과 어긋날 수 있습니다. */}
                     {i === history.length - 1 && !loading && r.suggestions.length > 0 && (
                       <div className="print:hidden flex flex-wrap items-center gap-2 pt-1">
-                        <span className="text-[12.5px] text-kb-ink/50">이어서 물어보기</span>
+                        <span className="text-[13.5px] text-kb-ink/50">이어서 물어보기</span>
                         {r.suggestions.map((sq) => (
                           <button
                             key={sq}
                             onClick={() => ask(sq)}
                             className="rounded-full bg-kb-yellow/[.09] px-3.5 py-1.5
-                                       text-[13.5px] text-kb-amber ring-1
+                                       text-[14.5px] text-kb-amber ring-1
                                        ring-kb-yellow/[.28] transition
                                        hover:bg-kb-yellow/[.18] hover:text-kb-amber"
                           >
@@ -646,7 +667,7 @@ export default function Page() {
                                   animate={{ opacity: 1, y: 0 }}
                                   className="flex justify-end">
                         <p className="max-w-[75%] rounded-2xl rounded-br-md
-                                      bg-kb-yellow/[.14] px-4 py-2.5 text-[14.5px]
+                                      bg-kb-yellow/[.14] px-4 py-2.5 text-[15.5px]
                                       leading-relaxed text-kb-amber ring-1
                                       ring-kb-yellow/[.25]">
                           {pendingQ}
@@ -752,7 +773,7 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) onSubmit(); }}
         placeholder={placeholder ?? '꿀비에게 물어보세요'}
         disabled={loading}
-        className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[15.5px] text-kb-ink
+        className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[16.5px] text-kb-ink
                    placeholder:text-kb-ink/45 focus:outline-none disabled:opacity-50"
       />
       {mic.supported && (
@@ -775,7 +796,7 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
       <button
         onClick={onSubmit}
         disabled={loading || !value.trim()}
-        className="shrink-0 rounded-xl bg-kb-yellow px-5 py-3 text-[14.5px] font-bold
+        className="shrink-0 rounded-xl bg-kb-yellow px-5 py-3 text-[15.5px] font-bold
                    text-kb-ink transition hover:brightness-105 active:translate-y-px
                    disabled:cursor-not-allowed disabled:opacity-[.35]"
       >
@@ -821,14 +842,14 @@ function Thinking() {
           return (
             <li key={s.label} className="flex items-start gap-3">
               <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center
-                                rounded-full text-[11px] font-bold transition-colors ${
+                                rounded-full text-[12px] font-bold transition-colors ${
                 state === 'done' ? 'bg-kb-yellow/20 text-kb-amber'
                 : state === 'now' ? 'bg-kb-yellow text-kb-ink'
                 : 'bg-kb-ink/[.05] text-kb-ink/40'}`}>
                 {state === 'done' ? '✓' : i + 1}
               </span>
               <div className="min-w-0">
-                <p className={`text-[14px] font-medium transition-colors ${
+                <p className={`text-[15px] font-medium transition-colors ${
                   state === 'wait' ? 'text-kb-ink/40' : 'text-kb-ink/90'}`}>
                   {s.label}
                   {state === 'now' && (
@@ -841,7 +862,7 @@ function Thinking() {
                     </span>
                   )}
                 </p>
-                <p className={`mt-0.5 text-[12px] transition-colors ${
+                <p className={`mt-0.5 text-[13px] transition-colors ${
                   state === 'wait' ? 'text-kb-ink/15' : 'text-kb-ink/55'}`}>
                   {s.hint}
                 </p>
@@ -877,7 +898,7 @@ function Answer({ res }: { res: ChatResponse }) {
         <button
           onClick={() => window.print()}
           title="이 상담을 인쇄하거나 PDF로 저장합니다"
-          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[12px]
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
                      text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
@@ -892,7 +913,7 @@ function Answer({ res }: { res: ChatResponse }) {
             speechSynthesis.cancel(); speechSynthesis.speak(u);
           }}
           title="꿀비가 읽어줍니다"
-          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[12px]
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
                      text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
@@ -900,7 +921,7 @@ function Answer({ res }: { res: ChatResponse }) {
         </button>
         <button
           onClick={share}
-          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[12px]
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
                      text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
@@ -913,18 +934,18 @@ function Answer({ res }: { res: ChatResponse }) {
       {(understood?.region || understood?.industry) && (
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
                         border-kb-ink/[.1] pb-3">
-          <span className="text-[11.5px] text-kb-ink/45">이렇게 이해했어요</span>
+          <span className="text-[12.5px] text-kb-ink/45">이렇게 이해했어요</span>
           {understood.region && (
-            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[12.5px]
+            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[13.5px]
                              font-medium text-kb-ink/80">📍 {understood.region}</span>
           )}
           {understood.industry && (
-            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[12.5px]
+            <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[13.5px]
                              font-medium text-kb-ink/80">{understood.industry}</span>
           )}
           {(understood.intents ?? []).map((i) => (
             <span key={i} className="rounded-md bg-kb-yellow/[.12] px-2 py-0.5
-                                     text-[12px] font-semibold text-kb-amber">
+                                     text-[13px] font-semibold text-kb-amber">
               {INTENT_KO[i] ?? i}
             </span>
           ))}
@@ -932,17 +953,17 @@ function Answer({ res }: { res: ChatResponse }) {
       )}
       <div className="space-y-2.5">
         {body.split('\n').filter(Boolean).map((line, i) => (
-          <p key={i} className="text-[15.5px] leading-[1.8] text-kb-ink">{line}</p>
+          <p key={i} className="text-[16.5px] leading-[1.8] text-kb-ink">{line}</p>
         ))}
       </div>
       {notes.length > 0 && (
         <ul className="mt-4 space-y-1 border-t border-kb-ink/[.1] pt-3">
           {notes.map((n, i) => (
-            <li key={i} className="text-[12px] leading-relaxed text-kb-ink/50">· {n}</li>
+            <li key={i} className="text-[13px] leading-relaxed text-kb-ink/50">· {n}</li>
           ))}
         </ul>
       )}
-      <p className="mt-3 text-right text-[11.5px] text-kb-ink/40">
+      <p className="mt-3 text-right text-[12.5px] text-kb-ink/40">
         {elapsed}ms 만에 답했어요
       </p>
     </div>
@@ -958,7 +979,7 @@ function Answer({ res }: { res: ChatResponse }) {
 function AgentTrace({ res }: { res: ChatResponse }) {
   return (
     <div className="surface-1 mt-4 p-4">
-      <p className="text-[11.5px] font-semibold uppercase tracking-wider text-kb-ink/60">
+      <p className="text-[12.5px] font-semibold uppercase tracking-wider text-kb-ink/60">
         꿀비가 한 일
       </p>
 
@@ -975,7 +996,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
                 : 'bg-kb-yellow/25 text-kb-amber'}`}>
               {i + 1}
             </span>
-            <span className={`text-[13.5px] ${
+            <span className={`text-[14.5px] ${
               a === 'guardrail' ? 'text-rose-700' : 'text-kb-ink/85'}`}>
               {AGENT_LABEL[a] ?? a}
             </span>
@@ -985,7 +1006,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
 
       {res.guardrail && (
         <p className={`mt-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2
-                       text-[12px] leading-snug ${
+                       text-[13px] leading-snug ${
           res.guardrail.passed
             ? 'bg-emerald-400/10 text-emerald-700'
             : 'bg-rose-400/10 text-rose-700'}`}>
@@ -996,7 +1017,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         </p>
       )}
 
-      <p className="mt-2.5 text-right text-[11px] text-kb-ink/40">
+      <p className="mt-2.5 text-right text-[12px] text-kb-ink/40">
         {res.elapsed_ms}ms
       </p>
     </div>

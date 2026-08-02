@@ -72,13 +72,13 @@ export default function LoanCalc({ policies }: { policies: PolicyMatch[] }) {
       <button onClick={() => setOpenCalc((v) => !v)}
         className="flex w-full items-center justify-between px-5 py-4 text-left">
         <div>
-          <h3 className="font-display text-[17px] text-kb-ink">이 돈 빌리면 한 달에 얼마 갚을까</h3>
-          <p className="mt-0.5 text-[13px] text-kb-ink/60">
+          <h3 className="font-display text-[18px] text-kb-ink">이 돈 빌리면 한 달에 얼마 갚을까</h3>
+          <p className="mt-0.5 text-[14px] text-kb-ink/60">
             {loan ? `위 공고의 한도·금리(${won((loan.limit_krw!))}·${loan.rate_pct ?? '—'}%)로 채워 뒀어요`
               : '금액·금리·기간을 넣으면 상환 방식별로 비교해 드려요'}
           </p>
         </div>
-        <span className="text-[14px] text-kb-ink/40">{openCalc ? '접기 ▲' : '계산해 보기 ▼'}</span>
+        <span className="text-[15px] text-kb-ink/40">{openCalc ? '접기 ▲' : '계산해 보기 ▼'}</span>
       </button>
 
       {openCalc && (
@@ -89,10 +89,10 @@ export default function LoanCalc({ policies }: { policies: PolicyMatch[] }) {
                ['갚는 기간 (년)', years, setYears, 1]] as const).map(
               ([label, val, set, step]) => (
               <label key={label} className="block">
-                <span className="text-[12px] font-semibold text-kb-ink/55">{label}</span>
+                <span className="text-[13px] font-semibold text-kb-ink/55">{label}</span>
                 <input type="number" value={val} step={step} min={0}
                   onChange={(e) => (set as (n: number) => void)(Number(e.target.value))}
-                  className="mt-1 w-full rounded-lg bg-kb-ink/[.04] px-3 py-2 text-[14.5px]
+                  className="mt-1 w-full rounded-lg bg-kb-ink/[.04] px-3 py-2 text-[15.5px]
                              text-kb-ink ring-1 ring-kb-ink/[.12]
                              focus:outline-none focus:ring-kb-yellow/50" />
               </label>
@@ -105,10 +105,10 @@ export default function LoanCalc({ policies }: { policies: PolicyMatch[] }) {
                 className={`flex-1 rounded-lg px-2 py-2 text-center ring-1 transition ${
                   method === m ? 'bg-kb-yellow/[.18] ring-kb-yellow/50'
                     : 'ring-kb-ink/[.1] hover:ring-kb-ink/[.2]'}`}>
-                <span className="block text-[13px] font-bold text-kb-ink">
+                <span className="block text-[14px] font-bold text-kb-ink">
                   {METHOD_LABEL[m][0]}
                 </span>
-                <span className="block text-[11px] text-kb-ink/50">
+                <span className="block text-[12px] text-kb-ink/50">
                   {METHOD_LABEL[m][1]}
                 </span>
               </button>
@@ -118,29 +118,29 @@ export default function LoanCalc({ policies }: { policies: PolicyMatch[] }) {
           {r && (
             <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl bg-kb-ink/[.04] p-4">
               <div>
-                <p className="text-[11.5px] font-bold text-kb-ink/50">
+                <p className="text-[12.5px] font-bold text-kb-ink/50">
                   {method === 'equal' ? '첫 달' : method === 'bullet' ? '매달 이자' : '매달'}
                 </p>
-                <p className="text-[17px] font-extrabold text-kb-ink
+                <p className="text-[18px] font-extrabold text-kb-ink
                               [font-variant-numeric:tabular-nums]">{won(r.first)}</p>
               </div>
               <div>
-                <p className="text-[11.5px] font-bold text-kb-ink/50">
+                <p className="text-[12.5px] font-bold text-kb-ink/50">
                   {method === 'equal' ? '마지막 달'
                     : method === 'bullet' ? '만기에' : '마지막 달도'}
                 </p>
-                <p className="text-[17px] font-extrabold text-kb-ink
+                <p className="text-[18px] font-extrabold text-kb-ink
                               [font-variant-numeric:tabular-nums]">{won(r.last)}</p>
               </div>
               <div>
-                <p className="text-[11.5px] font-bold text-kb-ink/50">총 이자</p>
-                <p className="text-[17px] font-extrabold text-kb-amber
+                <p className="text-[12.5px] font-bold text-kb-ink/50">총 이자</p>
+                <p className="text-[18px] font-extrabold text-kb-amber
                               [font-variant-numeric:tabular-nums]">{won(r.total)}</p>
               </div>
             </div>
           )}
 
-          <p className="mt-3 text-[11.5px] leading-relaxed text-kb-ink/50">
+          <p className="mt-3 text-[12.5px] leading-relaxed text-kb-ink/50">
             공식 그대로의 산수입니다. 실제 승인 여부·한도·금리는 심사 결과에 따라
             달라지며, 중도상환수수료·보증료는 들어 있지 않아요.
           </p>
