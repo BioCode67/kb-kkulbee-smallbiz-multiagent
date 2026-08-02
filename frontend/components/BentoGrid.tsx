@@ -771,14 +771,37 @@ function SaveStar({ m }: { m: PolicyMatch }) {
     setSaved(isSaved(m.program_id));
     return onSavedChange(() => setSaved(isSaved(m.program_id)));
   }, [m.program_id]);
+  // 찜하는 순간 별이 상단 ☆ 서랍으로 유성처럼 빨려 들어갑니다 —
+  // '어디에 담겼는지'를 눈이 따라가게 하는 것이 목적입니다.
+  const shoot = (from: HTMLElement) => {
+    const to = document.querySelector<HTMLElement>("header button[title*='마감 가까운']");
+    if (!to) return;
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const fly = document.createElement('span');
+    fly.textContent = '⭐';
+    Object.assign(fly.style, {
+      position: 'fixed', left: `${a.left + a.width / 2}px`,
+      top: `${a.top + a.height / 2}px`, zIndex: '99', fontSize: '22px',
+      pointerEvents: 'none', transform: 'translate(-50%,-50%)',
+      transition: 'all .65s cubic-bezier(.3,.7,.3,1)',
+    });
+    document.body.appendChild(fly);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      fly.style.left = `${b.left + b.width / 2}px`;
+      fly.style.top = `${b.top + b.height / 2}px`;
+      fly.style.transform = 'translate(-50%,-50%) scale(.35) rotate(320deg)';
+      fly.style.opacity = '0.2';
+    }));
+    setTimeout(() => fly.remove(), 700);
+  };
   return (
     <button
-      onClick={() => toggleSaved({
+      onClick={(e) => { if (!saved) shoot(e.currentTarget); toggleSaved({
         id: m.program_id, name: m.name, provider: m.provider,
         funding_type: m.funding_type, deadline: m.apply_deadline ?? null,
         apply_period: m.apply_period ?? '',
         url: m.source_url || m.apply_url || '',
-      })}
+      }); }}
       title={saved ? '찜 해제' : '찜해 두고 마감 챙기기'}
       className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[17px]
                   transition ${saved

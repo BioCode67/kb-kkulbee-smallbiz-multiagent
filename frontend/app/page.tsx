@@ -187,6 +187,16 @@ export default function Page() {
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
       setHistory((h) => [...h.slice(-7), { q, res: data }]);
+      // 배달 비행 — 새 답이 놓이면 꿀비가 그 위로 스윽 날아갔다 돌아옵니다.
+      // "이거 내가 가져왔어요"의 몸짓.
+      setTimeout(() => {
+        const last = resultRef.current?.lastElementChild;
+        if (!last) return;
+        const r = (last as HTMLElement).getBoundingClientRect();
+        window.dispatchEvent(new CustomEvent('kkulbee:flyto',
+          { detail: { x: r.left + r.width * 0.5, y: Math.max(120, r.top + 40) } }));
+        setTimeout(() => window.dispatchEvent(new CustomEvent('kkulbee:flyhome')), 1500);
+      }, 500);
       // 좋은 소식은 몸으로도 알립니다. S·A등급이면 꿀색 종이가 잠깐 흩날립니다.
       // 장난 같지만, 점수를 "받았다"는 감각을 만드는 것은 이런 2초입니다.
       if (data.location && (data.location.grade === 'S' || data.location.grade === 'A')) {

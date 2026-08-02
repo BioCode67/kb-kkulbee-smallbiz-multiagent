@@ -330,6 +330,9 @@ export default function BeeCharacter3D({
       // 돌아옵니다. 핵심은 저감쇠 스프링: 놓았을 때 한 번에 서지 않고
       // 두어 번 출렁여야 '쫀득'이 됩니다.
       let dragging = false, grabX = 0, grabY = 0, grabT = 0;
+      // 던지기 — 놓기 직전 속도를 기억했다가 포물선으로 날립니다
+      const trail: { x: number; y: number; t: number }[] = [];
+      const ball = { on: false, vx: 0, vy: 0 };   // world units/frame
       let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
       let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
       let spinFrom = -10;                  // 클릭 리액션(한 바퀴) 시작 시각
@@ -373,6 +376,8 @@ export default function BeeCharacter3D({
           const f = wpp() / kk / 0.75;
           pullX = (e.clientX - grabX) * f;
           pullY = -(e.clientY - grabY) * f;
+          trail.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+          while (trail.length && performance.now() - trail[0].t > 90) trail.shift();
         }
       };
       const onDown = (e: PointerEvent) => {
@@ -386,6 +391,21 @@ export default function BeeCharacter3D({
         const moved = Math.hypot(e.clientX - grabX, e.clientY - grabY);
         const held = performance.now() - grabT;
         const stretch = Math.hypot(pullX, pullY);
+        // 세게 던졌으면 스프링 복귀 대신 포물선으로 날아갑니다
+        if (trail.length >= 2) {
+          const a = trail[0], z = trail[trail.length - 1];
+          const dt = Math.max(16, z.t - a.t);
+          const pvx = (z.x - a.x) / dt * 1000;   // px/s
+          const pvy = (z.y - a.y) / dt * 1000;
+          const sp = Math.hypot(pvx, pvy);
+          if (sp > 900) {
+            ball.on = true;
+            ball.vx = pvx * wpp() / 60;          // world/frame(60fps 기준)
+            ball.vy = -pvy * wpp() / 60;
+            boing(Math.min(1, sp / 4000));
+          }
+        }
+        trail.length = 0;
         pullX = 0; pullY = 0;             // 스프링이 출렁이며 제자리로
         document.body.style.cursor = '';
         if (moved < 6 && held < 350) {
@@ -458,7 +478,29 @@ export default function BeeCharacter3D({
         const py = flyOverride ? flyOverride.y : rect.top + rect.height / 2;
         const txw = (px - winW / 2) * wpp();
         const tyw = (winH / 2 - py) * wpp();
-        if (!placed) {
+        if (ball.on) {
+          // 포물선 — 중력이 당기고 벽이 되받아칩니다. 부딪힐 때마다
+          // '보잉'과 함께 찌그러졌다 펴집니다. 힘이 빠지면 스스로 귀가.
+          ball.vy -= 0.035;
+          beeRoot.position.x += ball.vx;
+          beeRoot.position.y += ball.vy;
+          const hw = (winW / 2) * wpp() - 1.2 * k * 5 * 0.35;
+          const hh = (winH / 2) * wpp() - 1.2 * k * 5 * 0.35;
+          if (beeRoot.position.x > hw || beeRoot.position.x < -hw) {
+            beeRoot.position.x = Math.max(-hw, Math.min(hw, beeRoot.position.x));
+            ball.vx *= -0.72; jvx += ball.vx * 0.6;
+            boing(Math.min(1, Math.abs(ball.vx) * 2));
+          }
+          if (beeRoot.position.y < -hh || beeRoot.position.y > hh) {
+            beeRoot.position.y = Math.max(-hh, Math.min(hh, beeRoot.position.y));
+            ball.vy *= -0.68; ball.vx *= 0.9; jvy += ball.vy * 0.7;
+            boing(Math.min(1, Math.abs(ball.vy) * 2));
+          }
+          beeRoot.rotation.z = Math.max(-0.5, Math.min(0.5, -ball.vx * 1.4));
+          if (Math.hypot(ball.vx, ball.vy) < 0.06 && Math.abs(beeRoot.position.y + hh) < 1) {
+            ball.on = false;              // 힘이 다했다 — 집으로
+          }
+        } else if (!placed) {
           beeRoot.position.set(txw, tyw, 0);
           placed = true;
         } else {
@@ -466,9 +508,11 @@ export default function BeeCharacter3D({
           beeRoot.position.x += (txw - beeRoot.position.x) * 0.085;
           beeRoot.position.y += (tyw - beeRoot.position.y) * 0.085;
         }
-        // 비행 방향으로 살짝 기울기 — 이동감
-        const vx = txw - beeRoot.position.x;
-        beeRoot.rotation.z = Math.max(-0.3, Math.min(0.3, -vx * 0.12));
+        // 비행 방향으로 살짝 기울기 — 이동감 (탄도 중엔 탄도가 기울기 결정)
+        if (!ball.on) {
+          const vx = txw - beeRoot.position.x;
+          beeRoot.rotation.z = Math.max(-0.3, Math.min(0.3, -vx * 0.12));
+        }
         const m = motionRef.current;
         const happy = m === 'fly_happy';
         const thinking = m === 'thinking';
