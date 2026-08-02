@@ -516,7 +516,14 @@ def _suggest(state: GraphState) -> list[str]:
         if getattr(loc, "gaps", None):
             g = loc.gaps[0]
             out.append(f"{g.name}이(가) 왜 부족한지 더 알려줘")
-        out.append("바로 옆 동네랑 비교하면 어때?")
+        # 비교 칩은 구체적인 두 동네로 만듭니다. "바로 옆 동네랑 비교"는
+        # 눌러도 어느 동네인지 몰라 단일 분석으로 떨어졌습니다 — 닮은 동네
+        # 1위를 상대로 붙이면 누르는 순간 진짜 비교가 돕니다.
+        if not state.get("compare") and getattr(loc, "dong_code", None):
+            sim = market_data.similar_dongs(loc.dong_code, 1)
+            if sim and sim[0].get("name"):
+                mine = loc.region_name.split()[-1]
+                out.append(f"{mine}이랑 {sim[0]['name']} 비교해줘")
 
     if "policy" in got and pols:
         kinds = {p.funding_type for p in pols}
