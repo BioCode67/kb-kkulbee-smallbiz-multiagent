@@ -24,6 +24,7 @@ import MyShop, { type ShopProfile } from '@/components/MyShop';
 import BreakEven from '@/components/BreakEven';
 import BeeChatbot from '@/components/BeeChatbot';
 import SiteFooter from '@/components/SiteFooter';
+import HeroTicker from '@/components/HeroTicker';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -233,8 +234,13 @@ export default function Page() {
       setSpeech(LINES[i % LINES.length]);
       i += 1;
     };
+    const dizzy = () => { setMood('thinking'); setSpeech('어… 어지러워요 🌀 그만 찔러요~'); };
     window.addEventListener('kkulbee:poked', h);
-    return () => window.removeEventListener('kkulbee:poked', h);
+    window.addEventListener('kkulbee:dizzy', dizzy);
+    return () => {
+      window.removeEventListener('kkulbee:poked', h);
+      window.removeEventListener('kkulbee:dizzy', dizzy);
+    };
   }, []);
 
   // 상단바의 다섯 갈래 — 누르면 그 갈래가 선택된 첫 화면으로 돌아갑니다.
@@ -384,6 +390,9 @@ export default function Page() {
                   소스코드 보기
                 </a>
               </motion.div>
+
+              {/* 곧 마감 공고가 흐릅니다 — 묻기 전에도 살아 있는 화면 */}
+              <HeroTicker />
 
               {/* 꿀비 — 프레임 위에 살짝 걸쳐 앉습니다 */}
               <motion.div layoutId="bee" transition={SPRING}

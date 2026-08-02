@@ -227,6 +227,42 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.get("/api/v1/closing-soon")
+def closing_soon(days: int = 10) -> dict:
+    """마감이 코앞인 공고들 — 첫 화면의 '지금 움직여야 하는 것'.
+
+    색인 900건에서 접수 중이고 마감이 days일 안인 것만 골라 임박순으로.
+    놓친 마감은 돌아오지 않으므로, 묻기 전에도 보여 줍니다.
+    """
+    import json as _json
+    from datetime import date as _date
+
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "data", "policy_index", "docs.json")
+    try:
+        docs = _json.load(open(path, encoding="utf-8"))
+    except OSError:
+        return {"items": []}
+    today = _date.today()
+    out = []
+    for d in docs:
+        end = d.get("apply_end")
+        if d.get("open_status") != "open" or not end:
+            continue
+        try:
+            left = (_date.fromisoformat(end) - today).days
+        except ValueError:
+            continue
+        if 0 <= left <= max(1, min(days, 30)):
+            out.append({
+                "title": d.get("title"), "deadline": end, "days_left": left,
+                "url": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do"
+                       f"?pblancId={d.get('id')}",
+            })
+    out.sort(key=lambda x: x["days_left"])
+    return {"items": out[:8], "source": "기업마당 공고 색인 (2026-07 수집)"}
+
+
 @app.post("/api/v1/rpa/check-all")
 def rpa_check_all(payload: dict) -> dict:
     """찜해 둔 공고 전부를 한 번에 훑습니다 (최대 10건, 4갈래 동시).

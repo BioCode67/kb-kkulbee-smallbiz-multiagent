@@ -309,6 +309,8 @@ export default function BeeCharacter3D({
       let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
       let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
       let spinFrom = -10;                  // 클릭 리액션(한 바퀴) 시작 시각
+      let dizzyFrom = -10;                 // 연타 이스터에그(어지럼) 시작 시각
+      const pokes: number[] = [];          // 최근 찌른 시각들
 
       // 통통 소리 — 에셋 없이 오실레이터로 만듭니다. 놓는 순간의 '보잉'이
       // 쫀득함을 귀로도 완성합니다. 사용자 제스처 뒤에만 생성(브라우저 정책).
@@ -354,10 +356,20 @@ export default function BeeCharacter3D({
         renderer.domElement.style.cursor = 'grab';
         if (moved < 6 && held < 350) {
           // 드래그가 아니라 콕 찌른 것 — 한 바퀴 돌고 폴짝 뛰며 한마디
-          spinFrom = clock.getElapsedTime();
+          const now = clock.getElapsedTime();
+          spinFrom = now;
           jvy += 0.32;
           boing(0.4);
-          window.dispatchEvent(new CustomEvent('kkulbee:poked'));
+          // 3초 안에 4번 연타하면 어지러워합니다 — 발견한 사람만 아는 재미
+          pokes.push(now);
+          while (pokes.length && now - pokes[0] > 3) pokes.shift();
+          if (pokes.length >= 4) {
+            dizzyFrom = now;
+            pokes.length = 0;
+            window.dispatchEvent(new CustomEvent('kkulbee:dizzy'));
+          } else {
+            window.dispatchEvent(new CustomEvent('kkulbee:poked'));
+          }
         } else if (stretch > 0.25) {
           boing(Math.min(1, stretch));    // 늘였다 놓은 만큼 낮게 '보잉'
         }
@@ -418,6 +430,11 @@ export default function BeeCharacter3D({
         const sp = (t - spinFrom) / 0.85;
         const spin = sp >= 0 && sp < 1 ? (1 - Math.pow(1 - sp, 3)) * Math.PI * 2 : 0;
 
+        // 연타 어지럼 — 1.8초 동안 흔들리다 서서히 멈춥니다
+        const dz = (t - dizzyFrom) / 1.8;
+        const dizzy = dz >= 0 && dz < 1 ? (1 - dz) : 0;
+        if (dizzy > 0) bee.rotation.z += Math.sin(t * 16) * 0.14 * dizzy;
+
         // 마우스를 향해 천천히 고개를 돌립니다
         cx += (tx - cx) * 0.07;
         cy += (ty - cy) * 0.07;
@@ -453,7 +470,8 @@ export default function BeeCharacter3D({
         // 깜빡임은 눈알을 위아래로 눌러 만듭니다. 눈꺼풀을 따로 두었더니
         // 평소에도 이마에 크림색 혹이 떠 있는 것처럼 보였습니다.
         eyes.forEach((eye) => {
-          eye.scale.y = 1.18 * Math.max(0.06, 1 - lidT);
+          // 어지러울 때는 눈이 가늘어집니다 (@_@ 의 3D식 표현)
+          eye.scale.y = 1.18 * Math.max(0.06, 1 - lidT) * (dizzy > 0 ? 0.4 : 1);
         });
 
         renderer.render(scene, camera);
