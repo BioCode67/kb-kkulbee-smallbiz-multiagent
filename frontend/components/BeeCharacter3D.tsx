@@ -95,6 +95,8 @@ export default function BeeCharacter3D({
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
       document.body.appendChild(renderer.domElement);
+      // 스크린리더에는 장식일 뿐입니다 — 캔버스를 읽으려 들지 않게.
+      renderer.domElement.setAttribute('aria-hidden', 'true');
       Object.assign(renderer.domElement.style, {
         position: 'fixed', inset: '0', zIndex: '34',
         pointerEvents: 'none', display: 'block',

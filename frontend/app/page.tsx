@@ -227,6 +227,27 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 문서 제목 — 탭을 여러 개 띄워 놓아도 어느 상담인지 알 수 있게.
+  // 갈래 페이지는 갈래 이름, 상담 중엔 마지막 질문이 제목이 됩니다.
+  useEffect(() => {
+    const apply = () => {
+      const base = '꿀비 — 사장님 곁의 AI 비서';
+      if (!hero && history.length) {
+        const q = history[history.length - 1].q;
+        document.title = `${q.length > 24 ? q.slice(0, 24) + '…' : q} — 꿀비`;
+      } else if (view === 'mode') {
+        document.title = `${MODES[mode].label} — 꿀비`;
+      } else {
+        document.title = base;
+      }
+    };
+    apply();
+    // Next 메타데이터 하이드레이션이 마운트 직후 <title>을 도로 덮습니다 —
+    // 한 박자 뒤 재적용해야 부팅 딥링크(?mode=)에서도 제목이 남습니다.
+    const t = setTimeout(apply, 900);
+    return () => clearTimeout(t);
+  }, [view, mode, hero, history]);
+
   const ask = useCallback(async (q: string) => {
     if (!q.trim() || loading) return;
     setLoading(true);
