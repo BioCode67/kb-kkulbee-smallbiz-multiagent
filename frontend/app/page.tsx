@@ -348,7 +348,7 @@ export default function Page() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)]
+              className="hero-glow honeycomb-bg relative flex min-h-[calc(100vh-3.5rem)] overflow-x-clip
                          flex-col items-center pt-14"
             >
               {/* 가장자리 장식 — 좌우 여백이 '비어 있는 것'과 '숨 쉬는 것'은
@@ -374,10 +374,10 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              <div className="grid w-full max-w-[1200px] items-center gap-8
+              <div className="grid w-full max-w-[1200px] grid-cols-1 items-center gap-8
                               lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="flex flex-col items-center text-center
-                                lg:items-start lg:text-left">
+                <div className="flex min-w-0 max-w-full flex-col items-center
+                                text-center lg:items-start lg:text-left">
                   <motion.span
                     initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                     className="inline-flex items-center gap-1.5 rounded-full
@@ -391,7 +391,7 @@ export default function Page() {
                   <motion.h1
                     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.08 }}
-                    className="font-display mt-5 text-[46px] font-bold
+                    className="font-display mt-5 text-[36px] font-bold
                                leading-[1.08] text-kb-ink sm:text-[70px]"
                   >
                     사장님의
@@ -407,7 +407,7 @@ export default function Page() {
                   <motion.p
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     transition={{ delay: 0.16 }}
-                    className="mt-5 max-w-[46ch] text-[17px] leading-[1.75]
+                    className="mt-5 w-full sm:w-auto sm:max-w-[46ch] text-[17px] leading-[1.75]
                                text-kb-ink/78"
                   >
                     어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
@@ -1141,9 +1141,10 @@ function Coachmark() {
   if (!show) return null;
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 24, x: '-50%' }}
+      animate={{ opacity: 1, y: 0, x: '-50%' }}
       className="fixed bottom-6 left-1/2 z-[75] w-[min(420px,calc(100vw-2rem))]
-                 -translate-x-1/2 rounded-2xl border border-kb-ink/[.14] bg-white
+                 rounded-2xl border border-kb-ink/[.14] bg-white
                  p-4 shadow-2xl print:hidden"
     >
       <p className="text-[15px] font-bold text-kb-ink">🐝 처음이시죠? 세 가지만 알려드릴게요</p>

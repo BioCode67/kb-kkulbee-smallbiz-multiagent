@@ -48,7 +48,7 @@ export default function HeroTicker() {
         ⏰ 곧 마감
       </span>
       {/* absolute 자식만 있으면 폭이 0으로 접힙니다 — 폭을 명시합니다 */}
-      <span className="relative h-[18px] w-[230px] overflow-hidden sm:w-[340px]">
+      <span className="relative h-[18px] w-[150px] overflow-hidden sm:w-[340px]">
         <AnimatePresence mode="wait">
           <motion.span
             key={cur.url}
