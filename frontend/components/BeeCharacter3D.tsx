@@ -193,8 +193,8 @@ export default function BeeCharacter3D({
       for (const sx of [-1, 1]) {
         // '징그럽다'는 피드백의 주범은 과대한 눈 + 이중 광점이었습니다.
         // 눈을 한 단계 줄이고 광점을 하나만 둡니다 — 또렷함은 남고 부담이 빠집니다.
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.225, 32, 24), eyeMat);
-        eye.position.set(0.06 + sx * 0.30, 0.09, 1.16);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 24), eyeMat);
+        eye.position.set(0.06 + sx * 0.29, 0.08, 1.18);
         eye.scale.set(1, 1.18, 0.6);
         head.add(eye);
         eyes.push(eye);
@@ -202,9 +202,9 @@ export default function BeeCharacter3D({
         // 캐치라이트 — 조명만으로 생기는 반사는 각도에 따라 사라집니다.
         // 눈빛은 늘 있어야 하므로 스스로 빛나는 작은 구슬을 하나 박습니다.
         const spark = new THREE.Mesh(
-          new THREE.SphereGeometry(0.065, 16, 12),
+          new THREE.SphereGeometry(0.058, 16, 12),
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        spark.position.set(0.06 + sx * 0.30 - 0.06, 0.17, 1.3);
+        spark.position.set(0.06 + sx * 0.29 - 0.055, 0.15, 1.32);
         head.add(spark);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
@@ -215,9 +215,9 @@ export default function BeeCharacter3D({
         const blush = new THREE.Mesh(
           new THREE.SphereGeometry(0.2, 20, 14),
           new THREE.MeshBasicMaterial({
-            color: 0xffa39b, transparent: true, opacity: 0.5 }));
-        blush.position.set(0.06 + sx * 0.5, -0.18, 1.13);
-        blush.scale.set(1.2, 0.74, 0.22);
+            color: 0xffa39b, transparent: true, opacity: 0.32 }));
+        blush.position.set(0.06 + sx * 0.48, -0.18, 1.13);
+        blush.scale.set(1.05, 0.62, 0.2);
         head.add(blush);
       }
 
@@ -539,7 +539,8 @@ function makeStripeTexture(THREE: typeof import('three')) {
 
   // 가로 줄무늬. 구체 UV에서 v가 위아래이므로 가로줄이 몸을 감습니다.
   g.fillStyle = '#33251A';
-  for (const [y, h] of [[52, 30], [128, 34], [206, 28]] as const) {
+  // 띠를 한 단계 굵게 — 멀리서도 '벌'로 읽히는 것은 결국 이 줄무늬입니다
+  for (const [y, h] of [[46, 38], [124, 42], [204, 34]] as const) {
     g.fillRect(0, y, 512, h);
   }
 
