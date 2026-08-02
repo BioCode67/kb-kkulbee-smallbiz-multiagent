@@ -13,7 +13,7 @@ import type {
   BentoCard, FactorContribution, GuardrailReport, IndustryGap, LocationScore,
   PolicyMatch, ProcedureStep, TermEntry,
 } from '@/lib/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DraftModal from './DraftModal';
 import LocationMap from './LocationMap';
 
@@ -100,7 +100,8 @@ function CardBody({ card }: { card: BentoCard }) {
                                             question={p.question as unknown as string} />;
     case 'notice': return <NoticeCard r={p as unknown as GuardrailReport} />;
     case 'gaps': return <GapsCard gaps={p.gaps as unknown as IndustryGap[]}
-                                  crowded={p.crowded as unknown as IndustryGap[]} />;
+                                  crowded={p.crowded as unknown as IndustryGap[]}
+                                  region={p.region as unknown as string} />;
     case 'rates': return <RatesCard d={p as unknown as BankRates} />;
     case 'similar': return <SimilarCard items={p.items as unknown as SimilarDong[]}
                                         industry={p.industry as unknown as string} />;
@@ -173,6 +174,10 @@ function ScoreCard({ s }: { s: LocationScore }) {
         )}
       </div>
 
+      {s.industry === '업종 미지정' && (
+        <IndustryChips region={s.region_name} />
+      )}
+
       {s.same_industry_count != null && (
         <div className="mt-4 flex items-center justify-between rounded-xl
                         bg-black/25 px-3.5 py-3">
@@ -191,6 +196,38 @@ function ScoreCard({ s }: { s: LocationScore }) {
           : 'bg-amber-400/10 text-amber-200/75'}`}>
         {s.note}
       </p>
+    </div>
+  );
+}
+
+/** 업종을 안 말했을 때 — 고르면 그 업종 기준으로 다시 잽니다.
+    경쟁·집적 요인은 업종이 있어야 계산되므로, 이 칩이 곧 "더 정확한
+    진단으로 가는 문"입니다. */
+function IndustryChips({ region }: { region: string }) {
+  const [items, setItems] = useState<{ code: string; name: string }[]>([]);
+  useEffect(() => {
+    fetch('/api/v1/industries').then((r) => r.json())
+      .then((d) => setItems((d.items ?? []).slice(0, 8)))
+      .catch(() => {});
+  }, []);
+  if (!items.length) return null;
+  return (
+    <div className="mt-4">
+      <p className="text-[11px] text-white/40">
+        업종을 고르시면 경쟁까지 재 드려요
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {items.map((i) => (
+          <button key={i.code}
+            onClick={() => window.dispatchEvent(new CustomEvent('kkulbee:ask',
+              { detail: `${region} ${i.name} 상권 어때?` }))}
+            className="rounded-full border border-white/[.1] px-2.5 py-1 text-[11px]
+                       text-white/60 transition hover:border-kb-yellow/50
+                       hover:text-kb-yellow">
+            {i.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -270,14 +307,26 @@ function FactorsCard({ base, factors }: { base: number; factors: FactorContribut
  * 다만 '기회'라고 단정하지 않습니다. 적은 데는 이유가 있을 수 있습니다.
  * 사실(몇 곳 있고 비슷한 규모 동네는 평균 몇 곳)만 놓고 판단은 맡깁니다.
  */
-function GapsCard({ gaps, crowded }: { gaps: IndustryGap[]; crowded: IndustryGap[] }) {
+function GapsCard({ gaps, crowded, region }: {
+  gaps: IndustryGap[]; crowded: IndustryGap[]; region?: string;
+}) {
   const Row = ({ g, kind }: { g: IndustryGap; kind: 'gap' | 'crowd' }) => {
     // 막대는 '기대 대비 몇 배'를 보여 줍니다. 2배까지를 폭 100%로 잡아
     // 부족(왼쪽 짧음)과 과밀(오른쪽 김)이 같은 자로 읽히게 했습니다.
     const w = Math.min(100, (g.ratio / 2) * 100);
     return (
-      <li className="flex items-center gap-2.5 py-[5px]">
-        <span className="w-[124px] shrink-0 truncate text-[12px] text-white/[.82]">
+      <li>
+      {/* 행이 곧 질문입니다 — "약국이 부족하다"를 본 다음 궁금한 것은
+          "그럼 여기서 약국을 하면 어떤가"입니다. 누르면 바로 물어봅니다. */}
+      <button
+        onClick={() => region && window.dispatchEvent(
+          new CustomEvent('kkulbee:ask',
+            { detail: `${region} ${g.name} 상권 어때?` }))}
+        className="group flex w-full items-center gap-2.5 rounded-lg px-1.5
+                   py-[5px] text-left transition hover:bg-white/[.04]"
+      >
+        <span className="w-[124px] shrink-0 truncate text-[12px] text-white/[.82]
+                         group-hover:text-white">
           {g.name}
         </span>
         <div className="relative h-[6px] flex-1 rounded-full bg-white/[.07]">
@@ -292,6 +341,7 @@ function GapsCard({ gaps, crowded }: { gaps: IndustryGap[]; crowded: IndustryGap
           <b className="text-white/85">{g.here}</b>
           <span className="text-white/30"> / </span>{g.expected}
         </span>
+      </button>
       </li>
     );
   };
@@ -347,7 +397,7 @@ function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: str
   const askAbout = (name: string) => {
     // 전역 입력을 거치지 않고 커스텀 이벤트로 질문을 흘립니다.
     window.dispatchEvent(new CustomEvent('kkulbee:ask', {
-      detail: `${name}에서 ${industry && industry !== '업종 미지정' ? industry : '가게'} 하면 어때?` }));
+      detail: `${name} ${industry && industry !== '업종 미지정' ? industry + ' ' : ''}상권 어때?` }));
   };
   return (
     <div>
@@ -486,6 +536,11 @@ const FUNDING_TONE: Record<string, string> = {
 };
 
 function PolicyCard({ items }: { items: PolicyMatch[] }) {
+  // 자금 성격 필터 — 결과 안에서 "주는 돈만" 골라 보는 가장 빠른 길.
+  // 재검색 없이 화면에서 거릅니다.
+  const kinds = Array.from(new Set(items.map((m) => m.funding_type)));
+  const [kind, setKind] = useState<string | null>(null);
+  const shown = kind ? items.filter((m) => m.funding_type === kind) : items;
   const won = (v: number) =>
     v >= 100_000_000
       ? `${(v / 100_000_000).toFixed(v % 100_000_000 ? 1 : 0)}억원`
@@ -494,8 +549,29 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
         : `${Math.round(v / 10_000).toLocaleString()}만원`;
 
   return (
+    <div>
+      {kinds.length > 1 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          <button onClick={() => setKind(null)}
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1
+                        transition ${kind === null
+              ? 'bg-white/[.12] text-white ring-white/[.2]'
+              : 'text-white/45 ring-white/[.1] hover:text-white'}`}>
+            전체 {items.length}
+          </button>
+          {kinds.map((k) => (
+            <button key={k} onClick={() => setKind(k === kind ? null : k)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1
+                          transition ${kind === k
+                ? FUNDING_TONE[k] ?? FUNDING_TONE['기타']
+                : 'text-white/45 ring-white/[.1] hover:text-white'}`}>
+              {k} {items.filter((m) => m.funding_type === k).length}
+            </button>
+          ))}
+        </div>
+      )}
     <ul className="space-y-3">
-      {items.map((m) => (
+      {shown.map((m) => (
         <li key={m.program_id}
             className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/[.07]
                        transition hover:ring-white/[.14]">
@@ -595,6 +671,7 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
         </li>
       ))}
     </ul>
+    </div>
   );
 }
 

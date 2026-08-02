@@ -156,6 +156,11 @@ export default function Page() {
     setError('');
     setMood('thinking');
     setSpeech('잠깐만요, 자료를 살펴볼게요…');
+    // 무료 서버는 15분 놀면 잠들고 깨는 데 수십 초가 걸립니다. 이유를
+    // 모른 채 기다리는 것과 알고 기다리는 것은 전혀 다른 경험입니다.
+    const slowTimer = setTimeout(() => {
+      setSpeech('무료 서버가 기지개를 켜는 중이에요. 처음 한 번만 이래요!');
+    }, 3000);
     try {
       const r = await fetch('/api/v1/chat', {
         method: 'POST',
@@ -183,6 +188,7 @@ export default function Page() {
       setMood('explaining');
       setSpeech('앗, 서버에 닿질 않네요.');
     } finally {
+      clearTimeout(slowTimer);
       setLoading(false);
     }
   }, [loading, res?.session_id]);
