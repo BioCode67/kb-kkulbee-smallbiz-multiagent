@@ -27,7 +27,7 @@ function statusLabel(r: LiveCheck): [string, string] {
   return r.status === 'open' ? [`접수 중 · ${r.days_left}일 남음`, 'text-emerald-700']
     : r.status === 'closed' ? ['마감됨', 'text-rose-700']
     : r.status === 'upcoming' ? ['접수 예정', 'text-sky-700']
-    : [r.period_text || '기간 표기 없음', 'text-kb-ink/60'];
+    : [r.period_text || '기간 표기 없음', 'text-kb-ink/78'];
 }
 
 function LiveCheckRow({ s, r, busy, onRun }: {
@@ -43,14 +43,14 @@ function LiveCheckRow({ s, r, busy, onRun }: {
     <div className="mt-2 border-t border-kb-ink/[.06] pt-2">
       {!r && (
         <button onClick={onRun} disabled={busy}
-          className="text-[13px] font-semibold text-kb-ink/55 transition
+          className="text-[13px] font-semibold text-kb-ink/72 transition
                      hover:text-kb-amber disabled:opacity-50">
           {busy ? '원문을 여는 중…' : '🔄 원문 재확인 — 마감·서식이 바뀌었는지'}
         </button>
       )}
       {r && !r.ok && <p className="text-[12.5px] text-rose-700">{r.reason}</p>}
       {r?.ok && (
-        <div className="space-y-1 text-[12.5px] leading-relaxed text-kb-ink/65">
+        <div className="space-y-1 text-[12.5px] leading-relaxed text-kb-ink/82">
           <p>
             <b className={statusLabel(r)[1]}>{statusLabel(r)[0]}</b>
             {' '}· 원문 기준 {r.checked_at?.slice(11, 16)} 확인
@@ -76,16 +76,16 @@ function LiveCheckRow({ s, r, busy, onRun }: {
             )}
             {(r.overview || r.apply_method || r.contact) && (
               <button onClick={() => setMore((v) => !v)}
-                      className="text-kb-ink/45 hover:text-kb-ink">
+                      className="text-kb-ink/62 hover:text-kb-ink">
                 {more ? '접기 ▴' : '원문 요약 더 보기 ▾'}
               </button>
             )}
           </div>
           {more && (
             <div className="space-y-1 rounded-lg bg-kb-ink/[.04] px-2.5 py-2">
-              {r.overview && <p><b className="text-kb-ink/60">개요</b> {r.overview}</p>}
-              {r.apply_method && <p><b className="text-kb-ink/60">신청</b> {r.apply_method}</p>}
-              {r.contact && <p><b className="text-kb-ink/60">문의</b> {r.contact}</p>}
+              {r.overview && <p><b className="text-kb-ink/78">개요</b> {r.overview}</p>}
+              {r.apply_method && <p><b className="text-kb-ink/78">신청</b> {r.apply_method}</p>}
+              {r.contact && <p><b className="text-kb-ink/78">문의</b> {r.contact}</p>}
             </div>
           )}
         </div>
@@ -174,10 +174,10 @@ export default function SavedDrawer({ open, onClose }: {
             <header className="border-b border-kb-ink/[.1] px-4 py-3.5">
               <div className="flex items-center justify-between">
                 <p className="text-[17px] font-bold text-kb-ink">
-                  ⭐ 찜한 지원사업 <span className="text-kb-ink/40">{items.length}</span>
+                  ⭐ 찜한 지원사업 <span className="text-kb-ink/55">{items.length}</span>
                 </p>
                 <button onClick={onClose}
-                  className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/50
+                  className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/68
                              hover:bg-kb-ink/[.06]">✕</button>
               </div>
               {bizItems.length >= 2 && (
@@ -190,7 +190,7 @@ export default function SavedDrawer({ open, onClose }: {
                 </button>
               )}
               {done.length > 0 && (
-                <p className="mt-1.5 text-center text-[12.5px] text-kb-ink/55">
+                <p className="mt-1.5 text-center text-[12.5px] text-kb-ink/72">
                   오늘 원문 기준: 접수 중 {nOpen}건
                   {nClosed > 0 && <> · <b className="text-rose-700">마감 {nClosed}건</b></>}
                 </p>
@@ -199,7 +199,7 @@ export default function SavedDrawer({ open, onClose }: {
 
             <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3.5">
               {sorted.length === 0 && (
-                <p className="py-10 text-center text-[15px] leading-relaxed text-kb-ink/45">
+                <p className="py-10 text-center text-[15px] leading-relaxed text-kb-ink/62">
                   아직 담은 공고가 없어요.
                   <br />지원사업 카드의 ⭐를 눌러 담아 두세요 —
                   <br />마감 가까운 순으로 여기 모입니다.
@@ -214,7 +214,7 @@ export default function SavedDrawer({ open, onClose }: {
                         <p className="text-[15px] font-semibold leading-snug text-kb-ink">
                           {s.name}
                         </p>
-                        <p className="mt-0.5 text-[13px] text-kb-ink/45">
+                        <p className="mt-0.5 text-[13px] text-kb-ink/62">
                           {s.provider} · {s.funding_type}
                         </p>
                       </div>
@@ -227,7 +227,7 @@ export default function SavedDrawer({ open, onClose }: {
                       <span className={`rounded-full px-2 py-0.5 text-[12.5px]
                                         font-bold ${
                         d == null ? 'bg-sky-500/[.12] text-sky-700'
-                        : d < 0 ? 'bg-kb-ink/[.06] text-kb-ink/40 line-through'
+                        : d < 0 ? 'bg-kb-ink/[.06] text-kb-ink/55 line-through'
                         : d <= 7 ? 'bg-rose-500/[.12] text-rose-700'
                         : 'bg-emerald-500/[.12] text-emerald-700'}`}>
                         {d == null ? s.apply_period || '상시'
@@ -254,14 +254,14 @@ export default function SavedDrawer({ open, onClose }: {
                 <button
                   onClick={() => downloadIcs(items)}
                   className="mb-2 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[14px]
-                             font-semibold text-kb-ink/70 transition
+                             font-semibold text-kb-ink/85 transition
                              hover:bg-kb-ink/[.09] hover:text-kb-ink"
                   title="구글·애플·네이버 캘린더에 넣을 수 있는 표준 파일"
                 >
                   📅 마감을 내 캘린더로 — .ics 내려받기
                 </button>
               )}
-              <p className="text-center text-[12.5px] text-kb-ink/40">
+              <p className="text-center text-[12.5px] text-kb-ink/55">
                 이 브라우저에만 저장됩니다 · 최대 50건
               </p>
             </footer>

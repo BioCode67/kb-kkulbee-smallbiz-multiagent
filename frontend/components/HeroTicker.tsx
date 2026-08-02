@@ -54,7 +54,7 @@ export default function HeroTicker() {
             key={cur.url}
             initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
             exit={{ y: -14, opacity: 0 }} transition={{ duration: 0.25 }}
-            className="absolute inset-0 truncate text-[14.5px] text-kb-ink/75"
+            className="absolute inset-0 truncate text-[14.5px] text-kb-ink/88"
           >
             {cur.title}
           </motion.span>

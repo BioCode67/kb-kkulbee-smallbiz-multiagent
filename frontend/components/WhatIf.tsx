@@ -52,11 +52,11 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
           <h3 className="font-display text-[18px] text-kb-ink">
             만약 업종을 바꾼다면 <span className="text-kb-amber">What-If</span>
           </h3>
-          <p className="mt-0.5 text-[14px] text-kb-ink/60">
+          <p className="mt-0.5 text-[14px] text-kb-ink/78">
             같은 동네를 40개 업종으로 다시 재 봤어요 — 점수를 바꾸는 변수를 역계산
           </p>
         </div>
-        <span className="text-[15px] text-kb-ink/40">
+        <span className="text-[15px] text-kb-ink/55">
           {busy ? '재는 중…' : open ? '접기 ▲' : '돌려 보기 ▼'}
         </span>
       </button>
@@ -86,7 +86,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
                   </span>
                   <span className={`w-[52px] shrink-0 text-right text-[13px] font-bold
                                     [font-variant-numeric:tabular-nums] ${
-                    r.current ? 'text-kb-ink/35'
+                    r.current ? 'text-kb-ink/50'
                       : r.delta > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                     {r.current ? '기준' : `${r.delta > 0 ? '+' : ''}${r.delta.toFixed(1)}`}
                   </span>

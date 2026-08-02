@@ -58,7 +58,7 @@ export default function TopBar() {
                         md:flex">
           {NAV.map((label, i) => (
             <button key={label} onClick={() => go(i)}
-                    className="rounded-lg px-3 py-1.5 text-[15px] text-kb-ink/65
+                    className="rounded-lg px-3 py-1.5 text-[15px] text-kb-ink/82
                                transition hover:bg-kb-ink/[.04] hover:text-kb-ink">
               {label}
             </button>
@@ -67,7 +67,7 @@ export default function TopBar() {
 
         <div className="ml-auto flex items-center gap-2.5">
           {stat.stores && stat.docs && (
-            <span className="hidden items-center gap-1.5 text-[13.5px] text-kb-ink/55
+            <span className="hidden items-center gap-1.5 text-[13.5px] text-kb-ink/72
                              lg:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {(stat.stores / 10000).toFixed(0)}만 점포 · {stat.docs}건 실측
@@ -76,7 +76,7 @@ export default function TopBar() {
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}
                   title="찜한 지원사업 — 마감 가까운 순"
-                  className="relative rounded-lg px-2 py-1.5 text-[17px] text-kb-ink/55
+                  className="relative rounded-lg px-2 py-1.5 text-[17px] text-kb-ink/72
                              transition hover:text-kb-amber">
             ☆
             {savedN > 0 && (

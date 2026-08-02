@@ -103,13 +103,13 @@ export default function ProtectionDrawer({ open, onClose }: {
                       className={`flex-1 rounded-lg px-3 py-2 text-[14.5px] font-semibold
                                   transition ${tab === k
                         ? 'bg-kb-yellow text-kb-ink'
-                        : 'text-kb-ink/65 hover:text-kb-ink'}`}>
+                        : 'text-kb-ink/82 hover:text-kb-ink'}`}>
                       {label}
                     </button>
                   ))}
               </div>
               <button onClick={onClose}
-                      className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/60
+                      className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/78
                                  transition hover:bg-kb-ink/[.05] hover:text-kb-ink">
                 ✕
               </button>
@@ -125,7 +125,7 @@ export default function ProtectionDrawer({ open, onClose }: {
                         {t.easy}
                       </p>
                       {t.detail && (
-                        <p className="mt-1 text-[13.5px] leading-relaxed text-kb-ink/60">
+                        <p className="mt-1 text-[13.5px] leading-relaxed text-kb-ink/78">
                           {t.detail}
                         </p>
                       )}
@@ -138,14 +138,14 @@ export default function ProtectionDrawer({ open, onClose }: {
                     </li>
                   ))}
                   {!terms.length && (
-                    <p className="py-8 text-center text-[14px] text-kb-ink/50">
+                    <p className="py-8 text-center text-[14px] text-kb-ink/68">
                       불러오는 중…
                     </p>
                   )}
                 </ul>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-[14px] leading-relaxed text-kb-ink/60">
+                  <p className="text-[14px] leading-relaxed text-kb-ink/78">
                     아무 문장이나 넣어 보세요. 꿀비의 모든 답변이 통과하는
                     <b className="text-kb-ink/80"> 바로 그 검사</b>를 그대로 돌립니다 —
                     시연용 흉내가 아닙니다.
@@ -155,7 +155,7 @@ export default function ProtectionDrawer({ open, onClose }: {
                     onChange={(e) => setText(e.target.value)}
                     rows={3}
                     className="w-full rounded-xl bg-kb-ink/[.05] p-3 text-[15px] text-kb-ink
-                               ring-1 ring-kb-ink/[.14] placeholder:text-kb-ink/40
+                               ring-1 ring-kb-ink/[.14] placeholder:text-kb-ink/55
                                focus:outline-none focus:ring-kb-yellow/40"
                   />
                   <button onClick={check} disabled={busy}
@@ -186,7 +186,7 @@ export default function ProtectionDrawer({ open, onClose }: {
                           </ul>
                           <div className="surface-1 p-3">
                             <p className="text-[12.5px] font-bold uppercase tracking-wider
-                                          text-kb-ink/50">빨간 펜 교정 — 지운 말과 바꾼 말</p>
+                                          text-kb-ink/68">빨간 펜 교정 — 지운 말과 바꾼 말</p>
                             <p className="mt-1.5 text-[14.5px] leading-[1.9] text-kb-ink/90">
                               {wordDiff(result.original ?? text,
                                         result.safe.split('\n')[0]).map((t, i) => (
@@ -224,7 +224,7 @@ export default function ProtectionDrawer({ open, onClose }: {
             </div>
 
             <footer className="border-t border-kb-ink/[.1] p-3 text-center text-[12.5px]
-                               text-kb-ink/45">
+                               text-kb-ink/62">
               금융소비자보호법 §19(설명의무) · §20(불공정영업 금지) · §21(부당권유 금지)
             </footer>
           </motion.aside>

@@ -60,7 +60,7 @@ export default function DraftModal({ open, onClose, situation }: {
               <div>
                 <p className="text-[17px] font-bold text-kb-ink">민원서 초안</p>
                 {draft && (
-                  <p className="mt-0.5 text-[13.5px] text-kb-ink/55">
+                  <p className="mt-0.5 text-[13.5px] text-kb-ink/72">
                     {draft.dispute_type} ·
                     {draft.generated_by === 'llm' ? ' AI가 사실관계를 정리했습니다'
                                                   : ' 서식 뼈대입니다'}
@@ -69,14 +69,14 @@ export default function DraftModal({ open, onClose, situation }: {
               </div>
               <button onClick={onClose}
                       className="grid h-9 w-9 place-items-center rounded-lg
-                                 text-kb-ink/60 hover:bg-kb-ink/[.05] hover:text-kb-ink">
+                                 text-kb-ink/78 hover:bg-kb-ink/[.05] hover:text-kb-ink">
                 ✕
               </button>
             </header>
 
             <div className="max-h-[56vh] overflow-y-auto p-5">
               {busy && (
-                <p className="py-10 text-center text-[15px] text-kb-ink/55">
+                <p className="py-10 text-center text-[15px] text-kb-ink/72">
                   겪으신 일을 서식에 앉히는 중…
                 </p>
               )}

@@ -198,12 +198,12 @@ export default function KakaoMap({
           <button onClick={() => setSpeakOn((v) => !v)}
             className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
                         transition ${speakOn ? 'bg-white text-kb-ink'
-                                             : 'bg-white/70 text-kb-ink/50'}`}>
+                                             : 'bg-white/70 text-kb-ink/68'}`}>
             {speakOn ? '🔊' : '🔇'}
           </button>
         </div>
       </div>
-      <p className="mt-2 text-[12.5px] text-kb-ink/40">
+      <p className="mt-2 text-[12.5px] text-kb-ink/55">
         카카오 지도 · 주황 점은 실제 {industry ?? '동종업종'} 점포
         {shops ? ` ${shops.total.toLocaleString()}곳` : ''} · 점수 칩은 비교 상권
       </p>

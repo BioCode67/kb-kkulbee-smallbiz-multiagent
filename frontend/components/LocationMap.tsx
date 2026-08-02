@@ -269,7 +269,7 @@ function LeafletMap({
             title="설명을 소리로"
             className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
                         transition ${speakOn
-              ? 'bg-white text-kb-ink' : 'bg-white/70 text-kb-ink/50'}`}>
+              ? 'bg-white text-kb-ink' : 'bg-white/70 text-kb-ink/68'}`}>
             {speakOn ? '🔊' : '🔇'}
           </button>
         </div>
@@ -282,7 +282,7 @@ function LeafletMap({
                 className={`px-2.5 py-1.5 text-[13px] font-semibold transition ${
                   heat === v
                     ? 'bg-kb-yellow text-kb-ink'
-                    : 'bg-white/90 text-kb-ink/70 hover:text-kb-ink'}`}>
+                    : 'bg-white/90 text-kb-ink/85 hover:text-kb-ink'}`}>
                 {label}
               </button>
             ))}
@@ -292,13 +292,13 @@ function LeafletMap({
 
       {/* 색이 무엇을 뜻하는지 밝히지 않으면 지도가 장식이 됩니다 */}
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5
-                      text-[13px] text-kb-ink/60">
+                      text-[13px] text-kb-ink/78">
         {shops && shops.total > 0 && (
           <span className="inline-flex items-center gap-1.5 font-medium text-kb-ink/80">
             <i className="h-2 w-2 rounded-full" style={{ background: '#FF7A59' }} />
             {industry ?? '동종업종'} {shops.total.toLocaleString()}곳
             {shops.shown < shops.total && (
-              <span className="text-kb-ink/50">
+              <span className="text-kb-ink/68">
                 ({shops.shown.toLocaleString()}곳만 표시)
               </span>
             )}
@@ -319,7 +319,7 @@ function LeafletMap({
       </div>
 
       {shops && shops.total > 0 && sameIndustryCount != null && (
-        <p className="mt-2 text-[13.5px] leading-relaxed text-kb-ink/60">
+        <p className="mt-2 text-[13.5px] leading-relaxed text-kb-ink/78">
           주황 점 하나가 실제 {industry ?? '동종업종'} 점포 한 곳입니다.
           몰려 있는 골목이 보이면 그곳이 이 동네의 경쟁 중심입니다.
         </p>

@@ -26,7 +26,7 @@ export default function SiteFooter() {
               <img src="/kkulbee.svg" alt="" width={20} height={23} />
               <span className="text-[16px] font-bold text-kb-ink">꿀비</span>
             </div>
-            <p className="mt-2.5 text-[14px] leading-relaxed text-kb-ink/55">
+            <p className="mt-2.5 text-[14px] leading-relaxed text-kb-ink/72">
               소상공인 사장님의 입지·자금·권리를
               <br />실제 자료로 함께 살피는 AI 동료
             </p>
@@ -48,14 +48,14 @@ export default function SiteFooter() {
           </div>
 
           <div>
-            <p className="text-[12.5px] font-bold uppercase tracking-wider text-kb-ink/45">
+            <p className="text-[12.5px] font-bold uppercase tracking-wider text-kb-ink/62">
               쓰는 자료
             </p>
             <dl className="mt-2 space-y-1">
               {DATA.map(([k, v]) => (
                 <div key={k} className="flex gap-2 text-[13.5px] leading-relaxed">
-                  <dt className="w-14 shrink-0 font-semibold text-kb-ink/60">{k}</dt>
-                  <dd className="text-kb-ink/50">{v}</dd>
+                  <dt className="w-14 shrink-0 font-semibold text-kb-ink/78">{k}</dt>
+                  <dd className="text-kb-ink/68">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -63,7 +63,7 @@ export default function SiteFooter() {
         </div>
 
         <p className="mt-8 border-t border-kb-ink/[.06] pt-4 text-[12.5px]
-                      leading-relaxed text-kb-ink/40">
+                      leading-relaxed text-kb-ink/55">
           모든 안내는 참고용이며 대출 승인·한도·금리를 보장하지 않습니다.
           매출·폐업률·임대료는 공개 자료에 없어 점수에 넣지 않았고, 생활인구는
           서울만 있어 참고로만 보여 드립니다. 모든 답변은 금융소비자보호법

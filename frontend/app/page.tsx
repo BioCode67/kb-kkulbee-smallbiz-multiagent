@@ -343,7 +343,7 @@ export default function Page() {
                     initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                     className="inline-flex items-center gap-1.5 rounded-full
                                border border-kb-ink/[.14] bg-white/70 px-3.5 py-1.5
-                               text-[14px] text-kb-ink/70"
+                               text-[14px] text-kb-ink/85"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
                     전국 점포 272만 개 실측으로 답하는 소상공인 AI
@@ -369,7 +369,7 @@ export default function Page() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     transition={{ delay: 0.16 }}
                     className="mt-5 max-w-[46ch] text-[17px] leading-[1.75]
-                               text-kb-ink/60"
+                               text-kb-ink/78"
                   >
                     어디에 열지, 자금은 어떻게, 억울한 일이 생기면 어떻게.
                     제도 이름을 몰라도 괜찮습니다 — 상황을 그대로 말씀하시면
@@ -453,7 +453,7 @@ export default function Page() {
                             {m.label}
                           </span>
                           <span className={`hidden text-[12px] sm:block ${
-                            on ? 'text-kb-ink/60' : 'text-kb-ink/40'}`}>
+                            on ? 'text-kb-ink/78' : 'text-kb-ink/55'}`}>
                             {m.desc}
                           </span>
                         </button>
@@ -485,7 +485,7 @@ export default function Page() {
                                    hover:bg-white hover:shadow-sm"
                       >
                         <span className="text-[13px] text-kb-amber transition">→</span>
-                        <span className="text-[15px] font-medium text-kb-ink/75
+                        <span className="text-[15px] font-medium text-kb-ink/88
                                          group-hover:text-kb-ink">{q}</span>
                       </button>
                     ))}
@@ -506,7 +506,7 @@ export default function Page() {
                         '민원서 초안', '지도 투어'].map((w) => (
                         <span key={w} className="mx-6 flex items-center gap-6
                                                  text-[15px] font-bold
-                                                 tracking-tight text-kb-ink/60">
+                                                 tracking-tight text-kb-ink/78">
                           {w} <span className="text-kb-yellow">✦</span>
                         </span>
                       ))}
@@ -526,7 +526,7 @@ export default function Page() {
                                           px-4 py-6 text-center shadow-sm">
                     <p className="text-[34px] font-extrabold tracking-tight text-kb-amber
                                   [font-variant-numeric:tabular-nums]">{n}</p>
-                    <p className="mt-1 text-[14px] font-medium text-kb-ink/60">{l}</p>
+                    <p className="mt-1 text-[14px] font-medium text-kb-ink/78">{l}</p>
                   </div>
                 ))}
               </div>
@@ -544,7 +544,7 @@ export default function Page() {
                 ].map(([t, d]) => (
                   <div key={t} className="surface-1 p-5">
                     <p className="text-[16px] font-bold text-kb-ink">{t}</p>
-                    <p className="mt-2 text-[14.5px] leading-[1.7] text-kb-ink/60">{d}</p>
+                    <p className="mt-2 text-[14.5px] leading-[1.7] text-kb-ink/78">{d}</p>
                   </div>
                 ))}
               </div>
@@ -564,7 +564,7 @@ export default function Page() {
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
-                  className="mt-2 rounded-full px-4 py-1.5 text-[13.5px] text-kb-ink/55
+                  className="mt-2 rounded-full px-4 py-1.5 text-[13.5px] text-kb-ink/72
                              transition hover:bg-kb-ink/[.06] hover:text-kb-ink"
                 >
                   ← 처음으로
@@ -584,7 +584,7 @@ export default function Page() {
                   있는 문서가 되도록 출처와 날짜를 박습니다. */}
               <div className="hidden print:block border-b border-kb-ink/20 pb-3">
                 <p className="text-[18px] font-bold text-kb-ink">🐝 꿀비 상담 리포트</p>
-                <p className="mt-1 text-[12px] text-kb-ink/60">
+                <p className="mt-1 text-[12px] text-kb-ink/78">
                   kb-kkulbee-smallbiz-multiagent.onrender.com ·
                   인쇄일 {new Date().toLocaleDateString('ko-KR')} ·
                   참고용 정보이며 대출 승인·한도·금리를 보장하지 않습니다
@@ -642,7 +642,7 @@ export default function Page() {
                         지금 맥락과 어긋날 수 있습니다. */}
                     {i === history.length - 1 && !loading && r.suggestions.length > 0 && (
                       <div className="print:hidden flex flex-wrap items-center gap-2 pt-1">
-                        <span className="text-[13.5px] text-kb-ink/50">이어서 물어보기</span>
+                        <span className="text-[13.5px] text-kb-ink/68">이어서 물어보기</span>
                         {r.suggestions.map((sq) => (
                           <button
                             key={sq}
@@ -774,7 +774,7 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
         placeholder={placeholder ?? '꿀비에게 물어보세요'}
         disabled={loading}
         className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[16.5px] text-kb-ink
-                   placeholder:text-kb-ink/45 focus:outline-none disabled:opacity-50"
+                   placeholder:text-kb-ink/62 focus:outline-none disabled:opacity-50"
       />
       {mic.supported && (
         <button
@@ -784,7 +784,7 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
           className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl
                       transition ${mic.listening
             ? 'animate-pulse bg-rose-500/90 text-kb-ink'
-            : 'bg-kb-ink/[.05] text-kb-ink/65 hover:bg-kb-ink/[.08] hover:text-kb-ink'}`}
+            : 'bg-kb-ink/[.05] text-kb-ink/82 hover:bg-kb-ink/[.08] hover:text-kb-ink'}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -845,12 +845,12 @@ function Thinking() {
                                 rounded-full text-[12px] font-bold transition-colors ${
                 state === 'done' ? 'bg-kb-yellow/20 text-kb-amber'
                 : state === 'now' ? 'bg-kb-yellow text-kb-ink'
-                : 'bg-kb-ink/[.05] text-kb-ink/40'}`}>
+                : 'bg-kb-ink/[.05] text-kb-ink/55'}`}>
                 {state === 'done' ? '✓' : i + 1}
               </span>
               <div className="min-w-0">
                 <p className={`text-[15px] font-medium transition-colors ${
-                  state === 'wait' ? 'text-kb-ink/40' : 'text-kb-ink/90'}`}>
+                  state === 'wait' ? 'text-kb-ink/55' : 'text-kb-ink/90'}`}>
                   {s.label}
                   {state === 'now' && (
                     <span className="ml-1.5 inline-flex gap-0.5 align-middle">
@@ -863,7 +863,7 @@ function Thinking() {
                   )}
                 </p>
                 <p className={`mt-0.5 text-[13px] transition-colors ${
-                  state === 'wait' ? 'text-kb-ink/15' : 'text-kb-ink/55'}`}>
+                  state === 'wait' ? 'text-kb-ink/15' : 'text-kb-ink/72'}`}>
                   {s.hint}
                 </p>
               </div>
@@ -899,7 +899,7 @@ function Answer({ res }: { res: ChatResponse }) {
           onClick={() => window.print()}
           title="이 상담을 인쇄하거나 PDF로 저장합니다"
           className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
-                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     text-kb-ink/82 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
           📄 저장
@@ -914,7 +914,7 @@ function Answer({ res }: { res: ChatResponse }) {
           }}
           title="꿀비가 읽어줍니다"
           className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
-                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     text-kb-ink/82 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
           🔊 읽어줘
@@ -922,7 +922,7 @@ function Answer({ res }: { res: ChatResponse }) {
         <button
           onClick={share}
           className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[13px]
-                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     text-kb-ink/82 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
           {copied ? '복사됨 ✓' : '링크 복사'}
@@ -934,7 +934,7 @@ function Answer({ res }: { res: ChatResponse }) {
       {(understood?.region || understood?.industry) && (
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
                         border-kb-ink/[.1] pb-3">
-          <span className="text-[12.5px] text-kb-ink/45">이렇게 이해했어요</span>
+          <span className="text-[12.5px] text-kb-ink/62">이렇게 이해했어요</span>
           {understood.region && (
             <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[13.5px]
                              font-medium text-kb-ink/80">📍 {understood.region}</span>
@@ -959,11 +959,11 @@ function Answer({ res }: { res: ChatResponse }) {
       {notes.length > 0 && (
         <ul className="mt-4 space-y-1 border-t border-kb-ink/[.1] pt-3">
           {notes.map((n, i) => (
-            <li key={i} className="text-[13px] leading-relaxed text-kb-ink/50">· {n}</li>
+            <li key={i} className="text-[13px] leading-relaxed text-kb-ink/68">· {n}</li>
           ))}
         </ul>
       )}
-      <p className="mt-3 text-right text-[12.5px] text-kb-ink/40">
+      <p className="mt-3 text-right text-[12.5px] text-kb-ink/55">
         {elapsed}ms 만에 답했어요
       </p>
     </div>
@@ -979,7 +979,7 @@ function Answer({ res }: { res: ChatResponse }) {
 function AgentTrace({ res }: { res: ChatResponse }) {
   return (
     <div className="surface-1 mt-4 p-4">
-      <p className="text-[12.5px] font-semibold uppercase tracking-wider text-kb-ink/60">
+      <p className="text-[12.5px] font-semibold uppercase tracking-wider text-kb-ink/78">
         꿀비가 한 일
       </p>
 
@@ -1017,7 +1017,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
         </p>
       )}
 
-      <p className="mt-2.5 text-right text-[12px] text-kb-ink/40">
+      <p className="mt-2.5 text-right text-[12px] text-kb-ink/55">
         {res.elapsed_ms}ms
       </p>
     </div>

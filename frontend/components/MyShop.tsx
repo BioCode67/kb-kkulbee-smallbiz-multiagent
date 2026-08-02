@@ -82,36 +82,36 @@ export default function MyShop({ onChange }: {
                          border-kb-ink/[.12] bg-white p-5 shadow-2xl"
             >
               <p className="text-[18px] font-bold text-kb-ink">내 가게 등록</p>
-              <p className="mt-1 text-[14px] leading-relaxed text-kb-ink/55">
+              <p className="mt-1 text-[14px] leading-relaxed text-kb-ink/72">
                 한 번 알려주시면 매번 동네·업종을 말하지 않아도 돼요.
                 이 브라우저에만 저장되고, 개인정보는 받지 않습니다.
               </p>
 
-              <label className="mt-4 block text-[13.5px] font-semibold text-kb-ink/60">
+              <label className="mt-4 block text-[13.5px] font-semibold text-kb-ink/78">
                 가게가 있는(열려는) 동네
               </label>
               <input value={region} onChange={(e) => setRegion(e.target.value)}
                 placeholder="예) 서울 마포구 연남동, 부산 서면"
                 className="mt-1 w-full rounded-xl border border-kb-ink/[.14] bg-white
                            px-3 py-2.5 text-[15.5px] text-kb-ink
-                           placeholder:text-kb-ink/35 focus:border-kb-yellow
+                           placeholder:text-kb-ink/50 focus:border-kb-yellow
                            focus:outline-none" />
 
-              <label className="mt-3 block text-[13.5px] font-semibold text-kb-ink/60">
+              <label className="mt-3 block text-[13.5px] font-semibold text-kb-ink/78">
                 업종
               </label>
               <input value={industry} onChange={(e) => setIndustry(e.target.value)}
                 placeholder="예) 카페, 치킨집, 미용실"
                 className="mt-1 w-full rounded-xl border border-kb-ink/[.14] bg-white
                            px-3 py-2.5 text-[15.5px] text-kb-ink
-                           placeholder:text-kb-ink/35 focus:border-kb-yellow
+                           placeholder:text-kb-ink/50 focus:border-kb-yellow
                            focus:outline-none" />
               {industries.length > 0 && (
                 <div className="mt-2 flex max-h-[76px] flex-wrap gap-1 overflow-y-auto">
                   {industries.map((i) => (
                     <button key={i.code} onClick={() => setIndustry(i.name)}
                       className="rounded-full border border-kb-ink/[.1] px-2 py-0.5
-                                 text-[12.5px] text-kb-ink/60 hover:border-kb-yellow
+                                 text-[12.5px] text-kb-ink/78 hover:border-kb-yellow
                                  hover:text-kb-ink">
                       {i.name}
                     </button>
@@ -123,7 +123,7 @@ export default function MyShop({ onChange }: {
                 {shop && (
                   <button onClick={() => { setRegion(''); setIndustry(''); }}
                     className="rounded-xl border border-kb-ink/[.14] px-4 py-2.5
-                               text-[15px] text-kb-ink/60 hover:text-kb-ink">
+                               text-[15px] text-kb-ink/78 hover:text-kb-ink">
                     지우기
                   </button>
                 )}

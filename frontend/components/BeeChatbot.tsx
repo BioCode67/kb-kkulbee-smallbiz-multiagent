@@ -81,12 +81,12 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
               <img src="/kkulbee.svg" alt="" width={22} height={25} />
               <div className="flex-1">
                 <p className="text-[15.5px] font-bold text-kb-ink">꿀비</p>
-                <p className="text-[12.5px] text-kb-ink/50">
+                <p className="text-[12.5px] text-kb-ink/68">
                   {loading ? '생각하는 중…' : '무엇이든 물어보세요'}
                 </p>
               </div>
               <button onClick={() => setOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg text-kb-ink/50
+                className="grid h-8 w-8 place-items-center rounded-lg text-kb-ink/68
                            hover:bg-kb-ink/[.06]">✕</button>
             </header>
 
@@ -159,7 +159,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
                 }}
                 placeholder="꿀비에게 물어보세요"
                 className="min-w-0 flex-1 rounded-xl border border-kb-ink/[.12] px-3
-                           py-2.5 text-[15px] text-kb-ink placeholder:text-kb-ink/35
+                           py-2.5 text-[15px] text-kb-ink placeholder:text-kb-ink/50
                            focus:border-kb-yellow focus:outline-none"
               />
               <button onClick={send} disabled={loading || !text.trim()}
