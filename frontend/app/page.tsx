@@ -470,7 +470,7 @@ export default function Page() {
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
                 <motion.div layoutId="bee" transition={SPRING}
                             className="relative z-[45] flex justify-center
-                                       lg:justify-center lg:-translate-x-6">
+                                       lg:justify-center lg:-translate-x-24">
                   {/* 무대 장식 — 벌 주변이 휑하지 않게. 플랫폼 글로우와
                       실측 미니 배지 둘이 벌을 감쌉니다(클릭 통과). */}
                   <div aria-hidden className="pointer-events-none absolute inset-0">
