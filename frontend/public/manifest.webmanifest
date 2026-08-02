@@ -1,0 +1,14 @@
+{
+  "name": "꿀비 — 사장님 곁의 AI 비서",
+  "short_name": "꿀비",
+  "description": "소상공인 사장님의 입지·자금·권리를 실제 자료로 함께 살피는 AI 동료",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF7EE",
+  "theme_color": "#FFBC00",
+  "lang": "ko",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
