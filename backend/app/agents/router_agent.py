@@ -13,6 +13,8 @@ LLM은 "이 질문은 자금 갈래이고 지역은 마포구 연남동, 업종�
 """
 from __future__ import annotations
 
+import re
+
 from app.models.schemas import Intent
 from app.services import llm
 
@@ -114,6 +116,28 @@ async def route(question: str, region: str | None = None,
     from app.services import market_data
 
     fallback = _by_words(question)
+
+    # 규칙 보강 1 — 동네가 실제로 잡히면 그 자체가 입지 신호입니다.
+    # "홍대에서 술집 차리려는데 어때?"엔 상권 낱말이 하나도 없지만
+    # 서교동이 잡힙니다. 낱말이 아니라 사실로 라우팅합니다.
+    _dong_hit = market_data.find_dong(question)
+    if _dong_hit and Intent.LOCATION.value not in fallback["intents"]:
+        ints = set(fallback["intents"]) - {Intent.GENERAL.value}
+        ints.add(Intent.LOCATION.value)
+        fallback["intents"] = [i for i in (Intent.PROTECTION.value,
+                                           Intent.LOCATION.value,
+                                           Intent.POLICY.value) if i in ints]
+
+    # 규칙 보강 2 — '갑자기/일방적으로 (금리·조건이) 올랐/바뀌었'은
+    # 자금 찾기가 아니라 권리 문제입니다. '금리' 낱말이 policy로
+    # 끌고 가던 것을 바로잡습니다.
+    if re.search(r"(갑자기|일방적|말도\s*없이|마음대로)", question) and \
+       re.search(r"(올랐|올렸|인상|바뀌|변경|줄였|내렸|끊)", question):
+        ints = set(fallback["intents"]) - {Intent.GENERAL.value}
+        ints.add(Intent.PROTECTION.value)
+        fallback["intents"] = [i for i in (Intent.PROTECTION.value,
+                                           Intent.LOCATION.value,
+                                           Intent.POLICY.value) if i in ints]
 
     if fallback["intents"] != [Intent.GENERAL.value]:
         found_ind = market_data.find_industry(question)

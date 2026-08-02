@@ -367,3 +367,19 @@ def test_closing_soon_shape_and_bounds():
     # 임박순 정렬 — 티커는 급한 것부터 흘러야 합니다
     lefts = [it["days_left"] for it in out["items"]]
     assert lefts == sorted(lefts)
+
+
+# ── 업종 별칭이 뜻과 맞는지 — '빵집→유흥주점' 같은 사고의 재발 방지 ──
+
+def test_industry_aliases_point_to_sane_names():
+    from app.services import market_data as m
+    ix = m._load()
+    sn = ix["nation"]["small_name"]
+    expect = {"빵집": "빵/도넛", "피자": "피자", "햄버거": "버거",
+              "약국": "약국", "세탁소": "세탁소", "정육점": "정육점",
+              "pc방": "PC방", "노래방": "노래방", "당구장": "당구장",
+              "헬스장": "헬스장", "안경": "안경렌즈 소매업",
+              "게스트하우스": "펜션"}
+    for alias, name in expect.items():
+        code = m._INDUSTRY_ALIAS[alias]
+        assert sn.get(code) == name, f"{alias} → {sn.get(code)} (기대: {name})"

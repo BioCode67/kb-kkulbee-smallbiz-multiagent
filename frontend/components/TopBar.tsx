@@ -61,10 +61,26 @@ export default function TopBar() {
     <header className="print:hidden sticky top-0 z-40 border-b border-kb-ink/[.1]
                        bg-kb-cream/90 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1200px] items-center px-5 lg:px-8">
-        <a href="/" className="flex items-center gap-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kkulbee.svg" alt="" width={24} height={28} className="shrink-0" />
-          <span className="text-[17px] font-bold tracking-tight text-kb-ink">꿀비</span>
+        {/* 로고 — 꿀 방울 배지에 앉은 꿀비 + 2줄 워드마크. 글자만 있던
+            로고는 이 서비스의 성격(캐릭터가 주인공)을 말하지 못했습니다. */}
+        <a href="/" className="group flex items-center gap-2.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[14px]
+                           bg-gradient-to-br from-[#FFD35C] to-[#E89B04]
+                           shadow-[0_6px_14px_-4px_rgba(224,144,0,.5)]
+                           ring-1 ring-white/60 transition
+                           group-hover:rotate-[-6deg] group-hover:scale-105">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/kkulbee.svg" alt="" width={23} height={26} />
+          </span>
+          <span className="leading-none">
+            <span className="block text-[19px] font-black tracking-[-0.02em] text-kb-ink">
+              꿀비
+            </span>
+            <span className="mt-[3px] block text-[10px] font-bold tracking-[0.02em]
+                             text-kb-amber">
+              사장님 곁의 AI
+            </span>
+          </span>
         </a>
 
         {/* 핵심 기능 다섯 — 누르면 그 갈래가 선택된 첫 화면으로 */}
