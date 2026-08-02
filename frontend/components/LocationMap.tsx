@@ -26,6 +26,10 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import KakaoMap from './KakaoMap';
+
+// 카카오 키가 있으면 카카오 판, 없으면 Leaflet 판 — 같은 데이터입니다.
+const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY ?? '';
 import type { MapPin } from '@/lib/types';
 
 /** leaflet.heat이 L.heatLayer를 전역 L에 붙입니다. 타입만 선언해 둡니다. */
@@ -50,7 +54,15 @@ function tone(score: number): { fill: string } {
   return { fill: '#8A7866' };
 }
 
-export default function LocationMap({
+export default function LocationMap(props: Props) {
+  const [kakaoFailed, setKakaoFailed] = useState(false);
+  if (KAKAO_KEY && !kakaoFailed) {
+    return <KakaoMap {...props} onFallback={() => setKakaoFailed(true)} />;
+  }
+  return <LeafletMap {...props} />;
+}
+
+function LeafletMap({
   pins, dongCode, industryCode, industry, sameIndustryCount,
 }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);

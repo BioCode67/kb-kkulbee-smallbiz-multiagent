@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { TermEntry } from '@/lib/types';
 
@@ -28,6 +29,12 @@ export default function ProtectionDrawer({ open, onClose }: {
     safe: string; report: { passed: boolean; violations: string[] };
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  // 이 서랍은 backdrop-blur를 쓰는 상단바 '안'에서 렌더됩니다. backdrop-filter는
+  // fixed 요소의 기준을 자기 자신으로 바꿔 버려서, h-full이 화면이 아니라
+  // 56px짜리 상단바 높이가 됐습니다 — 서랍이 납작하게 눌린 원인. 포털로
+  // body에 직접 그려 기준을 화면으로 되돌립니다.
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => setHost(document.body), []);
 
   useEffect(() => {
     if (!open || terms.length) return;
@@ -47,7 +54,8 @@ export default function ProtectionDrawer({ open, onClose }: {
     } catch { /* 서버가 없으면 조용히 */ } finally { setBusy(false); }
   };
 
-  return (
+  if (!host) return null;
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -174,6 +182,7 @@ export default function ProtectionDrawer({ open, onClose }: {
           </motion.aside>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    host,
   );
 }
