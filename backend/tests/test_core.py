@@ -352,3 +352,18 @@ def test_compare_needs_marker_and_two_regions():
     assert _detect_pair("연남동 카페 상권 어때?") is None
     # 비교 낱말이 있어도 동네가 하나뿐이면 비교가 아닙니다
     assert _detect_pair("연남동 상권 다른 곳과 비교하면 어때?") is None
+
+
+# ── 곧 마감 ───────────────────────────────────────────────────────────────
+
+def test_closing_soon_shape_and_bounds():
+    from app.main import closing_soon
+    out = closing_soon(days=10)
+    assert "items" in out
+    for it in out["items"]:
+        assert 0 <= it["days_left"] <= 10
+        assert it["url"].startswith(
+            "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=")
+    # 임박순 정렬 — 티커는 급한 것부터 흘러야 합니다
+    lefts = [it["days_left"] for it in out["items"]]
+    assert lefts == sorted(lefts)
