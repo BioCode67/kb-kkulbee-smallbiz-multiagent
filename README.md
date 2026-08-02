@@ -3,6 +3,15 @@
 **제8회 KB AI Challenge** · 소상공인 멀티에이전트 상담 플랫폼
 Pick 2 최적 입지 × Pick 3 소상공인 금융 × Pick 4 소비자 보호
 
+**▶ 실서비스: https://kb-kkulbee-smallbiz-multiagent.onrender.com**
+(무료 서버라 첫 접속은 깨우는 데 수십 초 걸릴 수 있습니다 —
+[시연 딥링크](https://kb-kkulbee-smallbiz-multiagent.onrender.com/?q=연남동에서%20카페%20열려는데%20상권%20어때%3F)로 바로 질문이 실행됩니다)
+
+<p align="center">
+  <img src="docs/screens/home.png" width="70%" alt="꿀비 첫 화면">
+  <img src="docs/screens/tour.png" width="24%" alt="지도 투어 — 연남동 열지도">
+</p>
+
 > "요즘 통 손님이 없어서 월세도 빠듯해요" — 이 문장에는 '자금'도 '대출'도
 > 없습니다. 그런데 이 사장님께 필요한 것은 소상공인 경영안정자금입니다.
 > 꿀비는 제도 이름을 몰라도 답이 나오는 상담을 목표로 합니다.
