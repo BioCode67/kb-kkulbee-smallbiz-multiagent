@@ -31,6 +31,7 @@ import FundingPlan from '@/components/FundingPlan';
 import ContractScan from '@/components/ContractScan';
 import GoldenTime from '@/components/GoldenTime';
 import GapRadar from '@/components/GapRadar';
+import AllBriefing from '@/components/AllBriefing';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -620,6 +621,10 @@ export default function Page() {
 
               {view === 'mode' && MODES[mode].key === 'gap' && (
                 <GapRadar />
+              )}
+
+              {view === 'mode' && MODES[mode].key === 'all' && (
+                <AllBriefing onAsk={ask} />
               )}
 
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은
