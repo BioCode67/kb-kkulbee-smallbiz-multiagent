@@ -93,6 +93,19 @@ def parse_notice(html: str, today: date | None = None) -> dict:
     m = re.search(r'href="(https?://[^"]+)"[^>]*id="barogagi"', flat)
     apply_link = html_mod.unescape(m.group(1)) if m else None
 
+    # 원문 요약 필드들 — s_title 블록에서 그대로. 색인 요약과 달리
+    # 이건 '지금 원문'의 문장입니다.
+    def field(name: str, limit: int) -> str | None:
+        fm = re.search(name + r'</span>\s*<div class="txt">(.{0,1200}?)</div>', flat)
+        if not fm:
+            return None
+        txt = _clean(fm.group(1))
+        return (txt[:limit] + "…") if len(txt) > limit else (txt or None)
+
+    overview = field("사업개요", 180)
+    apply_method = field("사업신청 방법", 120)
+    contact = field("문의처", 90)
+
     return {
         "title": title,
         "period_text": period_text,
@@ -101,6 +114,9 @@ def parse_notice(html: str, today: date | None = None) -> dict:
         "days_left": days_left,
         "attachments": attachments,
         "apply_link": apply_link,
+        "overview": overview,
+        "apply_method": apply_method,
+        "contact": contact,
     }
 
 

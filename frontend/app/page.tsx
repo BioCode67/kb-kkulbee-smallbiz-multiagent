@@ -215,6 +215,28 @@ export default function Page() {
     return () => window.removeEventListener('kkulbee:ask', h);
   }, [ask]);
 
+  // 꿀비를 콕 찌르면 — 한 바퀴 돌면서 한마디. 장난이지만 대사는 전부
+  // 진짜 기능으로 안내합니다. 마스코트가 튜토리얼이 되는 순간입니다.
+  useEffect(() => {
+    const LINES = [
+      '아이 간지러워요! 🐝',
+      '저를 잡아 늘여 보세요 — 쫀득해요!',
+      '⭐를 누르면 공고를 찜할 수 있어요',
+      '☆ 서랍에서 "모두 재확인"을 누르면 제가 원문을 순찰해요!',
+      '📄 저장을 누르면 상담을 종이로 들고 가실 수 있어요',
+      "키보드 '/'를 누르면 바로 물어볼 수 있어요",
+      '지도 카드에서 "지도 투어"를 눌러 보세요!',
+    ];
+    let i = Math.floor(Math.random() * LINES.length);
+    const h = () => {
+      setMood('fly_happy');
+      setSpeech(LINES[i % LINES.length]);
+      i += 1;
+    };
+    window.addEventListener('kkulbee:poked', h);
+    return () => window.removeEventListener('kkulbee:poked', h);
+  }, []);
+
   // 상단바의 다섯 갈래 — 누르면 그 갈래가 선택된 첫 화면으로 돌아갑니다.
   // 결과를 보던 중이라도 '기능으로 이동'은 새로 시작이 자연스럽습니다.
   useEffect(() => {

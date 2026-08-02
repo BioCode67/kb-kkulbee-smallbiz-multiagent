@@ -179,7 +179,7 @@ function ScoreCard({ s }: { s: LocationScore }) {
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[31px] font-extrabold leading-none tracking-tight
                              text-kb-ink [font-variant-numeric:tabular-nums]">
-              {s.total_score.toFixed(1)}
+              <CountUp value={s.total_score} />
             </span>
             <span className="mt-1 text-[10.5px] text-kb-ink/50">/ 100점</span>
           </div>
@@ -596,6 +596,24 @@ const FUNDING_TONE: Record<string, string> = {
   '컨설팅·교육': 'bg-amber-500/[.14] text-amber-800 ring-amber-400/22',
   '기타': 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.14]',
 };
+
+/** 점수가 0에서 차오릅니다 — "점수를 받았다"는 감각은 이런 1초가 만듭니다.
+    최종 숫자는 물론 실제 값 그대로. 연출은 도착 과정에만 있습니다. */
+function CountUp({ value }: { value: number }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / 950);
+      setV(value * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{v.toFixed(1)}</>;
+}
 
 /** 찜 별 — 누르면 브라우저에 담기고, 상단 '내 찜'에서 D-day 순으로 모입니다. */
 function SaveStar({ m }: { m: PolicyMatch }) {

@@ -227,6 +227,25 @@ def rpa_check(payload: dict) -> dict:
     return check_notice(str(payload.get("url", "")))
 
 
+@app.post("/api/v1/rpa/check-all")
+def rpa_check_all(payload: dict) -> dict:
+    """찜해 둔 공고 전부를 한 번에 훑습니다 (최대 10건, 4갈래 동시).
+
+    아침에 커피 한 모금 하는 사이에 '오늘 내 찜 목록에 무슨 일이
+    있었나'가 나오는 것 — RPA가 사람 대신 도는 순찰입니다.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    from app.rpa import check_notice
+    urls = [str(u) for u in payload.get("urls", [])][:10]
+    if not urls:
+        return {"results": []}
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        results = list(ex.map(check_notice, urls))
+    return {"results": results,
+            "note": f"{len(urls)}건을 원문에서 방금 확인했습니다"}
+
+
 # ── 화면 서빙 ─────────────────────────────────────────────────────────────
 #
 # 배포본에서는 프런트엔드도 이 프로세스가 내보냅니다. 주소가 하나여야

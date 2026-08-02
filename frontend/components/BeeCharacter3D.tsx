@@ -305,9 +305,29 @@ export default function BeeCharacter3D({
       // ── 쫀득 드래그 — 잡아 늘이면 슬라임처럼 따라오고, 놓으면 출렁이며
       // 돌아옵니다. 핵심은 저감쇠 스프링: 놓았을 때 한 번에 서지 않고
       // 두어 번 출렁여야 '쫀득'이 됩니다.
-      let dragging = false, grabX = 0, grabY = 0;
+      let dragging = false, grabX = 0, grabY = 0, grabT = 0;
       let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
       let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
+      let spinFrom = -10;                  // 클릭 리액션(한 바퀴) 시작 시각
+
+      // 통통 소리 — 에셋 없이 오실레이터로 만듭니다. 놓는 순간의 '보잉'이
+      // 쫀득함을 귀로도 완성합니다. 사용자 제스처 뒤에만 생성(브라우저 정책).
+      let audio: AudioContext | null = null;
+      const boing = (strength: number) => {
+        try {
+          audio ??= new (window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+          const o = audio.createOscillator();
+          const g = audio.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(260 + strength * 160, audio.currentTime);
+          o.frequency.exponentialRampToValueAtTime(85, audio.currentTime + 0.16);
+          g.gain.setValueAtTime(Math.min(0.055, 0.02 + strength * 0.04), audio.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.2);
+          o.connect(g).connect(audio.destination);
+          o.start(); o.stop(audio.currentTime + 0.22);
+        } catch {/* 소리가 없어도 쫀득함은 눈으로 */}
+      };
       const onMove = (e: PointerEvent) => {
         tx = Math.max(-1, Math.min(1,
           (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2)));
@@ -320,14 +340,27 @@ export default function BeeCharacter3D({
       };
       const onDown = (e: PointerEvent) => {
         dragging = true;
-        grabX = e.clientX; grabY = e.clientY;
+        grabX = e.clientX; grabY = e.clientY; grabT = performance.now();
         renderer.domElement.setPointerCapture?.(e.pointerId);
         renderer.domElement.style.cursor = 'grabbing';
       };
-      const onUp = () => {
+      const onUp = (e: PointerEvent) => {
+        if (!dragging) return;
         dragging = false;
+        const moved = Math.hypot(e.clientX - grabX, e.clientY - grabY);
+        const held = performance.now() - grabT;
+        const stretch = Math.hypot(pullX, pullY);
         pullX = 0; pullY = 0;             // 스프링이 출렁이며 제자리로
         renderer.domElement.style.cursor = 'grab';
+        if (moved < 6 && held < 350) {
+          // 드래그가 아니라 콕 찌른 것 — 한 바퀴 돌고 폴짝 뛰며 한마디
+          spinFrom = clock.getElapsedTime();
+          jvy += 0.32;
+          boing(0.4);
+          window.dispatchEvent(new CustomEvent('kkulbee:poked'));
+        } else if (stretch > 0.25) {
+          boing(Math.min(1, stretch));    // 늘였다 놓은 만큼 낮게 '보잉'
+        }
       };
       if (interactive) {
         window.addEventListener('pointermove', onMove, { passive: true });
@@ -381,13 +414,17 @@ export default function BeeCharacter3D({
         bee.position.y += jy * 0.75;
         bee.rotation.z = -jx * 0.3;                     // 당긴 쪽으로 기울어짐
 
+        // 콕 찌르면 한 바퀴 — easeOut으로 빠르게 돌기 시작해 사뿐히 멈춥니다
+        const sp = (t - spinFrom) / 0.85;
+        const spin = sp >= 0 && sp < 1 ? (1 - Math.pow(1 - sp, 3)) * Math.PI * 2 : 0;
+
         // 마우스를 향해 천천히 고개를 돌립니다
         cx += (tx - cx) * 0.07;
         cy += (ty - cy) * 0.07;
         head.rotation.y = cx * 0.42 + (thinking ? Math.sin(t * 0.7) * 0.12 : 0);
         head.rotation.x = cy * 0.26;
         head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : cx * -0.08;
-        bee.rotation.y = cx * 0.2;
+        bee.rotation.y = cx * 0.2 + spin;
         bee.rotation.x = m === 'explaining' ? 0.1 : 0;
 
         // 날개 — 초당 여러 번 퍼덕여야 벌입니다

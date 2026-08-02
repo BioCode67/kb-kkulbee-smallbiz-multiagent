@@ -3,9 +3,10 @@
 /**
  * 내 찜 서랍 — 담아 둔 공고를 마감 가까운 순으로.
  *
- * D-day가 이 서랍의 존재 이유입니다. 공고는 검색으로 다시 찾을 수 있지만,
- * "그거 마감이 언제였더라"는 못 찾습니다. 마감 지난 것은 지웠다고 알려주고
- * 아래로 내립니다.
+ * D-day가 이 서랍의 존재 이유입니다. 여기에 RPA가 붙습니다: 색인은
+ * 수집 시점의 스냅샷이고 공고는 살아 움직이므로, '모두 재확인' 한 번에
+ * 기계가 원문을 전부 돌며 마감·서식·문의처를 오늘 기준으로 다시 읽어
+ * 옵니다. 담아 둘 때와 달라졌으면 달라졌다고 짚어 줍니다.
  */
 
 import { useEffect, useState } from 'react';
@@ -16,65 +17,75 @@ import { dday, loadSaved, onSavedChange, removeSaved, type SavedProgram } from '
 /** 원문 재확인 결과 — 백엔드 RPA가 기업마당 원문을 방금 열어 읽은 사실 */
 interface LiveCheck {
   ok: boolean; reason?: string; checked_at?: string; period_text?: string | null;
-  status?: string; days_left?: number | null;
+  status?: string; days_left?: number | null; deadline?: string | null;
   attachments?: { name: string; url: string }[]; apply_link?: string | null;
+  overview?: string | null; apply_method?: string | null; contact?: string | null;
 }
 
-/** 색인은 수집 시점의 스냅샷 — 신청 직전의 마지막 확인은 오늘의 원문이어야
-    합니다. 마감 연장·조기 마감·서식 교체는 색인이 모릅니다. */
-function LiveCheckRow({ s }: { s: SavedProgram }) {
-  const [r, setR] = useState<LiveCheck | null>(null);
-  const [busy, setBusy] = useState(false);
-  const canCheck = s.url.includes('bizinfo.go.kr');
-  if (!canCheck) return null;
+function statusLabel(r: LiveCheck): [string, string] {
+  return r.status === 'open' ? [`접수 중 · ${r.days_left}일 남음`, 'text-emerald-700']
+    : r.status === 'closed' ? ['마감됨', 'text-rose-700']
+    : r.status === 'upcoming' ? ['접수 예정', 'text-sky-700']
+    : [r.period_text || '기간 표기 없음', 'text-kb-ink/60'];
+}
 
-  const run = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const res = await fetch('/api/v1/rpa/check', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: s.url }),
-      });
-      setR(await res.json());
-    } catch { setR({ ok: false, reason: '서버에 닿지 못했어요' }); }
-    finally { setBusy(false); }
-  };
+function LiveCheckRow({ s, r, busy, onRun }: {
+  s: SavedProgram; r: LiveCheck | null; busy: boolean; onRun: () => void;
+}) {
+  const [more, setMore] = useState(false);
+  if (!s.url.includes('bizinfo.go.kr')) return null;
+
+  // 담아 둘 때 알던 마감과 오늘 원문이 다르면 — 그게 이 기능의 존재 이유
+  const changed = r?.ok && r.deadline && s.deadline && r.deadline !== s.deadline;
 
   return (
     <div className="mt-2 border-t border-kb-ink/[.06] pt-2">
       {!r && (
-        <button onClick={run} disabled={busy}
+        <button onClick={onRun} disabled={busy}
           className="text-[11px] font-semibold text-kb-ink/55 transition
                      hover:text-kb-amber disabled:opacity-50">
           {busy ? '원문을 여는 중…' : '🔄 원문 재확인 — 마감·서식이 바뀌었는지'}
         </button>
       )}
-      {r && !r.ok && (
-        <p className="text-[10.5px] text-rose-700">{r.reason}</p>
-      )}
+      {r && !r.ok && <p className="text-[10.5px] text-rose-700">{r.reason}</p>}
       {r?.ok && (
         <div className="space-y-1 text-[10.5px] leading-relaxed text-kb-ink/65">
           <p>
-            <b className={r.status === 'closed' ? 'text-rose-700' : 'text-emerald-700'}>
-              {r.status === 'open' ? `접수 중 · ${r.days_left}일 남음`
-                : r.status === 'closed' ? '마감됨'
-                : r.status === 'upcoming' ? '접수 예정'
-                : r.period_text || '기간 표기 없음'}
-            </b>
+            <b className={statusLabel(r)[1]}>{statusLabel(r)[0]}</b>
             {' '}· 원문 기준 {r.checked_at?.slice(11, 16)} 확인
           </p>
+          {changed && (
+            <p className="rounded-md bg-amber-400/[.14] px-2 py-1 font-semibold
+                          text-amber-800">
+              ⚠ 담아 둘 때({s.deadline})와 마감이 달라졌어요 → 원문은 {r.deadline}
+            </p>
+          )}
           {(r.attachments ?? []).slice(0, 3).map((a) => (
             <a key={a.url} href={a.url} target="_blank" rel="noreferrer"
                className="block truncate text-kb-amber underline-offset-2 hover:underline">
               📎 {a.name}
             </a>
           ))}
-          {r.apply_link && (
-            <a href={r.apply_link} target="_blank" rel="noreferrer"
-               className="font-semibold text-kb-amber hover:underline">
-              신청 사이트 바로가기 →
-            </a>
+          <div className="flex flex-wrap gap-x-3">
+            {r.apply_link && (
+              <a href={r.apply_link} target="_blank" rel="noreferrer"
+                 className="font-semibold text-kb-amber hover:underline">
+                신청 사이트 바로가기 →
+              </a>
+            )}
+            {(r.overview || r.apply_method || r.contact) && (
+              <button onClick={() => setMore((v) => !v)}
+                      className="text-kb-ink/45 hover:text-kb-ink">
+                {more ? '접기 ▴' : '원문 요약 더 보기 ▾'}
+              </button>
+            )}
+          </div>
+          {more && (
+            <div className="space-y-1 rounded-lg bg-kb-ink/[.04] px-2.5 py-2">
+              {r.overview && <p><b className="text-kb-ink/60">개요</b> {r.overview}</p>}
+              {r.apply_method && <p><b className="text-kb-ink/60">신청</b> {r.apply_method}</p>}
+              {r.contact && <p><b className="text-kb-ink/60">문의</b> {r.contact}</p>}
+            </div>
           )}
         </div>
       )}
@@ -86,6 +97,9 @@ export default function SavedDrawer({ open, onClose }: {
   open: boolean; onClose: () => void;
 }) {
   const [items, setItems] = useState<SavedProgram[]>([]);
+  const [checks, setChecks] = useState<Record<string, LiveCheck>>({});
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+  const [sweeping, setSweeping] = useState(false);
   const [host, setHost] = useState<HTMLElement | null>(null);
   useEffect(() => setHost(document.body), []);
   useEffect(() => {
@@ -94,6 +108,41 @@ export default function SavedDrawer({ open, onClose }: {
     return onSavedChange(load);
   }, [open]);
 
+  const runOne = async (s: SavedProgram) => {
+    setBusy((b) => ({ ...b, [s.id]: true }));
+    try {
+      const res = await fetch('/api/v1/rpa/check', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: s.url }),
+      });
+      const r = await res.json();
+      setChecks((c) => ({ ...c, [s.id]: r }));
+    } catch {
+      setChecks((c) => ({ ...c, [s.id]: { ok: false, reason: '서버에 닿지 못했어요' } }));
+    } finally {
+      setBusy((b) => ({ ...b, [s.id]: false }));
+    }
+  };
+
+  // RPA 순찰 — 찜 전부의 원문을 한 번에. 결과는 각 항목 밑으로 흩어집니다.
+  const bizItems = items.filter((s) => s.url.includes('bizinfo.go.kr'));
+  const runAll = async () => {
+    if (sweeping || !bizItems.length) return;
+    setSweeping(true);
+    try {
+      const res = await fetch('/api/v1/rpa/check-all', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: bizItems.map((s) => s.url) }),
+      });
+      const { results } = await res.json();
+      setChecks((c) => {
+        const next = { ...c };
+        bizItems.forEach((s, i) => { if (results[i]) next[s.id] = results[i]; });
+        return next;
+      });
+    } catch {/* 개별 버튼이 남아 있습니다 */} finally { setSweeping(false); }
+  };
+
   // 마감 임박 순 — 날짜 없는 것(상시)은 뒤로, 지난 것은 맨 뒤로.
   const sorted = [...items].sort((a, b) => {
     const da = dday(a.deadline), db = dday(b.deadline);
@@ -101,6 +150,11 @@ export default function SavedDrawer({ open, onClose }: {
     const kb = db == null ? 9000 : db < 0 ? 99000 + -db : db;
     return ka - kb;
   });
+
+  // 순찰 요약 — 확인된 것들의 오늘 상태를 머리에 한 줄로
+  const done = bizItems.filter((s) => checks[s.id]?.ok);
+  const nOpen = done.filter((s) => checks[s.id].status === 'open').length;
+  const nClosed = done.filter((s) => checks[s.id].status === 'closed').length;
 
   if (!host) return null;
   return createPortal(
@@ -116,14 +170,30 @@ export default function SavedDrawer({ open, onClose }: {
             className="fixed right-0 top-0 z-[90] flex h-full w-full max-w-[400px]
                        flex-col bg-kb-cream shadow-2xl ring-1 ring-kb-ink/[.12]"
           >
-            <header className="flex items-center justify-between border-b
-                               border-kb-ink/[.1] px-4 py-3.5">
-              <p className="text-[15px] font-bold text-kb-ink">
-                ⭐ 찜한 지원사업 <span className="text-kb-ink/40">{items.length}</span>
-              </p>
-              <button onClick={onClose}
-                className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/50
-                           hover:bg-kb-ink/[.06]">✕</button>
+            <header className="border-b border-kb-ink/[.1] px-4 py-3.5">
+              <div className="flex items-center justify-between">
+                <p className="text-[15px] font-bold text-kb-ink">
+                  ⭐ 찜한 지원사업 <span className="text-kb-ink/40">{items.length}</span>
+                </p>
+                <button onClick={onClose}
+                  className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/50
+                             hover:bg-kb-ink/[.06]">✕</button>
+              </div>
+              {bizItems.length >= 2 && (
+                <button onClick={runAll} disabled={sweeping}
+                  className="mt-2 w-full rounded-lg bg-kb-yellow/[.9] py-2 text-[12px]
+                             font-bold text-kb-ink transition hover:brightness-105
+                             disabled:opacity-50">
+                  {sweeping ? `원문 ${bizItems.length}건 순찰 중…`
+                    : `🤖 모두 재확인 — ${bizItems.length}건 원문 순찰`}
+                </button>
+              )}
+              {done.length > 0 && (
+                <p className="mt-1.5 text-center text-[10.5px] text-kb-ink/55">
+                  오늘 원문 기준: 접수 중 {nOpen}건
+                  {nClosed > 0 && <> · <b className="text-rose-700">마감 {nClosed}건</b></>}
+                </p>
+              )}
             </header>
 
             <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-3.5">
@@ -170,7 +240,9 @@ export default function SavedDrawer({ open, onClose }: {
                         공고 원문 →
                       </a>
                     </div>
-                    <LiveCheckRow s={s} />
+                    <LiveCheckRow s={s} r={checks[s.id] ?? null}
+                                  busy={!!busy[s.id] || sweeping}
+                                  onRun={() => runOne(s)} />
                   </div>
                 );
               })}
