@@ -19,10 +19,15 @@ interface Row {
   industry: string; score: number; delta: number;
   same_count: number | null; current: boolean;
 }
+interface Move {
+  region: string; score: number; delta: number; same_count: number | null;
+}
 
 export default function WhatIf({ loc }: { loc: LocationScore }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [moves, setMoves] = useState<Move[]>([]);
+  const [axis, setAxis] = useState<'industry' | 'region'>('industry');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -34,7 +39,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
       const r = await fetch(`/api/v1/whatif?region=${encodeURIComponent(loc.region_name)}`
         + `&industry=${encodeURIComponent(loc.industry)}`);
       const d = await r.json();
-      if (d.ok) { setRows(d.rows); setNote(d.note); }
+      if (d.ok) { setRows(d.rows); setMoves(d.moves ?? []); setNote(d.note); }
     } catch {/* 없으면 접힌 채로 */} finally { setBusy(false); }
   };
 
@@ -63,6 +68,50 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
 
       {open && rows && (
         <div className="border-t border-kb-ink/[.07] px-5 pb-5 pt-3">
+          {/* 반사실의 두 축 — 사장님이 고를 수 있는 것은 업종과 동네뿐 */}
+          {moves.length > 0 && (
+            <div className="mb-3 flex gap-1.5">
+              {([['industry', '업종을 바꾸면'], ['region', '동네를 옮기면']] as const)
+                .map(([k, label]) => (
+                <button key={k} onClick={() => setAxis(k)}
+                  className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold
+                              ring-1 transition ${axis === k
+                    ? 'bg-kb-yellow/[.2] text-kb-amber ring-kb-yellow/50'
+                    : 'text-kb-ink/60 ring-kb-ink/[.14] hover:text-kb-ink'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {axis === 'region' ? (
+            <ul className="space-y-1">
+              {moves.map((mv) => (
+                <li key={mv.region}>
+                  <button onClick={() =>
+                      window.dispatchEvent(new CustomEvent('kkulbee:ask',
+                        { detail: `${mv.region}에서 ${loc.industry} 어때?` }))}
+                    className="group flex w-full items-center gap-2.5 rounded-lg px-2
+                               py-[5px] text-left transition hover:bg-white/70">
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium
+                                     text-kb-ink/85">{mv.region}</span>
+                    <span className="shrink-0 text-[13px] font-bold text-kb-ink
+                                     [font-variant-numeric:tabular-nums]">
+                      {mv.score.toFixed(1)}
+                    </span>
+                    <span className={`w-[52px] shrink-0 text-right text-[12px] font-bold
+                                      [font-variant-numeric:tabular-nums] ${
+                      mv.delta > 0 ? 'text-emerald-700'
+                        : mv.delta < 0 ? 'text-rose-600' : 'text-kb-ink/40'}`}>
+                      {mv.delta > 0 ? '+' : ''}{mv.delta.toFixed(1)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+              <p className="pt-1 text-[12px] text-kb-ink/62">
+                가게 구성이 닮은 동네(2호점 후보)를 같은 업종으로 다시 잰 값이에요.
+              </p>
+            </ul>
+          ) : (
           <ul className="space-y-1">
             {rows.map((r) => (
               <li key={r.industry}>
@@ -94,6 +143,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
               </li>
             ))}
           </ul>
+          )}
           <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[12.5px]
                         leading-relaxed text-amber-800">
             {note}

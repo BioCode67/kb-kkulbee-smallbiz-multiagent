@@ -262,9 +262,24 @@ def whatif(region: str, industry: str = "카페") -> dict:
                      "same_count": s.same_industry_count,
                      "current": it["name"] == cur.industry})
     rows.sort(key=lambda r: -r["score"])
+
+    # 두 번째 축 — 동네를 옮기면. 업종 구성이 닮은 동네(2호점 후보)들을
+    # 같은 업종으로 다시 재서, '여기 대신 저기라면'을 숫자로 돌려줍니다.
+    moves = []
+    if getattr(cur, "dong_code", None):
+        for it in market_data.similar_dongs(cur.dong_code, 6):
+            alt = location_agent.analyze(it["name"], cur.industry)
+            if alt is None:
+                continue
+            moves.append({"region": it["name"], "sim": it.get("sim"),
+                          "score": alt.total_score,
+                          "delta": round(alt.total_score - cur.total_score, 1),
+                          "same_count": alt.same_industry_count})
+        moves.sort(key=lambda r: -r["score"])
+
     return {"ok": True, "region": cur.region_name,
             "current": {"industry": cur.industry, "score": cur.total_score},
-            "rows": rows[:9],
+            "rows": rows[:9], "moves": moves[:6],
             "note": ("입지 요인(경쟁·집적·다양성)만 다시 잰 값입니다 — 수요·"
                      "전문성·임대료는 들어 있지 않으니 방향 참고로만 보세요.")}
 
