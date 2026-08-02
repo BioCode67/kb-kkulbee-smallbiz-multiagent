@@ -179,27 +179,36 @@ export default function BeeCharacter3D({
       face.castShadow = true;
       head.add(face);
 
+      // 후드 테 — 얼굴을 두르는 노란 링. 레퍼런스의 핵심인데 빠져 있어서
+      // '후드 쓴 아이'가 아니라 '계란에 줄무늬'로 읽혔습니다.
+      const hoodRim = new THREE.Mesh(
+        new THREE.TorusGeometry(1.0, 0.13, 16, 48),
+        new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.38 }));
+      hoodRim.position.set(0.06, -0.02, 0.62);
+      hoodRim.scale.set(1.0, 1.02, 0.7);
+      head.add(hoodRim);
+
       // 눈 — 얼굴 표면에 붙는 구체. 이것 하나로 '3D인가 그림인가'가 갈립니다.
       const eyes: import('three').Mesh[] = [];
       for (const sx of [-1, 1]) {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.235, 32, 24), eyeMat);
-        eye.position.set(0.06 + sx * 0.34, 0.06, 1.16);
-        eye.scale.set(1, 1.16, 0.62);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), eyeMat);
+        eye.position.set(0.06 + sx * 0.315, 0.09, 1.14);
+        eye.scale.set(1, 1.18, 0.6);
         head.add(eye);
         eyes.push(eye);
 
         // 캐치라이트 — 조명만으로 생기는 반사는 각도에 따라 사라집니다.
         // 눈빛은 늘 있어야 하므로 스스로 빛나는 작은 구슬을 하나 박습니다.
         const spark = new THREE.Mesh(
-          new THREE.SphereGeometry(0.075, 16, 12),
+          new THREE.SphereGeometry(0.09, 16, 12),
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        spark.position.set(0.06 + sx * 0.34 - 0.07, 0.14, 1.30);
+        spark.position.set(0.06 + sx * 0.315 - 0.08, 0.19, 1.31);
         head.add(spark);
 
         const spark2 = new THREE.Mesh(
           new THREE.SphereGeometry(0.036, 12, 10),
           new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }));
-        spark2.position.set(0.06 + sx * 0.34 + 0.08, -0.03, 1.29);
+        spark2.position.set(0.06 + sx * 0.315 + 0.09, -0.02, 1.3);
         head.add(spark2);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
@@ -210,36 +219,23 @@ export default function BeeCharacter3D({
         const blush = new THREE.Mesh(
           new THREE.SphereGeometry(0.2, 20, 14),
           new THREE.MeshBasicMaterial({
-            color: 0xff8e86, transparent: true, opacity: 0.45 }));
-        blush.position.set(0.06 + sx * 0.52, -0.24, 1.122);
+            color: 0xffa39b, transparent: true, opacity: 0.5 }));
+        blush.position.set(0.06 + sx * 0.5, -0.18, 1.13);
         blush.scale.set(1.2, 0.74, 0.22);
         head.add(blush);
       }
 
       // 입 — 벌어진 웃음. 납작한 구체를 눌러 만듭니다.
-      const mouth = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2, 24, 16),
-        new THREE.MeshStandardMaterial({ color: 0xb0453e, roughness: 0.5 }));
-      mouth.position.set(0.1, -0.34, 1.217);
-      mouth.scale.set(1.45, 0.62, 0.34);
-      head.add(mouth);
+      // 입 — 작은 미소 곡선 하나면 됩니다. 전에는 빨간 타원을 붙였는데
+      // 광대 코처럼 읽혀 얼굴 전체가 이상해졌습니다. 마스코트의 입은
+      // 작을수록 눈이 커 보입니다.
+      const smile = new THREE.Mesh(
+        new THREE.TorusGeometry(0.16, 0.028, 12, 24, Math.PI * 0.8),
+        new THREE.MeshStandardMaterial({ color: 0x5a4636, roughness: 0.6 }));
+      smile.position.set(0.06, -0.27, 1.25);
+      smile.rotation.z = Math.PI + Math.PI * 0.1;
+      head.add(smile);
 
-      // 혀는 입 **안쪽**에 둡니다. 앞에 두었더니 혀를 내민 것처럼 보였습니다.
-      const tongue = new THREE.Mesh(
-        new THREE.SphereGeometry(0.11, 16, 12),
-        new THREE.MeshStandardMaterial({ color: 0xff8d84, roughness: 0.6 }));
-      tongue.position.set(0.1, -0.4, 1.207);
-      tongue.scale.set(1.05, 0.5, 0.3);
-      head.add(tongue);
-
-      // 앞머리 한 가닥
-      const hair = new THREE.Mesh(
-        new THREE.SphereGeometry(0.17, 20, 14),
-        new THREE.MeshStandardMaterial({ color: 0x2a1e16, roughness: 0.55 }));
-      hair.position.set(0.1, 0.62, 1.093);
-      hair.scale.set(1.5, 0.42, 0.3);
-      hair.rotation.z = -0.18;
-      head.add(hair);
 
       // 더듬이
       const antennae: import('three').Group[] = [];
@@ -374,7 +370,7 @@ export default function BeeCharacter3D({
         // 깜빡임은 눈알을 위아래로 눌러 만듭니다. 눈꺼풀을 따로 두었더니
         // 평소에도 이마에 크림색 혹이 떠 있는 것처럼 보였습니다.
         eyes.forEach((eye) => {
-          eye.scale.y = 1.16 * Math.max(0.06, 1 - lidT);
+          eye.scale.y = 1.18 * Math.max(0.06, 1 - lidT);
         });
 
         renderer.render(scene, camera);

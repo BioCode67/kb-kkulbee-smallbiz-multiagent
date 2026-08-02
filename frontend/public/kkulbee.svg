@@ -106,8 +106,7 @@
   <!-- 얼굴 -->
   <ellipse cx="118" cy="102" rx="52" ry="50" fill="url(#faceG)"/>
   <path d="M66 102 A52 50 0 0 1 170 102 L170 84 A52 50 0 0 0 66 84 Z" fill="#C8A882" opacity=".22"/>
-  <path d="M104 62 Q114 50 128 54 Q138 57 141 64 Q132 58 122 60 Q112 62 104 62 Z"
-        fill="#2A1E16"/>
+
 
   <!-- 눈 — 광택점을 둘 이상 찍어야 유리알처럼 보입니다 -->
   <g>
@@ -127,7 +126,8 @@
   <ellipse cx="84" cy="122" rx="13" ry="9" fill="url(#blushG)"/>
   <ellipse cx="156" cy="122" rx="13" ry="9" fill="url(#blushG)"/>
 
-  <!-- 입 -->
-  <path d="M108 122 q16 24 33 2 q-17 10 -33 -2 Z" fill="#B0453E"/>
-  <path d="M114 130 q12 10 22 1 q-11 5 -22 -1 Z" fill="#FF8D84"/>
+  <!-- 입 — 작은 미소. 3D 판과 같은 얼굴이어야 파비콘·챗봇 버튼에서도
+       같은 아이로 보입니다. -->
+  <path d="M112 121 q10 9 20 0" stroke="#5A4636" stroke-width="4.5"
+        fill="none" stroke-linecap="round"/>
 </svg>
