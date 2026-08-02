@@ -86,6 +86,9 @@ export default function BeeCharacter3D({
       // 앵커(host)의 위치를 매 프레임 따라갑니다. 드래그하면 화면
       // 어디로든 가고, 놓으면 스프링이 제자리로 데려옵니다.
       let winW = window.innerWidth, winH = window.innerHeight;
+      let beeRootRef: import('three').Group | null = null;
+      // 탄도 상태를 스크롤 핸들러와 공유 (탄도 중엔 접착 끔 — 자유 비행)
+      const ballRef = { on: false, vx: 0, vy: 0 };
       renderer.setSize(winW, winH);
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -96,6 +99,16 @@ export default function BeeCharacter3D({
         position: 'fixed', inset: '0', zIndex: '55',
         pointerEvents: 'none', display: 'block',
       });
+      // 스크롤은 '이동'이 아니라 '세상이 움직인 것' — 러프 없이 즉시
+      // 따라붙어야 벌이 자리에 붙어 있는 것처럼 보입니다. (비행 러프는
+      // flyto·드래그 복귀에만 남습니다)
+      let lastScrollY = window.scrollY;
+      const onScroll = () => {
+        const dy = window.scrollY - lastScrollY;
+        lastScrollY = window.scrollY;
+        if (!ballRef.on) beeRootRef?.position && (beeRootRef.position.y += dy * wpp());
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
       const onResize = () => {
         winW = window.innerWidth; winH = window.innerHeight;
         renderer.setSize(winW, winH);
@@ -166,6 +179,7 @@ export default function BeeCharacter3D({
       // beeRoot가 앵커 위치·크기(k)를 맡고, bee(자식)는 기존 애니메이션
       // 좌표계를 그대로 씁니다.
       const beeRoot = new THREE.Group();
+      beeRootRef = beeRoot;
       scene.add(beeRoot);
       const bee = new THREE.Group();
       beeRoot.add(bee);
@@ -332,7 +346,7 @@ export default function BeeCharacter3D({
       let dragging = false, grabX = 0, grabY = 0, grabT = 0;
       // 던지기 — 놓기 직전 속도를 기억했다가 포물선으로 날립니다
       const trail: { x: number; y: number; t: number }[] = [];
-      const ball = { on: false, vx: 0, vy: 0 };   // world units/frame
+      const ball = ballRef;
       let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
       let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
       let spinFrom = -10;                  // 클릭 리액션(한 바퀴) 시작 시각
@@ -616,6 +630,7 @@ export default function BeeCharacter3D({
         window.removeEventListener('pointercancel', onUp);
         window.removeEventListener('pointerdown', onDownGlobal);
         window.removeEventListener('resize', onResize);
+        window.removeEventListener('scroll', onScroll);
         window.removeEventListener('kkulbee:flyto', onFlyTo);
         window.removeEventListener('kkulbee:flyhome', onFlyHome);
         window.removeEventListener('kkulbee:celebrate', onCelebrate);

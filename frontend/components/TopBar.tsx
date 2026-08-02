@@ -18,6 +18,20 @@ import { loadSaved, onSavedChange } from '@/lib/saved';
 const NAV = ['입지 진단', '기회 업종', '자금 찾기', '권리 지키기', '한 번에'];
 
 export default function TopBar() {
+  // 큰글씨 모드 — 소상공인의 큰 축은 중장년입니다. 돋보기 없이 읽히는
+  // 것도 접근성입니다. (html[data-big]에 CSS가 반응)
+  const [big, setBig] = useState(false);
+  useEffect(() => {
+    const on = localStorage.getItem('kkulbee:big') === '1';
+    setBig(on);
+    document.documentElement.toggleAttribute('data-big', on);
+  }, []);
+  const toggleBig = () => {
+    const on = !big;
+    setBig(on);
+    document.documentElement.toggleAttribute('data-big', on);
+    localStorage.setItem('kkulbee:big', on ? '1' : '0');
+  };
   const [stat, setStat] = useState<{ stores?: number; docs?: number }>({});
   const [drawer, setDrawer] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
@@ -73,6 +87,14 @@ export default function TopBar() {
               {(stat.stores / 10000).toFixed(0)}만 점포 · {stat.docs}건 실측
             </span>
           )}
+          {/* 큰글씨 — 누르면 화면 전체가 한 단계 커집니다 */}
+          <button onClick={toggleBig}
+                  title={big ? '기본 글씨로' : '큰글씨로 보기'}
+                  className={`rounded-lg px-2 py-1 text-[15px] font-bold transition ${
+                    big ? 'bg-kb-yellow/[.25] text-kb-amber'
+                        : 'text-kb-ink/55 hover:text-kb-ink'}`}>
+            가+
+          </button>
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}
                   title="찜한 지원사업 — 마감 가까운 순"

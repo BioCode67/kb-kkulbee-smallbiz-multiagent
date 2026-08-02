@@ -162,11 +162,22 @@ export default function Page() {
   // 사장님끼리 결과를 카톡으로 넘길 수 있습니다. 정적 내보내기라
   // 서버 라우팅 없이 주소만 읽습니다.
   const booted = useRef(false);
+  const restoredRef = useRef(false);   // 복원 인사말이 곧마감 인사에 덮이지 않게
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
     const q = new URLSearchParams(window.location.search).get('q');
-    if (q?.trim()) ask(q.trim());
+    if (q?.trim()) { ask(q.trim()); return; }
+    // 딥링크가 없으면 지난 상담을 이어봅니다 — 상담소는 어제 한 얘기를
+    // 기억해야 상담소입니다.
+    try {
+      const saved = JSON.parse(localStorage.getItem('kkulbee:history') ?? 'null');
+      if (Array.isArray(saved) && saved.length) {
+        restoredRef.current = true;
+        setHistory(saved);
+        setSpeech(`지난 상담 ${saved.length}건을 이어왔어요. 이어서 물어보세요!`);
+      }
+    } catch {/* 깨진 저장분은 무시 */}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -194,7 +205,15 @@ export default function Page() {
       });
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
-      setHistory((h) => [...h.slice(-7), { q, res: data }]);
+      setHistory((h) => {
+        const next = [...h.slice(-7), { q, res: data }];
+        // 상담은 새로고침 한 번에 날아가면 안 됩니다 — 마지막 4건을
+        // 브라우저에 남겨 두고 다음 방문에 이어봅니다.
+        try {
+          localStorage.setItem('kkulbee:history', JSON.stringify(next.slice(-4)));
+        } catch {/* 용량 초과면 조용히 — 상담은 계속됩니다 */}
+        return next;
+      });
       // 배달 비행 — 새 답이 놓이면 꿀비가 그 위로 스윽 날아갔다 돌아옵니다.
       // "이거 내가 가져왔어요"의 몸짓.
       setTimeout(() => {
@@ -290,7 +309,7 @@ export default function Page() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         const n = d?.items?.length ?? 0;
-        if (n > 0) {
+        if (n > 0 && !restoredRef.current) {
           setSpeech(`방금 세어 봤어요 — 마감 열흘 안 공고가 ${n}건! 놓치기 전에 물어보세요`);
         }
       })
@@ -304,6 +323,7 @@ export default function Page() {
       const i = (e as CustomEvent<number>).detail;
       setMode(i);
       setHistory([]);
+      localStorage.removeItem('kkulbee:history');
       setMood('fly_happy');
       setSpeech(GREETING);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -603,7 +623,7 @@ export default function Page() {
                   <BeeStage motion={mood} size={240} speech={speech} />
                 </motion.div>
                 <button
-                  onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
+                  onClick={() => { setHistory([]); localStorage.removeItem('kkulbee:history'); setMood('fly_happy'); setSpeech(GREETING); }}
                   className="mt-2 rounded-full px-4 py-1.5 text-[13.5px] text-kb-ink/72
                              transition hover:bg-kb-ink/[.06] hover:text-kb-ink"
                 >
