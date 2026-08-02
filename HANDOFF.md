@@ -3,7 +3,26 @@
 > 대화를 새로 시작할 때 이 파일 내용을 그대로 붙여 넣으면 됩니다.
 > 마지막 갱신: 2026-08-02
 
-## 최근 더해진 것 (2026-08-02)
+## 최근 더해진 것 (2026-08-02 밤)
+
+- **RPA** — `backend/app/rpa/`: 기업마당 원문 자동 점검(마감·상태·첨부서식·
+  개요·신청방법·문의처). 찜 서랍 '모두 재확인' = 최대 10건 4갈래 동시 순찰
+  (/api/v1/rpa/check, /check-all). SSRF 화이트리스트 + 무날조 테스트
+- **곧 마감 티커** — /api/v1/closing-soon, 히어로에서 3.5초 회전
+- **디자인 대손질** — Pretendard 800 헤드라인(세리프 폐기), 카드 접기
+  (OPEN_BY_DEFAULT: score/policy/procedure/notice), 상단바 5갈래(kkulbee:mode
+  이벤트), 벌집 무늬 + 떠다니는 실측 배지, 푸터(소비자 보호는 kkulbee:protection)
+- **쫀득 꿀비** — 드래그 슬라임 스프링, 콕 찌르면 스핀+기능 안내 대사
+  (kkulbee:poked), 4연타 어지럼(kkulbee:dizzy), 오실레이터 보잉
+- **카카오 지도** — 키 4d2f63224774776023ed2731621d1c83 (JS SDK 도메인:
+  onrender.com·localhost:3000 등록 확인, 200 OK 실검증). 로컬 .env.local에만
+  있음. **Render에 NEXT_PUBLIC_KAKAO_MAP_KEY 등록 + Manual Deploy는 사용자
+  액션 대기** (Dockerfile ARG·render.yaml sync:false 준비됨)
+- **SEOUL_API_KEY Render 등록 완료** — 프로덕션 생활인구 확인됨
+- docs/심사위원_시연_가이드.md, docs/참가신청서_문구.md, 덱 v6(13장·검사 0건)
+- 테스트 43개. 로컬 검증 서버 127.0.0.1:8010 (web = STATIC_EXPORT=1 빌드 복사)
+
+## 최근 더해진 것 (2026-08-02 낮)
 
 - **실서비스 배포 완료** — https://kb-kkulbee-smallbiz-multiagent.onrender.com
   (Render Docker, 자동 재배포. GEMINI_API_KEY 등록됨·llm=true 확인.
