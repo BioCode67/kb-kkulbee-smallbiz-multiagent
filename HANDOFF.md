@@ -12,6 +12,9 @@
 - **글라스박스 콘솔** — ChatResponse.steps: 노드별 실측 로그(_lap(), workflow.py).
   AgentTrace가 다크 콘솔로 실측 비율 재생. /plan benchmark: 시중 금리
   '가정' 대비 5년 절감액(사용자 조정 가능)
+- **골든타임** — POST /api/v1/golden-time: 법정 기한 D-day 계산
+  (services/golden_time.py, 금소법 §46/§47·상임법 §10/§10-4),
+  GoldenTime.tsx가 ?mode=protection에 렌더, .ics 내보내기
 - **계약서 신호등** — POST /api/v1/contract-scan: 독소조항 10유형 정규식 탐지
   (services/contract_scan.py), ?mode=protection 페이지의 ContractScan.tsx. 무날조·법률 자문 아님 고지.
 - **배너=페이지 이동** — ?mode= 쿼리 라우팅, 갈래 전용 화면(MODE_EASY
