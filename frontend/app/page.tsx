@@ -206,7 +206,9 @@ export default function Page() {
     if (q?.trim()) { ask(q.trim()); return; }
     const mk = sp.get('mode');
     const mi = MODES.findIndex((m) => m.key === mk);
-    if (mi >= 0) { setMode(mi); setView('mode'); }
+    // ?mode= 딥링크면 여기서 끝 — res가 history에서 파생되므로, 아래
+    // 복원까지 하면 갈래 페이지가 지난 상담 화면에 통째로 덮입니다.
+    if (mi >= 0) { setMode(mi); setView('mode'); return; }
     // 딥링크가 없으면 지난 상담을 이어봅니다 — 상담소는 어제 한 얘기를
     // 기억해야 상담소입니다.
     try {
