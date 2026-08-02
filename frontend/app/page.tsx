@@ -776,21 +776,34 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* ── 신뢰 숫자 — 필 카드 (모두봄 문법) ── */}
+              {/* ── 신뢰 숫자 — 화면에 들어오면 실측값까지 셈해 올라갑니다 ── */}
               <div className="mt-12 grid w-full max-w-[1240px] grid-cols-3 gap-5">
-                {[
-                  ['272만+', '전국 점포 실측 좌표'],
-                  ['900건', '정부 지원사업 공고'],
-                  ['3,450곳', '전국 동네끼리 비교'],
-                ].map(([n, l]) => (
-                  <div key={l} className="rounded-2xl border border-kb-ink/[.1] bg-white
-                                          px-4 py-6 text-center shadow-sm">
-                    <p className="text-[34px] font-extrabold tracking-tight text-kb-amber
-                                  [font-variant-numeric:tabular-nums]">{n}</p>
+                {([
+                  [2725318, '개', '전국 점포 실측 좌표'],
+                  [900, '건', '정부 지원사업 공고'],
+                  [3450, '곳', '전국 동네끼리 백분위 비교'],
+                ] as [number, string, string][]).map(([n, suf, l], i) => (
+                  <motion.div key={l}
+                    initial={{ opacity: 0, y: 22 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.4 }}
+                    transition={{ delay: i * 0.12, duration: 0.5,
+                                  ease: [0.22, 0.9, 0.3, 1] }}
+                    whileHover={{ y: -4, rotate: i === 1 ? 0 : i ? 0.6 : -0.6 }}
+                    className="rounded-2xl border border-kb-ink/[.1] bg-white
+                               px-4 py-6 text-center shadow-sm">
+                    <p className="text-[32px] font-extrabold tracking-tight text-kb-amber
+                                  [font-variant-numeric:tabular-nums]">
+                      <StatNumber to={n} suffix={suf} />
+                    </p>
                     <p className="mt-1 text-[14px] font-medium text-kb-ink/78">{l}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
+
+              {/* ── 꿀벌 순찰 + 업종 컨베이어 — 내려도 살아 있는 화면 ── */}
+              <BeePatrol />
+              <IndustryBelt />
 
               {/* ── 무엇이 다른가 ── */}
               <div className="mb-20 mt-14 grid w-full max-w-[1240px] gap-5
@@ -802,11 +815,18 @@ export default function Page() {
                    '한 질문에 입지·자금·권리 갈래가 동시에 켜지고, 어떤 에이전트가 돌았는지 화면에 그대로 남습니다.'],
                   ['금소법 가드레일이 마지막에',
                    'LLM이 쓴 문장까지 예외 없이 검사를 거칩니다. 상단의 검사기에서 아무 문장이나 직접 시험해 보세요.'],
-                ].map(([t, d]) => (
-                  <div key={t} className="surface-1 p-5">
+                ].map(([t, d], i) => (
+                  <motion.div key={t}
+                    initial={{ opacity: 0, y: 26 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.35 }}
+                    transition={{ delay: i * 0.14, duration: 0.55,
+                                  ease: [0.22, 0.9, 0.3, 1] }}
+                    whileHover={{ y: -5 }}
+                    className="surface-1 p-5">
                     <p className="text-[16px] font-bold text-kb-ink">{t}</p>
                     <p className="mt-2 text-[14.5px] leading-[1.7] text-kb-ink/78">{d}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               </>)}
@@ -1188,6 +1208,99 @@ function Thinking() {
           );
         })}
       </ol>
+    </div>
+  );
+}
+
+/* ── 스크롤 생명력 3종 — 내려도 화면이 살아 있게 ───────────────────────
+ * 숫자는 셈해 올라가고(카운트업), 업종은 컨베이어로 흐르고, 꿀벌이
+ * 구분선을 순찰합니다. 전부 실측 데이터·실존 업종입니다. */
+
+/** 화면에 들어오는 순간부터 셈해 올라가는 숫자 — 큰 수는 움직여야 큽니다. */
+function StatNumber({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const [v, setV] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting || started.current) return;
+      started.current = true;
+      const t0 = performance.now();
+      const dur = 1400;
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - t0) / dur);
+        setV(Math.round(to * (1 - Math.pow(1 - k, 3))));
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }, { threshold: 0.4 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [to]);
+  return <span ref={ref}>{v.toLocaleString()}{suffix}</span>;
+}
+
+/** 업종 컨베이어 — 실제로 세고 있는 업종과 전국 점포 수가 두 줄로
+ *  반대 방향으로 흐릅니다. 올려 두면 멈춥니다(읽으라고 만든 벨트). */
+function IndustryBelt() {
+  const [items, setItems] = useState<{ name: string; national: number }[]>([]);
+  useEffect(() => {
+    fetch('/api/v1/industries')
+      .then((r) => r.json())
+      .then((d) => setItems(d.items ?? []))
+      .catch(() => {});
+  }, []);
+  if (items.length < 8) return null;
+  const half = Math.ceil(items.length / 2);
+  const rows = [items.slice(0, half), items.slice(half)];
+  return (
+    <div className="marquee-paused mt-12 w-full max-w-[1240px]">
+      <p className="mb-3 text-center text-[12.5px] font-bold uppercase
+                    tracking-wider text-kb-ink/55">
+        꿀비가 실제로 세고 있는 업종들 — 전국 점포 수
+      </p>
+      {rows.map((row, ri) => (
+        <div key={ri} aria-hidden
+             className={`overflow-hidden ${ri ? 'mt-2.5' : ''}`}
+             style={{ maskImage:
+               'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)' }}>
+          <div className={ri === 0 ? 'marquee-track-slow' : 'marquee-track-rev'}>
+            {[0, 1].map((rep) => (
+              <span key={rep} className="flex shrink-0">
+                {row.map((it) => (
+                  <span key={it.name}
+                        className="mx-1.5 flex items-center gap-1.5 rounded-full
+                                   border border-kb-ink/[.08] bg-white/85 px-3.5
+                                   py-1.5 text-[13.5px] shadow-sm">
+                    <span className="font-semibold text-kb-ink/85">{it.name}</span>
+                    <span className="font-bold text-kb-amber
+                                     [font-variant-numeric:tabular-nums]">
+                      {it.national.toLocaleString()}곳
+                    </span>
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** 구분선을 순찰하는 미니 꿀벌 — 큰 의미는 없습니다. 살아 있는 느낌은
+ *  이런 2초가 만듭니다. */
+function BeePatrol() {
+  return (
+    <div aria-hidden className="relative mt-14 h-7 w-full max-w-[1240px]
+                                overflow-hidden">
+      <div className="absolute inset-x-0 top-1/2 border-t border-dashed
+                      border-kb-ink/[.12]" />
+      <span className="bee-patrol text-[19px] leading-none">
+        <span>🐝</span>
+      </span>
     </div>
   );
 }

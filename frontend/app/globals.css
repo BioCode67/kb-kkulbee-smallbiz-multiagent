@@ -269,6 +269,29 @@
   white-space: nowrap;
   animation: marquee 30s linear infinite;
 }
+/* 컨베이어 벨트 — 두 줄이 서로 반대로 흐르면 '돌아가는 공장' 느낌이
+   납니다. 업종 벨트(홈 하단)가 씁니다. */
+.marquee-track-slow { display: inline-flex; white-space: nowrap;
+                      animation: marquee 46s linear infinite; }
+.marquee-track-rev  { display: inline-flex; white-space: nowrap;
+                      animation: marquee 52s linear infinite reverse; }
+.marquee-paused:hover .marquee-track-slow,
+.marquee-paused:hover .marquee-track-rev { animation-play-state: paused; }
+
+/* ── 미니 꿀벌 순찰 — 섹션 사이를 이따금 가로질러 납니다 ────────────────
+   가로 비행과 위아래 봉봉을 다른 요소에 나눠 걸어야 사인파가 됩니다. */
+@keyframes bee-cross {
+  0%   { left: -6%;  }
+  100% { left: 104%; }
+}
+@keyframes bee-bob {
+  0%, 100% { transform: translateY(0) rotate(6deg); }
+  50%      { transform: translateY(-9px) rotate(-5deg); }
+}
+.bee-patrol { position: absolute; top: -4px;
+              animation: bee-cross 17s linear infinite; }
+.bee-patrol > span { display: inline-block;
+                     animation: bee-bob 0.9s ease-in-out infinite; }
 
 
 /* ── 큰글씨 모드 — 중장년 사장님의 돋보기 대신 ─────────────────────────── */
