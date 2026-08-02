@@ -347,8 +347,7 @@ export default function BeeCharacter3D({
       const onDown = (e: PointerEvent) => {
         dragging = true;
         grabX = e.clientX; grabY = e.clientY; grabT = performance.now();
-        renderer.domElement.setPointerCapture?.(e.pointerId);
-        renderer.domElement.style.cursor = 'grabbing';
+        document.body.style.cursor = 'grabbing';
       };
       const onUp = (e: PointerEvent) => {
         if (!dragging) return;
@@ -357,7 +356,7 @@ export default function BeeCharacter3D({
         const held = performance.now() - grabT;
         const stretch = Math.hypot(pullX, pullY);
         pullX = 0; pullY = 0;             // 스프링이 출렁이며 제자리로
-        renderer.domElement.style.cursor = 'grab';
+        document.body.style.cursor = '';
         if (moved < 6 && held < 350) {
           // 드래그가 아니라 콕 찌른 것 — 한 바퀴 돌고 폴짝 뛰며 한마디
           const now = clock.getElapsedTime();
@@ -378,11 +377,32 @@ export default function BeeCharacter3D({
           boing(Math.min(1, stretch));    // 늘였다 놓은 만큼 낮게 '보잉'
         }
       };
+      // 무대가 넓어지면서 투명 캔버스가 아래 UI를 덮어 클릭을 막았습니다
+      // ('아랫부분이 화면을 가린다'). 캔버스는 클릭을 통과시키고,
+      // 레이캐스트로 벌 몸에 실제로 닿았을 때만 잡히게 합니다.
+      renderer.domElement.style.pointerEvents = 'none';
+      const raycaster = new THREE.Raycaster();
+      const hitsBee = (e: PointerEvent | MouseEvent) => {
+        const rect = renderer.domElement.getBoundingClientRect();
+        if (e.clientX < rect.left || e.clientX > rect.right ||
+            e.clientY < rect.top || e.clientY > rect.bottom) return false;
+        raycaster.setFromCamera(new THREE.Vector2(
+          ((e.clientX - rect.left) / rect.width) * 2 - 1,
+          -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
+        return raycaster.intersectObject(bee, true).length > 0;
+      };
+      const onHover = (e: PointerEvent) => {
+        if (dragging) return;
+        document.body.style.cursor = hitsBee(e) ? 'grab' : '';
+      };
+      const onDownGlobal = (e: PointerEvent) => {
+        if (!hitsBee(e)) return;
+        onDown(e);
+      };
       if (interactive) {
         window.addEventListener('pointermove', onMove, { passive: true });
-        renderer.domElement.style.cursor = 'grab';
-        renderer.domElement.style.touchAction = 'none';
-        renderer.domElement.addEventListener('pointerdown', onDown);
+        window.addEventListener('pointermove', onHover, { passive: true });
+        window.addEventListener('pointerdown', onDownGlobal);
         window.addEventListener('pointerup', onUp);
         window.addEventListener('pointercancel', onUp);
       }
@@ -489,9 +509,11 @@ export default function BeeCharacter3D({
       cleanup = () => {
         cancelAnimationFrame(raf);
         window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointermove', onHover);
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onUp);
-        renderer.domElement.removeEventListener('pointerdown', onDown);
+        window.removeEventListener('pointerdown', onDownGlobal);
+        document.body.style.cursor = '';
         // WebGL 자원은 가비지 컬렉터가 안 걷어 갑니다. 화면을 오갈 때마다
         // 텍스처와 버퍼가 GPU에 쌓이면 결국 탭이 죽습니다.
         scene.traverse((o) => {

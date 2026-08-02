@@ -397,7 +397,7 @@ export default function Page() {
                 {/* 꿀비 — 오른쪽 무대. 드래그해도 안 잘리게 무대가 넓습니다 */}
                 <motion.div layoutId="bee" transition={SPRING}
                             className="z-10 flex justify-center lg:justify-end">
-                  <BeeStage motion={mood} size={330} speech={speech} />
+                  <BeeStage motion={mood} size={380} speech={speech} />
                 </motion.div>
               </div>
 
@@ -535,7 +535,7 @@ export default function Page() {
                   동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}
               <div className="flex flex-col items-center">
                 <motion.div layoutId="bee" transition={SPRING}>
-                  <BeeStage motion={mood} size={200} speech={speech} />
+                  <BeeStage motion={mood} size={220} speech={speech} />
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
