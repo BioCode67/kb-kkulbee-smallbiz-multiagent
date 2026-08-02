@@ -9,6 +9,8 @@
   수집 → 보조금→보증·이차보전→융자 순 스택 배분(amount_krw 근거만),
   융자분 월 상환(원리금균등 60개월). FundingPlan.tsx가 ?mode=policy
   페이지에 스택 바+단계 카드로 렌더
+- **계약서 신호등** — POST /api/v1/contract-scan: 독소조항 10유형 정규식 탐지
+  (services/contract_scan.py), ?mode=protection 페이지의 ContractScan.tsx. 무날조·법률 자문 아님 고지.
 - **배너=페이지 이동** — ?mode= 쿼리 라우팅, 갈래 전용 화면(MODE_EASY
   쉬운 설명), popstate 지원. 배너 아이콘 갈래별 색 배지
 - **꿀비 행동 원칙** — 직접 조작·명시적 투어에만 이동(배달비행·layoutId
