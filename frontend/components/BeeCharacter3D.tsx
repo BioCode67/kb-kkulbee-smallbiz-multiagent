@@ -333,6 +333,14 @@ export default function BeeCharacter3D({
       let pullX = 0, pullY = 0;           // 목표(당긴 만큼)
       let jx = 0, jy = 0, jvx = 0, jvy = 0; // 스프링 상태
       let spinFrom = -10;                  // 클릭 리액션(한 바퀴) 시작 시각
+      let flyOverride: { x: number; y: number } | null = null;  // 투어 목적지
+      let placed = false;
+      const onFlyTo = (e: Event) => {
+        flyOverride = (e as CustomEvent<{ x: number; y: number }>).detail;
+      };
+      const onFlyHome = () => { flyOverride = null; };
+      window.addEventListener('kkulbee:flyto', onFlyTo);
+      window.addEventListener('kkulbee:flyhome', onFlyHome);
       let dizzyFrom = -10;                 // 연타 이스터에그(어지럼) 시작 시각
       const pokes: number[] = [];          // 최근 찌른 시각들
 
@@ -442,13 +450,25 @@ export default function BeeCharacter3D({
         const t = clock.getElapsedTime();
 
         // 앵커(레이아웃 속 자리)를 따라갑니다 — 스크롤·리사이즈에도 정확히.
+        // 투어 중에는 flyto 오버라이드 지점으로 '날아서' 이동합니다(러프).
         const rect = host.getBoundingClientRect();
         const k = (size * wpp()) / 5.0;
         beeRoot.scale.setScalar(k);
-        beeRoot.position.set(
-          (rect.left + rect.width / 2 - winW / 2) * wpp(),
-          (winH / 2 - (rect.top + rect.height / 2)) * wpp(),
-          0);
+        const px = flyOverride ? flyOverride.x : rect.left + rect.width / 2;
+        const py = flyOverride ? flyOverride.y : rect.top + rect.height / 2;
+        const txw = (px - winW / 2) * wpp();
+        const tyw = (winH / 2 - py) * wpp();
+        if (!placed) {
+          beeRoot.position.set(txw, tyw, 0);
+          placed = true;
+        } else {
+          // 관성 비행 — 순간이동이 아니라 날아갑니다. 멀수록 빠르게.
+          beeRoot.position.x += (txw - beeRoot.position.x) * 0.085;
+          beeRoot.position.y += (tyw - beeRoot.position.y) * 0.085;
+        }
+        // 비행 방향으로 살짝 기울기 — 이동감
+        const vx = txw - beeRoot.position.x;
+        beeRoot.rotation.z = Math.max(-0.3, Math.min(0.3, -vx * 0.12));
         const m = motionRef.current;
         const happy = m === 'fly_happy';
         const thinking = m === 'thinking';
@@ -546,6 +566,8 @@ export default function BeeCharacter3D({
         window.removeEventListener('pointercancel', onUp);
         window.removeEventListener('pointerdown', onDownGlobal);
         window.removeEventListener('resize', onResize);
+        window.removeEventListener('kkulbee:flyto', onFlyTo);
+        window.removeEventListener('kkulbee:flyhome', onFlyHome);
         renderer.domElement.remove();
         document.body.style.cursor = '';
         // WebGL 자원은 가비지 컬렉터가 안 걷어 갑니다. 화면을 오갈 때마다

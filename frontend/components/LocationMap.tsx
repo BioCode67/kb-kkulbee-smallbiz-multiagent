@@ -187,25 +187,39 @@ function LeafletMap({
 
   const runTour = async () => {
     type FlyMap = { flyTo: (c: [number, number], z: number, o?: object) => void;
-                    flyToBounds: (b: [number, number][], o?: object) => void };
+                    flyToBounds: (b: [number, number][], o?: object) => void;
+                    getContainer?: () => HTMLElement };
     const map = mapObjRef.current as FlyMap | null;
     const target = pins.find((p) => p.is_target) ?? pins[0];
     if (!map || !target || touring) return;
     setTouring(true);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const step = (label: string) => { setTourStep(label); speak(label); };
+    // 꿀비가 투어에 직접 합류합니다 — 지도 위 지점(가로·세로 비율)으로
+    // 날아가 그 막을 함께 봅니다. 마스코트가 해설자가 되는 순간.
+    const beeTo = (fx: number, fy: number) => {
+      const el = map.getContainer?.();
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      window.dispatchEvent(new CustomEvent('kkulbee:flyto',
+        { detail: { x: r.left + r.width * fx, y: r.top + r.height * fy } }));
+    };
+    const beeHome = () => window.dispatchEvent(new CustomEvent('kkulbee:flyhome'));
 
     try {
       step(`${target.name}입니다`);
+      beeTo(0.82, 0.2);
       map.flyTo([target.latitude, target.longitude], 15, { duration: 1.6 });
       await wait(2600);
 
       if (shops && shops.total > 0) {
         step(`주황 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
+        beeTo(0.18, 0.65);
         map.flyTo([target.latitude, target.longitude], 16, { duration: 1.2 });
         await wait(3000);
 
         step('열지도로 보면 경쟁이 몰린 골목이 드러납니다');
+        beeTo(0.8, 0.75);
         setHeat(true);
         await wait(3200);
         setHeat(false);
@@ -219,8 +233,10 @@ function LeafletMap({
       }
 
       step('구석구석은 마우스로 직접 움직여 보세요');
+      beeTo(0.5, 0.12);
       await wait(2200);
     } finally {
+      beeHome();
       setTourStep(null); setTouring(false);
     }
   };

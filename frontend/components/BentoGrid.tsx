@@ -198,11 +198,18 @@ function ScoreCard({ s }: { s: LocationScore }) {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center gap-2 rounded-full bg-kb-yellow/[.16]
-                        py-1.5 pl-3 pr-4 ring-1 ring-kb-yellow/40">
+        {/* 등급 도장 — 성적표 도장처럼 '쾅' 찍힙니다. 점수 카운트업이
+            끝날 때쯤 크게 들어와 살짝 비뚤게 앉는 것이 도장의 맛. */}
+        <motion.div
+          initial={{ scale: 2.4, opacity: 0, rotate: -18 }}
+          animate={{ scale: 1, opacity: 1, rotate: -3 }}
+          transition={{ delay: 0.85, type: 'spring', stiffness: 320, damping: 16 }}
+          className="mt-3 flex items-center gap-2 rounded-full bg-kb-yellow/[.16]
+                     py-1.5 pl-3 pr-4 ring-2 ring-kb-yellow/60"
+        >
           <span className={`text-[24px] font-black leading-none ${g.text}`}>{s.grade}</span>
           <span className="text-[15.5px] font-bold text-kb-ink/88">{g.label}</span>
-        </div>
+        </motion.div>
 
         {s.peer_median != null && (
           <p className="mt-1.5 text-center text-[13.5px] leading-snug text-kb-ink/78">
@@ -684,9 +691,27 @@ function CompareCard({ a, b }: { a: CompareSide; b: CompareSide }) {
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3">
-        <Side s={a} win={winA} />
-        <Side s={b} win={!winA} />
+      {/* VS 매치 — 두 동네가 양쪽에서 입장하고 가운데 VS가 쾅. 비교는
+          정보이기 전에 승부라서, 화면도 그렇게 말해야 합니다. */}
+      <div className="relative grid grid-cols-2 gap-3">
+        <motion.div initial={{ x: -36, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 240, damping: 22 }}>
+          <Side s={a} win={winA} />
+        </motion.div>
+        <motion.div initial={{ x: 36, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 240, damping: 22 }}>
+          <Side s={b} win={!winA} />
+        </motion.div>
+        <motion.span
+          initial={{ scale: 0, rotate: -30 }}
+          animate={{ scale: 1, rotate: -6 }}
+          transition={{ delay: 0.35, type: 'spring', stiffness: 380, damping: 14 }}
+          className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2
+                     rounded-2xl bg-kb-ink px-3 py-1.5 text-[18px] font-black
+                     italic text-kb-yellow shadow-lg"
+        >
+          VS
+        </motion.span>
       </div>
       <ul className="mt-4 space-y-1.5">
         {rows.map((r) => {
