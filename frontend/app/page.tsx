@@ -210,6 +210,20 @@ export default function Page() {
     return () => window.removeEventListener('kkulbee:ask', h);
   }, [ask]);
 
+  // '/' 한 번으로 입력창 — 검색이 있는 서비스의 관습(GitHub·유튜브)을
+  // 따릅니다. 타이핑 중일 때는 물론 가로채지 않습니다.
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey) return;
+      const t = e.target as HTMLElement;
+      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable) return;
+      e.preventDefault();
+      document.querySelector<HTMLInputElement>('input[type="text"], input:not([type])')?.focus();
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
 
 
   useEffect(() => {

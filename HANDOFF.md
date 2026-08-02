@@ -1,7 +1,26 @@
 # 이어서 작업하기 — 꿀비
 
 > 대화를 새로 시작할 때 이 파일 내용을 그대로 붙여 넣으면 됩니다.
-> 마지막 갱신: 2026-08-01
+> 마지막 갱신: 2026-08-02
+
+## 최근 더해진 것 (2026-08-02)
+
+- **실서비스 배포 완료** — https://kb-kkulbee-smallbiz-multiagent.onrender.com
+  (Render Docker, 자동 재배포. GEMINI_API_KEY 등록됨·llm=true 확인.
+  SEOUL_API_KEY는 로컬 .env에만 있고 Render 미등록 — 사용자 액션 대기)
+- **꿀비 3D 얼굴 대수술** — 빨간 입·앞머리 제거, hoodRim(후드 테)·미소 호
+  추가. kkulbee.svg도 동기화 (파비콘·챗봇 버튼 같은 얼굴)
+- **지원사업 찜 + D-day** — 카드 ☆ → localStorage → 상단 ☆ 서랍에서
+  마감 가까운 순 (`frontend/lib/saved.ts`, `SavedDrawer.tsx`)
+- **상담 리포트 인쇄/PDF** — 답변의 '📄 저장' → window.print. 인쇄 전용
+  머리말·print:hidden·break-inside 처리
+- **사이트 푸터** — 출처 4종·고지·라이선스 한 자리
+- **발표자료 v3** — 10장 스크린샷을 새 벌·라이트 화면으로 재캡처,
+  check_deck 0건. 사용자에게 전송됨
+- 로컬 검증: 백엔드 127.0.0.1:8010 + `backend/web`(정적 빌드 복사) +
+  Playwright(hf env, LD_LIBRARY_PATH=/workspace/miniconda3/envs/hf/lib)
+- **정적 내보내기는 `STATIC_EXPORT=1 npx next build`** — 환경변수 없이
+  빌드하면 out/이 갱신되지 않는다 (한 번 헛짚었음)
 
 ---
 
