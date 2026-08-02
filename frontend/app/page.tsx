@@ -338,8 +338,22 @@ export default function Page() {
 
               {/* 내 가게 — 한 번 등록하면 모든 질문에 동네·업종이 자동으로.
                   상담소에 갈 때마다 이름부터 다시 댈 이유가 없습니다. */}
-              <div className="mt-3">
+              <div className="mt-3 flex items-center gap-2">
                 <MyShop onChange={setShop} />
+                {/* 등록해 둔 사장님께는 원클릭 브리핑 — 크로스오버 파이프라인
+                    (입지+자금 동시)을 내 가게 조건으로 그대로 돌립니다 */}
+                {shop?.region && (
+                  <button
+                    onClick={() => ask(
+                      `${shop.region}${shop.industry ? ` ${shop.industry}` : ''} `
+                      + '상권 상황이랑 지금 받을 수 있는 지원사업 한 번에 봐줘')}
+                    className="rounded-full bg-kb-yellow px-3.5 py-1.5 text-[12px]
+                               font-bold text-kb-ink shadow-sm transition
+                               hover:brightness-105"
+                  >
+                    ☀️ 내 가게 브리핑
+                  </button>
+                )}
               </div>
 
               <motion.h1
