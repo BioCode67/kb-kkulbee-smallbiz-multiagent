@@ -174,7 +174,9 @@ export default function BeeCharacter3D({
         color: 0xfdeed6, roughness: 0.66, metalness: 0.0,
       });
       const face = new THREE.Mesh(new THREE.SphereGeometry(1.03, 48, 36), faceMat2);
-      face.position.set(0.06, -0.02, 0.42);
+      // 얼굴 뭉치 전체가 x=0.06으로 밀려 있었다 — '일그러져 보인다'의
+      // 정체. 후드는 0에 있는데 얼굴만 오른쪽으로 6% 치우쳐 있었다.
+      face.position.set(0, -0.02, 0.42);
       face.scale.set(1.0, 0.99, 0.82);
       face.castShadow = true;
       head.add(face);
@@ -184,7 +186,7 @@ export default function BeeCharacter3D({
       const hoodRim = new THREE.Mesh(
         new THREE.TorusGeometry(1.0, 0.13, 16, 48),
         new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.38 }));
-      hoodRim.position.set(0.06, -0.02, 0.62);
+      hoodRim.position.set(0, -0.02, 0.62);
       hoodRim.scale.set(1.0, 1.02, 0.7);
       head.add(hoodRim);
 
@@ -194,7 +196,7 @@ export default function BeeCharacter3D({
         // '징그럽다'는 피드백의 주범은 과대한 눈 + 이중 광점이었습니다.
         // 눈을 한 단계 줄이고 광점을 하나만 둡니다 — 또렷함은 남고 부담이 빠집니다.
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 24), eyeMat);
-        eye.position.set(0.06 + sx * 0.29, 0.08, 1.18);
+        eye.position.set(sx * 0.29, 0.08, 1.18);
         eye.scale.set(1, 1.18, 0.6);
         head.add(eye);
         eyes.push(eye);
@@ -204,7 +206,7 @@ export default function BeeCharacter3D({
         const spark = new THREE.Mesh(
           new THREE.SphereGeometry(0.058, 16, 12),
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        spark.position.set(0.06 + sx * 0.29 - 0.055, 0.15, 1.32);
+        spark.position.set(sx * 0.29 - 0.055, 0.15, 1.32);
         head.add(spark);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
@@ -216,7 +218,7 @@ export default function BeeCharacter3D({
           new THREE.SphereGeometry(0.2, 20, 14),
           new THREE.MeshBasicMaterial({
             color: 0xffa39b, transparent: true, opacity: 0.32 }));
-        blush.position.set(0.06 + sx * 0.48, -0.18, 1.13);
+        blush.position.set(sx * 0.48, -0.18, 1.13);
         blush.scale.set(1.05, 0.62, 0.2);
         head.add(blush);
       }
@@ -228,7 +230,7 @@ export default function BeeCharacter3D({
       const smile = new THREE.Mesh(
         new THREE.TorusGeometry(0.16, 0.028, 12, 24, Math.PI * 0.8),
         new THREE.MeshStandardMaterial({ color: 0x5a4636, roughness: 0.6 }));
-      smile.position.set(0.06, -0.27, 1.25);
+      smile.position.set(0, -0.27, 1.25);
       smile.rotation.z = Math.PI + Math.PI * 0.1;
       head.add(smile);
 
