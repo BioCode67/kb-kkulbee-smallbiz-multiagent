@@ -30,7 +30,7 @@ from app.agents import (
     policy_agent,
     router_agent,
 )
-from app.services import session_store
+from app.services import market_data, session_store
 from app.models.schemas import (
     AgentKind,
     BentoCard,
@@ -351,6 +351,16 @@ def _cards(state: GraphState) -> list[BentoCard]:
             payload={"gaps": [g.model_dump(mode="json") for g in loc.gaps],
                      "crowded": [g.model_dump(mode="json") for g in loc.crowded],
                      "region": loc.region_name}))
+    if loc and getattr(loc, "dong_code", None):
+        sim = market_data.similar_dongs(loc.dong_code, 5)
+        if sim:
+            cards.append(BentoCard(
+                id="similar", kind=BentoCardKind.SIMILAR,
+                title="이 상권과 닮은 동네",
+                subtitle="업종 구성 247차원의 코사인 유사도 — 2호점·확장 후보를 찾는 자입니다",
+                span=3, accent="neutral",
+                payload={"items": sim, "industry": loc.industry,
+                         "base": loc.region_name}))
     if state.get("pins"):
         cards.append(BentoCard(
             id="map", kind=BentoCardKind.MAP, title="주변 상권 비교",
@@ -382,7 +392,9 @@ def _cards(state: GraphState) -> list[BentoCard]:
             subtitle="준비 서류와 걸리는 시간까지", span=4, accent="brown",
             payload={"steps": [s.model_dump(mode="json") for s in pack.procedure],
                      "rules": pack.applicable_rules,
-                     "checklist": pack.document_checklist}))
+                     "checklist": pack.document_checklist,
+                     # 민원서 초안 버튼이 쓸 재료 — 사장님이 겪은 일 그대로
+                     "question": state["request"].message}))
     rep = state.get("guardrail")
     if rep and rep.violations:
         cards.append(BentoCard(

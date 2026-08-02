@@ -135,7 +135,7 @@ export interface ProtectionPack {
 
 export type BentoCardKind =
   | 'score' | 'factors' | 'map' | 'policy' | 'terms' | 'procedure'
-  | 'notice' | 'gaps' | 'rates';
+  | 'notice' | 'gaps' | 'rates' | 'similar';
 
 export interface BentoCard {
   id: string;

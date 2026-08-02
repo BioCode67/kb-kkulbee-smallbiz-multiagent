@@ -464,3 +464,75 @@ def saturated(code: str, k: int = 4) -> list[dict]:
                     "ratio": round(cnt / expect, 2)})
     out.sort(key=lambda x: -x["ratio"])
     return out[:k]
+
+
+# ── 닮은 상권 ─────────────────────────────────────────────────────────────
+def similar_dongs(code: str, k: int = 5) -> list[dict]:
+    """업종 구성이 가장 닮은 동네를 찾습니다.
+
+    동네 하나를 업종 247차원의 벡터로 봅니다 — 카페가 몇 %, 한식이 몇 %,
+    미용실이 몇 %. 두 벡터의 코사인이 가까우면 상권의 '성격'이 닮은 것입니다.
+    연남동과 망원동은 멀리 떨어져 있어도 구성이 닮았고, 연남동과 바로 옆
+    공단 동네는 붙어 있어도 다릅니다.
+
+    쓰임새가 둘입니다.
+      · 2호점·확장 — "지금 자리와 닮은 동네"는 검증된 공식이 통할 후보입니다.
+      · 검증 — 닮은 동네에서 내 업종이 잘되고 있으면 이 자리도 받쳐 줄
+        가능성이 큽니다.
+
+    행렬(3,450×247, float32 3.4MB)을 첫 호출에 만들어 둡니다. 한 번 만들면
+    질의는 행렬곱 한 번 — 1ms급입니다. 절대 규모가 아니라 '구성'을 비교하는
+    것이므로 각 벡터를 점포 수로 나눠(L2 정규화) 큰 동네 편향을 없앱니다.
+    """
+    import numpy as np
+
+    ix = _load()
+    me = ix["dong"].get(code)
+    if not me:
+        return []
+
+    cache = ix.get("_sim")
+    if cache is None:
+        codes = list(ix["dong"].keys())
+        cols = {c: i for i, c in enumerate(sorted(ix["nation"]["small_national"]))}
+        mat = np.zeros((len(codes), len(cols)), dtype=np.float32)
+        for r, dc in enumerate(codes):
+            for sm, n in ix["dong"][dc]["small"].items():
+                ci = cols.get(sm)
+                if ci is not None:
+                    mat[r, ci] = n
+        norm = np.linalg.norm(mat, axis=1, keepdims=True)
+        mat /= np.clip(norm, 1e-9, None)
+        cache = ix["_sim"] = {"codes": codes, "row": {c: i for i, c in enumerate(codes)},
+                              "mat": mat, "cols": cols}
+
+    mat = cache["mat"]
+    my_row = cache["row"][code]
+    sims = mat @ mat[my_row]
+
+    order = np.argsort(-sims)
+    out = []
+    small_name = ix["nation"]["small_name"]
+    my_vec = mat[my_row]
+    for r in order:
+        dc = cache["codes"][int(r)]
+        if dc == code:
+            continue
+        d = ix["dong"][dc]
+        # 왜 닮았는지 — 두 동네 모두에서 비중이 큰 업종 셋.
+        # 유사도 0.93이라는 숫자만으로는 근거가 못 됩니다.
+        both = my_vec * mat[int(r)]
+        top = np.argsort(-both)[:3]
+        inv = {v: k2 for k2, v in cache["cols"].items()}
+        shared = [small_name.get(inv[int(t)], "") for t in top if both[int(t)] > 0]
+        out.append({
+            "code": dc,
+            "name": f"{d['sido'].replace('특별시','').replace('광역시','')} "
+                    f"{d['sgg']} {d['dong']}".strip(),
+            "sim": round(float(sims[int(r)]), 3),
+            "stores": d["stores"],
+            "shared": [s for s in shared if s],
+        })
+        if len(out) >= k:
+            break
+    return out

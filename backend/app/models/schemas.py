@@ -248,6 +248,7 @@ class BentoCardKind(str, Enum):
     NOTICE = "notice"
     GAPS = "gaps"
     RATES = "rates"
+    SIMILAR = "similar"
 
 
 class BentoCard(BaseModel):

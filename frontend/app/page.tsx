@@ -187,6 +187,15 @@ export default function Page() {
     }
   }, [loading, res?.session_id]);
 
+  // 카드 안(닮은 동네 행 등)에서 흘려보낸 질문을 받습니다.
+  useEffect(() => {
+    const h = (e: Event) => ask((e as CustomEvent<string>).detail);
+    window.addEventListener('kkulbee:ask', h);
+    return () => window.removeEventListener('kkulbee:ask', h);
+  }, [ask]);
+
+
+
   useEffect(() => {
     if (history.length && resultRef.current) {
       // 마지막 문답의 시작으로. 목록 맨 위로 올리면 방금 답이 안 보입니다.
@@ -505,10 +514,54 @@ function summarize(d: ChatResponse): string {
 }
 
 /* ── 입력 ──────────────────────────────────────────────────────────────── */
+/**
+ * 음성 입력 — 브라우저에 이미 들어 있는 Web Speech API를 씁니다.
+ *
+ * 서버도, 키도, 모델 다운로드도 없습니다. 크롬·엣지·사파리가 한국어
+ * 인식을 내장하고 있고, 우리는 마이크 버튼 하나만 답니다. 자판이 느린
+ * 사장님, 매장에서 손을 못 쓰는 사장님이 말로 묻습니다 — 금융 앞의
+ * 문턱을 낮추는 일은 역대 이 대회가 계속 상을 준 각도이기도 합니다.
+ */
+function useSpeechInput(onText: (t: string) => void) {
+  const recRef = useRef<{ start: () => void; stop: () => void } | null>(null);
+  const [listening, setListening] = useState(false);
+  const supported = typeof window !== 'undefined' &&
+    !!((window as unknown as Record<string, unknown>).webkitSpeechRecognition ||
+       (window as unknown as Record<string, unknown>).SpeechRecognition);
+
+  const toggle = () => {
+    if (!supported) return;
+    if (listening) { recRef.current?.stop(); return; }
+    type RecCtor = new () => {
+      lang: string; interimResults: boolean; continuous: boolean;
+      onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+      onend: () => void; onerror: () => void; start: () => void; stop: () => void;
+    };
+    const W = window as unknown as Record<string, RecCtor>;
+    const Rec = W.SpeechRecognition || W.webkitSpeechRecognition;
+    const r = new Rec();
+    r.lang = 'ko-KR';
+    r.interimResults = true;
+    r.continuous = false;
+    r.onresult = (e) => {
+      const t = Array.from({ length: e.results.length },
+        (_, i) => e.results[i][0].transcript).join('');
+      onText(t);
+    };
+    r.onend = () => setListening(false);
+    r.onerror = () => setListening(false);
+    recRef.current = r;
+    setListening(true);
+    r.start();
+  };
+  return { supported, listening, toggle };
+}
+
 function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
   value: string; onChange: (v: string) => void; onSubmit: () => void;
   loading: boolean; placeholder?: string;
 }) {
+  const mic = useSpeechInput(onChange);
   return (
     <div className="surface-3 flex items-center gap-2 p-2 transition
                     focus-within:ring-kb-yellow/[.45]">
@@ -521,6 +574,23 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder }: {
         className="min-w-0 flex-1 bg-transparent px-4 py-3 text-[14.5px] text-white
                    placeholder:text-white/[.38] focus:outline-none disabled:opacity-50"
       />
+      {mic.supported && (
+        <button
+          onClick={mic.toggle}
+          aria-label="말로 물어보기"
+          title="말로 물어보기"
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl
+                      transition ${mic.listening
+            ? 'animate-pulse bg-rose-500/90 text-white'
+            : 'bg-white/[.06] text-white/55 hover:bg-white/[.12] hover:text-white'}`}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <rect x="9" y="3" width="6" height="11" rx="3" />
+            <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+          </svg>
+        </button>
+      )}
       <button
         onClick={onSubmit}
         disabled={loading || !value.trim()}
@@ -620,14 +690,31 @@ function Answer({ res }: { res: ChatResponse }) {
     <div className="surface-2 relative p-5 sm:p-6">
       {/* 이 화면을 그대로 여는 링크. 질문이 주소에 실려 있어 받은 사람도
           같은 답을 봅니다. */}
-      <button
-        onClick={share}
-        className="absolute right-4 top-4 rounded-lg bg-white/[.06] px-2.5 py-1.5
-                   text-[11px] text-white/55 ring-1 ring-white/[.09] transition
-                   hover:bg-white/[.1] hover:text-white"
-      >
-        {copied ? '복사됨 ✓' : '링크 복사'}
-      </button>
+      <div className="absolute right-4 top-4 flex gap-1.5">
+        {/* 꿀비가 읽어줍니다 — 브라우저 내장 합성음. 화면을 오래 못 보는
+            상황(운전·조리 중)에서도 답을 들을 수 있습니다. */}
+        <button
+          onClick={() => {
+            const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ' '));
+            u.lang = 'ko-KR'; u.rate = 1.05;
+            speechSynthesis.cancel(); speechSynthesis.speak(u);
+          }}
+          title="꿀비가 읽어줍니다"
+          className="rounded-lg bg-white/[.06] px-2.5 py-1.5 text-[11px]
+                     text-white/55 ring-1 ring-white/[.09] transition
+                     hover:bg-white/[.1] hover:text-white"
+        >
+          🔊 읽어줘
+        </button>
+        <button
+          onClick={share}
+          className="rounded-lg bg-white/[.06] px-2.5 py-1.5 text-[11px]
+                     text-white/55 ring-1 ring-white/[.09] transition
+                     hover:bg-white/[.1] hover:text-white"
+        >
+          {copied ? '복사됨 ✓' : '링크 복사'}
+        </button>
+      </div>
       {/* 서버가 어떻게 알아들었는지. 조용히 틀린 답을 주는 것이 가장 나쁩니다 —
           "성수2가3동 · 요리 주점"이라고 보여 주면 잘못 알아들었을 때 바로
           바로잡을 수 있습니다. */}

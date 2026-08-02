@@ -13,6 +13,8 @@ import type {
   BentoCard, FactorContribution, GuardrailReport, IndustryGap, LocationScore,
   PolicyMatch, ProcedureStep, TermEntry,
 } from '@/lib/types';
+import { useState } from 'react';
+import DraftModal from './DraftModal';
 import LocationMap from './LocationMap';
 
 // 서버가 정한 폭(1~6)을 격자 칸으로 옮깁니다. 무엇을 얼마나 넓게 보여
@@ -94,11 +96,14 @@ function CardBody({ card }: { card: BentoCard }) {
     case 'terms': return <TermsCard terms={p.terms as unknown as TermEntry[]} />;
     case 'procedure': return <ProcedureCard steps={p.steps as unknown as ProcedureStep[]}
                                             rules={p.rules as unknown as string[]}
-                                            checklist={p.checklist as unknown as string[]} />;
+                                            checklist={p.checklist as unknown as string[]}
+                                            question={p.question as unknown as string} />;
     case 'notice': return <NoticeCard r={p as unknown as GuardrailReport} />;
     case 'gaps': return <GapsCard gaps={p.gaps as unknown as IndustryGap[]}
                                   crowded={p.crowded as unknown as IndustryGap[]} />;
     case 'rates': return <RatesCard d={p as unknown as BankRates} />;
+    case 'similar': return <SimilarCard items={p.items as unknown as SimilarDong[]}
+                                        industry={p.industry as unknown as string} />;
     default: return null;
   }
 }
@@ -323,6 +328,65 @@ function GapsCard({ gaps, crowded }: { gaps: IndustryGap[]; crowded: IndustryGap
         점포 수가 비슷한 전국 동네들과 견준 값입니다. 적다고 해서 반드시 기회는
         아닙니다 — 임대료나 상권 성격 때문에 안 들어온 것일 수도 있습니다.
         무엇을 알아볼지 정하는 출발점으로 보시면 됩니다.
+      </p>
+    </div>
+  );
+}
+
+/* ── 닮은 상권 ─────────────────────────────────────────────────────────
+ *
+ * 동네 하나를 업종 247차원의 벡터로 보고 코사인 유사도로 찾은 것입니다.
+ * 연남동을 조회하면 광안리·서교동·망원동이 나옵니다 — 멀리 떨어져 있어도
+ * 상권의 '성격'이 닮은 곳들. 2호점을 알아보거나, 닮은 동네에서 내 업종이
+ * 어떤지 되물어 검증하는 자입니다. 행을 누르면 그 동네를 바로 물어봅니다.
+ */
+interface SimilarDong { code: string; name: string; sim: number;
+                        stores: number; shared: string[] }
+
+function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: string }) {
+  const askAbout = (name: string) => {
+    // 전역 입력을 거치지 않고 커스텀 이벤트로 질문을 흘립니다.
+    window.dispatchEvent(new CustomEvent('kkulbee:ask', {
+      detail: `${name}에서 ${industry && industry !== '업종 미지정' ? industry : '가게'} 하면 어때?` }));
+  };
+  return (
+    <div>
+      <ul className="space-y-1.5">
+        {items.map((d, i) => (
+          <li key={d.code}>
+            <button onClick={() => askAbout(d.name)}
+              className="group flex w-full items-center gap-3 rounded-xl border
+                         border-transparent px-3 py-2.5 text-left transition
+                         hover:border-white/[.1] hover:bg-white/[.03]">
+              <span className="w-5 shrink-0 text-[12px] font-bold text-white/25">
+                {i + 1}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-medium text-white/85
+                                 group-hover:text-white">{d.name}</span>
+                <span className="block truncate text-[10.5px] text-white/35">
+                  공통 결: {d.shared.slice(0, 3).join(' · ')}
+                </span>
+              </span>
+              <span className="w-[74px] shrink-0">
+                <span className="block text-right text-[12px] font-bold text-kb-yellow
+                                 [font-variant-numeric:tabular-nums]">
+                  {(d.sim * 100).toFixed(0)}%
+                </span>
+                <span className="mt-0.5 block h-[3px] rounded-full bg-white/[.08]">
+                  <span className="block h-full rounded-full bg-kb-yellow"
+                        style={{ width: `${d.sim * 100}%` }} />
+                </span>
+              </span>
+              <span className="shrink-0 text-[11px] text-white/20 transition
+                               group-hover:text-kb-yellow">물어보기 →</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2.5 text-[10.5px] leading-relaxed text-white/[.35]">
+        업종 구성(247종 비중)의 코사인 유사도입니다. 붙어 있는 동네가 아니라
+        성격이 닮은 동네를 찾습니다 — 2호점·확장을 알아볼 때 출발점이 됩니다.
       </p>
     </div>
   );
@@ -554,8 +618,11 @@ function TermsCard({ terms }: { terms: TermEntry[] }) {
 }
 
 /* ── 분쟁 절차 ─────────────────────────────────────────────────────────── */
-function ProcedureCard({ steps, rules, checklist }:
-  { steps: ProcedureStep[]; rules: string[]; checklist: string[] }) {
+function ProcedureCard({ steps, rules, checklist, question }:
+  { steps: ProcedureStep[]; rules: string[]; checklist: string[];
+    question?: string }) {
+  // 절차의 끝은 '서류를 쓰는 일'입니다. 그 첫 문장을 대신 써 줍니다.
+  const [draftOpen, setDraftOpen] = useState(false);
   return (
     <div>
       <ol className="relative space-y-4 border-l border-white/[.12] pl-5">
@@ -598,6 +665,19 @@ function ProcedureCard({ steps, rules, checklist }:
             ))}
           </div>
         </div>
+      )}
+
+      {question && (
+        <>
+          <button onClick={() => setDraftOpen(true)}
+                  className="mt-4 w-full rounded-xl border border-kb-yellow/[.4]
+                             bg-kb-yellow/[.08] py-2.5 text-[13px] font-bold
+                             text-kb-yellow transition hover:bg-kb-yellow/[.15]">
+            ✍ 이 내용으로 민원서 초안 만들기
+          </button>
+          <DraftModal open={draftOpen} onClose={() => setDraftOpen(false)}
+                      situation={question} />
+        </>
       )}
     </div>
   );
