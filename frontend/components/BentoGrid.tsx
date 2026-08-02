@@ -49,7 +49,11 @@ const ACCENT: Record<string, string> = {
 // 피드백의 답입니다. 결론(점수·매칭·절차)은 펼치고, 근거와 곁가지(요인 분해·
 // 지도·기회 업종·닮은 동네·금리·용어)는 제목만 보이게 접습니다. 접힌 카드도
 // 제목·부제가 있어 무엇이 들었는지 알고 누를 수 있습니다.
-const OPEN_BY_DEFAULT = new Set(['score', 'policy', 'procedure', 'notice', 'compare', 'map']);
+// factors(점수가 이렇게 나온 이유)도 기본 열림 — 요인 분해는 이 서비스
+// 근거 공개의 핵심인데 접혀 있으면 없는 것과 같습니다. gaps·similar는
+// 보조 정보라 접어 두어 화면 과밀을 막습니다.
+const OPEN_BY_DEFAULT = new Set(['score', 'factors', 'policy', 'procedure',
+                                 'notice', 'compare', 'map']);
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
