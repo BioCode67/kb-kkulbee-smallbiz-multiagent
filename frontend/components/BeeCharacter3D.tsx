@@ -191,8 +191,10 @@ export default function BeeCharacter3D({
       // 눈 — 얼굴 표면에 붙는 구체. 이것 하나로 '3D인가 그림인가'가 갈립니다.
       const eyes: import('three').Mesh[] = [];
       for (const sx of [-1, 1]) {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.27, 32, 24), eyeMat);
-        eye.position.set(0.06 + sx * 0.315, 0.09, 1.14);
+        // '징그럽다'는 피드백의 주범은 과대한 눈 + 이중 광점이었습니다.
+        // 눈을 한 단계 줄이고 광점을 하나만 둡니다 — 또렷함은 남고 부담이 빠집니다.
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.225, 32, 24), eyeMat);
+        eye.position.set(0.06 + sx * 0.30, 0.09, 1.16);
         eye.scale.set(1, 1.18, 0.6);
         head.add(eye);
         eyes.push(eye);
@@ -200,16 +202,10 @@ export default function BeeCharacter3D({
         // 캐치라이트 — 조명만으로 생기는 반사는 각도에 따라 사라집니다.
         // 눈빛은 늘 있어야 하므로 스스로 빛나는 작은 구슬을 하나 박습니다.
         const spark = new THREE.Mesh(
-          new THREE.SphereGeometry(0.09, 16, 12),
+          new THREE.SphereGeometry(0.065, 16, 12),
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        spark.position.set(0.06 + sx * 0.315 - 0.08, 0.19, 1.31);
+        spark.position.set(0.06 + sx * 0.30 - 0.06, 0.17, 1.3);
         head.add(spark);
-
-        const spark2 = new THREE.Mesh(
-          new THREE.SphereGeometry(0.036, 12, 10),
-          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }));
-        spark2.position.set(0.06 + sx * 0.315 + 0.09, -0.02, 1.3);
-        head.add(spark2);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
         //

@@ -432,7 +432,7 @@ export default function Page() {
               {/* 꿀비 — 프레임 위에 살짝 걸쳐 앉습니다 */}
               <motion.div layoutId="bee" transition={SPRING}
                           className="z-10 -mb-10 mt-8">
-                <BeeStage motion={mood} size={210} speech={speech} />
+                <BeeStage motion={mood} size={280} speech={speech} />
               </motion.div>
 
               {/* ── 앱 프레임 — 목업 대신 진짜 ── */}
@@ -565,16 +565,18 @@ export default function Page() {
         {!hero && (
           <div className="grid gap-6 pt-6 lg:grid-cols-[272px_minmax(0,1fr)]">
             <aside className="print:hidden lg:sticky lg:top-[4.5rem] lg:self-start">
-              <div className="surface-2 flex flex-col items-center px-4 pb-5 pt-4">
+              {/* 상자 없이 — 꿀비는 카드 속 아이콘이 아니라 화면에 서 있는
+                  동료여야 합니다. 배경(크림) 위에 그대로 섭니다. */}
+              <div className="flex flex-col items-center">
                 <motion.div layoutId="bee" transition={SPRING}>
-                  <BeeStage motion={mood} size={132} speech={speech} />
+                  <BeeStage motion={mood} size={180} speech={speech} />
                 </motion.div>
                 <button
                   onClick={() => { setHistory([]); setMood('fly_happy'); setSpeech(GREETING); }}
-                  className="mt-4 w-full rounded-lg bg-kb-ink/[.05] py-2 text-[11.5px]
-                             text-kb-ink/65 transition hover:bg-kb-ink/[.08] hover:text-kb-ink"
+                  className="mt-2 rounded-full px-4 py-1.5 text-[11.5px] text-kb-ink/55
+                             transition hover:bg-kb-ink/[.06] hover:text-kb-ink"
                 >
-                  처음으로
+                  ← 처음으로
                 </button>
               </div>
 
