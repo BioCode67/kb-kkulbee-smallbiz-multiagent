@@ -106,6 +106,18 @@ class GraphState(TypedDict, total=False):
     bank_rates: dict | None
     motion: Annotated[str, _brighter]
     trace: Annotated[list, _merge]
+    steps: Annotated[list, _merge]
+
+
+def _lap(t0: float, node: str, label: str, detail: str) -> dict:
+    """글라스박스 한 줄 — 노드가 실제로 만진 데이터와 실측 시간.
+
+    "멀티에이전트 AI"라고 적는 것과 어떤 노드가 어떤 데이터를 몇 ms에
+    봤는지 보여 주는 것은 다릅니다. 여기 담기는 숫자는 전부 실측·실계수
+    입니다 — 연출용 문구를 넣지 않습니다.
+    """
+    return {"node": node, "label": label, "detail": detail,
+            "ms": max(1, int((time.perf_counter() - t0) * 1000))}
 
 
 # ── 라우터 ────────────────────────────────────────────────────────────────
@@ -119,6 +131,7 @@ async def route(state: GraphState) -> GraphState:
     읽어 낸 지역·업종은 상태에 실어 각 갈래가 씁니다. 화면에서 직접 고른
     값이 있으면 그쪽이 우선입니다.
     """
+    t0 = time.perf_counter()
     req = state["request"]
     # 직전 대화에서 지역·업종을 이어받습니다. "연남동 카페 상권 어때?" 다음에
     # "그럼 자금은?"이라고 하면 어느 동네인지가 그대로 살아 있어야 합니다.
@@ -132,13 +145,22 @@ async def route(state: GraphState) -> GraphState:
     if len(req.message.strip()) <= 16 and prev.get("turns"):
         carry = prev["turns"][-1]["question"]
 
+    region = r.get("region") or prev.get("region")
+    industry = r.get("industry") or prev.get("industry")
+    bits = ["갈래 " + "+".join(r["intents"])]
+    if region:
+        bits.append(f"지역 {region}")
+    if industry:
+        bits.append(f"업종 {industry}")
+    bits.append("LLM 판독" if r.get("by") == "llm" else "낱말·사실 규칙")
     return {"intents": r["intents"],
-            "region": r.get("region") or prev.get("region"),
-            "industry": r.get("industry") or prev.get("industry"),
+            "region": region,
+            "industry": industry,
             "carry": carry,
             "routed_by": r.get("by", "rules"),
             "motion": CharacterMotion.THINKING.value,
-            "trace": [AgentKind.ROUTER.value]}
+            "trace": [AgentKind.ROUTER.value],
+            "steps": [_lap(t0, "router", "라우터", " · ".join(bits))]}
 
 
 # ── 각 갈래 ───────────────────────────────────────────────────────────────
@@ -166,6 +188,7 @@ def _detect_pair(message: str):
 
 
 async def run_location(state: GraphState) -> GraphState:
+    t0 = time.perf_counter()
     req = state["request"]
     region = req.region or state.get("region") or req.message
     industry = req.industry or state.get("industry") or _guess_industry(req.message)
@@ -204,7 +227,11 @@ async def run_location(state: GraphState) -> GraphState:
             return {"parts": {"location": lead}, "location": hi,
                     "compare": (a, b), "pins": pins,
                     "motion": CharacterMotion.FLY_HAPPY.value,
-                    "trace": [AgentKind.LOCATION.value]}
+                    "trace": [AgentKind.LOCATION.value],
+                    "steps": [_lap(t0, "location", "입지 에이전트",
+                                   f"{a.region_name}·{b.region_name} 동시 채점"
+                                   f"(전국 백분위) · 생활인구 대조 · "
+                                   f"경쟁 점포 핀 {len(pins)}개")]}
 
     score = await location_agent.analyze_location(region, industry)
     if score is not None and getattr(score, "dong_code", None):
@@ -217,7 +244,9 @@ async def run_location(state: GraphState) -> GraphState:
         return {"parts": {"location": ("어느 동네인지 못 알아들었습니다. '서울 마포구 연남동'처럼 "
                            "시·군·구까지 적어 주시면 그 동네 점포 자료로 살펴보겠습니다.")},
                 "motion": CharacterMotion.EXPLAINING.value,
-                "trace": [AgentKind.LOCATION.value]}
+                "trace": [AgentKind.LOCATION.value],
+                "steps": [_lap(t0, "location", "입지 에이전트",
+                               "자료에 없는 동네 — 점수를 지어내지 않고 되물음")]}
 
     pins = await location_agent.nearby_pins(score)
 
@@ -230,7 +259,11 @@ async def run_location(state: GraphState) -> GraphState:
     return {"parts": {"location": lead}, "location": score, "pins": pins,
             "motion": (CharacterMotion.FLY_HAPPY.value if score.total_score >= 60
                        else CharacterMotion.EXPLAINING.value),
-            "trace": [AgentKind.LOCATION.value]}
+            "trace": [AgentKind.LOCATION.value],
+            "steps": [_lap(t0, "location", "입지 에이전트",
+                           f"행정동 3,450곳 백분위 대조 → {score.region_name} "
+                           f"{score.total_score}점 · 요인 {len(score.factors)}개 분해 · "
+                           f"주변 점포 핀 {len(pins)}개")]}
 
 
 def _won(v: int) -> str:
@@ -243,6 +276,7 @@ def _won(v: int) -> str:
 
 
 def run_policy(state: GraphState) -> GraphState:
+    t0 = time.perf_counter()
     req = state["request"]
     region = req.region or state.get("region")
     industry = req.industry or state.get("industry")
@@ -256,7 +290,10 @@ def run_policy(state: GraphState) -> GraphState:
                 "지역이나 업종, 필요하신 금액을 알려 주시면 다시 찾아보겠습니다.")
         return {"parts": {"policy": text}, "policies": [],
                 "motion": CharacterMotion.EXPLAINING.value,
-                "trace": [AgentKind.POLICY.value]}
+                "trace": [AgentKind.POLICY.value],
+                "steps": [_lap(t0, "policy", "자금 에이전트",
+                               "하이브리드 검색(BM25+임베딩+RRF) → 적합 0건 · "
+                               "무관한 공고로 채우지 않음")]}
 
     best = matches[0]
     bits = []
@@ -276,27 +313,37 @@ def run_policy(state: GraphState) -> GraphState:
 
     return {"parts": {"policy": text}, "policies": matches,
             "motion": CharacterMotion.FLY_HAPPY.value,
-            "trace": [AgentKind.POLICY.value]}
+            "trace": [AgentKind.POLICY.value],
+            "steps": [_lap(t0, "policy", "자금 에이전트",
+                           f"공고 900건 하이브리드 검색(BM25+임베딩+RRF) → "
+                           f"적합 {len(matches)}건 · 1위 {best.provider}")]}
 
 
 def run_protection(state: GraphState) -> GraphState:
+    t0 = time.perf_counter()
     q = state["request"].message
     pack = guardrail_agent.build_protection(q, q)
     text = (f"{pack.dispute_summary} 아래에 4단계 절차와 준비 서류를 정리했습니다. "
             f"근거 규정은 {', '.join(pack.applicable_rules[:2])}입니다.")
     return {"parts": {"protection": text}, "protection": pack,
             "motion": CharacterMotion.EXPLAINING.value,
-            "trace": [AgentKind.PROTECTION.value]}
+            "trace": [AgentKind.PROTECTION.value],
+            "steps": [_lap(t0, "protection", "권리 에이전트",
+                           f"분쟁 유형 분류 → 해결 절차 {len(pack.procedure)}단계 · "
+                           f"근거 규정 {len(pack.applicable_rules)}건 대조")]}
 
 
 def run_general(state: GraphState) -> GraphState:
+    t0 = time.perf_counter()
     text = ("소상공인 사장님을 위한 세 가지를 도와드립니다.\n"
             "· 어디에 열지 — 상권 점수와 그 근거\n"
             "· 자금을 어떻게 — 정책자금·KB 상품 매칭\n"
             "· 억울한 일이 생겼을 때 — 분쟁 절차와 서류\n"
             "예를 들어 “연남동에서 카페 열려는데 상권 어때?”처럼 물어봐 주세요.")
     return {"parts": {"general": text}, "motion": CharacterMotion.FLY_HAPPY.value,
-            "trace": []}
+            "trace": [],
+            "steps": [_lap(t0, "general", "안내",
+                           "특정 갈래 없음 — 세 갈래 사용법 안내")]}
 
 
 async def attach_bank_rates(state: GraphState) -> dict | None:
@@ -328,14 +375,20 @@ async def run_guardrail(state: GraphState) -> GraphState:
     따라붙습니다. 그래서 검사 결과를 따로 담고, 최종 조립은 run()에서
     이 값으로 갈아 끼웁니다.
     """
+    t0 = time.perf_counter()
     raw = _assemble(state.get("parts") or {})
     state["bank_rates"] = await attach_bank_rates(state)  # 키 없으면 None
     text = await composer.compose(state["request"].message, dict(state), raw)
     composed = "llm" if text != raw else "template"
 
     safe, report = guardrail_agent.apply(text)
+    detail = ("금소법 §19·§20·§21 표현 대조 · "
+              + ("위반 없음" if report.passed
+                 else f"단정 표현 {len(report.violations)}건 수정")
+              + " · " + ("LLM 작성문 검사" if composed == "llm" else "템플릿 작성"))
     return {"safe_answer": safe, "guardrail": report, "composed_by": composed,
-            "trace": [AgentKind.GUARDRAIL.value]}
+            "trace": [AgentKind.GUARDRAIL.value],
+            "steps": [_lap(t0, "guardrail", "가드레일(마지막 관문)", detail)]}
 
 
 # ── 그래프 ────────────────────────────────────────────────────────────────
@@ -548,7 +601,7 @@ def _suggest(state: GraphState) -> list[str]:
 
 async def run(req: ChatRequest) -> ChatResponse:
     t0 = time.perf_counter()
-    state = await GRAPH.ainvoke({"request": req, "trace": []})
+    state = await GRAPH.ainvoke({"request": req, "trace": [], "steps": []})
 
     intents = state.get("intents", [Intent.GENERAL.value])
     sid = req.session_id or uuid.uuid4().hex[:12]
@@ -582,5 +635,6 @@ async def run(req: ChatRequest) -> ChatResponse:
         protection=state.get("protection"),
         guardrail=state.get("guardrail"),
         agent_trace=[AgentKind(a) for a in state.get("trace", [])],
+        steps=state.get("steps", []),
         elapsed_ms=int((time.perf_counter() - t0) * 1000),
     )

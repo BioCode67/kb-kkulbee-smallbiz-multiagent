@@ -1174,56 +1174,98 @@ function Answer({ res }: { res: ChatResponse }) {
   );
 }
 
-/* ── 어느 에이전트가 돌았는지 ──────────────────────────────────────────
+/* ── 글라스박스 콘솔 ────────────────────────────────────────────────────
  *
- * 멀티에이전트라고 적어 두는 것과, 어느 에이전트가 실제로 돌았는지 보여
- * 주는 것은 다릅니다. 질문마다 켜지는 갈래가 달라지므로 이 목록도 매번
- * 달라집니다 — 그 변화가 "정말 라우팅이 되는가"에 대한 답입니다.
+ * 멀티에이전트라고 적어 두는 것과, 어느 노드가 어떤 데이터를 몇 ms에
+ * 봤는지 보여 주는 것은 다릅니다. 여기 찍히는 줄은 서버가 실제로 밟은
+ * 단계의 실측 로그입니다 — 재생 속도만 압축했을 뿐, 연출이 없습니다.
+ * 질문마다 켜지는 노드가 달라지고, 그 변화가 "정말 라우팅이 되는가"에
+ * 대한 답입니다.
  */
 function AgentTrace({ res }: { res: ChatResponse }) {
-  return (
-    <div className="surface-1 mt-4 p-4">
-      <p className="text-[12.5px] font-semibold uppercase tracking-wider text-kb-ink/78">
-        꿀비가 한 일
-      </p>
+  const steps = res.steps ?? [];
+  const [shown, setShown] = useState(0);
 
-      <ol className="relative mt-3 space-y-0">
-        {/* 세로줄 — 순서대로 흘렀다는 것이 선 하나로 읽힙니다 */}
-        <span aria-hidden
-              className="absolute left-[9px] top-2 bottom-4 w-px bg-kb-ink/[.08]" />
-        {res.agent_trace.map((a, i) => (
-          <li key={`${a}-${i}`} className="relative flex items-center gap-2.5 py-1.5">
-            <span className={`z-10 grid h-[19px] w-[19px] shrink-0 place-items-center
-                              rounded-full text-[10.5px] font-bold ring-2 ring-kb-ink ${
-              a === 'guardrail'
-                ? 'bg-rose-400/25 text-rose-700'
-                : 'bg-kb-yellow/25 text-kb-amber'}`}>
-              {i + 1}
-            </span>
-            <span className={`text-[14.5px] ${
-              a === 'guardrail' ? 'text-rose-700' : 'text-kb-ink/85'}`}>
-              {AGENT_LABEL[a] ?? a}
-            </span>
-          </li>
-        ))}
-      </ol>
+  useEffect(() => {
+    setShown(0);
+    if (!steps.length) return;
+    // 실측 ms 비율대로 재생하되 전체 1.4초 안에 — 순서·비율은 진짜입니다
+    const total = steps.reduce((s, x) => s + x.ms, 0) || 1;
+    const scale = Math.min(1, 1400 / total);
+    let acc = 120;
+    const timers = steps.map((s, i) => {
+      acc += Math.max(140, s.ms * scale);
+      return setTimeout(() => setShown(i + 1), acc);
+    });
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [res]);
+
+  return (
+    <div className="print:hidden mt-4 overflow-hidden rounded-2xl bg-kb-ink
+                    shadow-[0_20px_46px_-18px_rgba(31,25,16,.55)]">
+      <div className="flex items-center gap-2 border-b border-white/[.08] px-4 py-2.5">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping
+                           rounded-full bg-emerald-400 opacity-60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+        </span>
+        <p className="text-[12px] font-bold uppercase tracking-wider text-white/85">
+          글라스박스 <span className="normal-case font-medium text-white/50">
+            — 이 답이 만들어진 실제 과정</span>
+        </p>
+        <p className="ml-auto font-mono text-[11.5px] text-white/45">
+          {res.elapsed_ms}ms 실측
+        </p>
+      </div>
+
+      {steps.length > 0 ? (
+        <div className="space-y-1.5 px-4 py-3 font-mono">
+          {steps.map((s, i) => (
+            <div key={i}
+              className={`transition-all duration-300 ${
+                i < shown ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={`text-[12.5px] font-bold ${
+                  s.node === 'guardrail' ? 'text-rose-300' : 'text-kb-yellow'}`}>
+                  ▸ {s.label}
+                </span>
+                <span className="shrink-0 text-[11px] tabular-nums text-white/40">
+                  {s.ms}ms
+                </span>
+              </div>
+              <p className="pl-3.5 pb-1 text-[12px] leading-relaxed text-white/70">
+                {s.detail}
+              </p>
+            </div>
+          ))}
+          {shown < steps.length && (
+            <span className="inline-block animate-pulse text-[12px] text-kb-yellow">▌</span>
+          )}
+        </div>
+      ) : (
+        /* 구버전 응답(steps 없음) — 에이전트 이름만이라도 */
+        <div className="space-y-1.5 px-4 py-3 font-mono">
+          {res.agent_trace.map((a, i) => (
+            <p key={`${a}-${i}`} className="text-[12.5px] text-white/70">
+              ▸ {AGENT_LABEL[a] ?? a}
+            </p>
+          ))}
+        </div>
+      )}
 
       {res.guardrail && (
-        <p className={`mt-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2
-                       text-[13px] leading-snug ${
+        <p className={`mx-4 mb-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2
+                       text-[12.5px] leading-snug ${
           res.guardrail.passed
-            ? 'bg-emerald-400/10 text-emerald-700'
-            : 'bg-rose-400/10 text-rose-700'}`}>
+            ? 'bg-emerald-400/[.12] text-emerald-300'
+            : 'bg-rose-400/[.12] text-rose-300'}`}>
           <span className="mt-px">{res.guardrail.passed ? '✓' : '!'}</span>
           {res.guardrail.passed
             ? '금소법 위반 표현 없음'
             : `단정 표현 ${res.guardrail.violations.length}건을 고쳐 내보냈습니다`}
         </p>
       )}
-
-      <p className="mt-2.5 text-right text-[12px] text-kb-ink/55">
-        {res.elapsed_ms}ms
-      </p>
     </div>
   );
 }

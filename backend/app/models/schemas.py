@@ -311,5 +311,7 @@ class ChatResponse(BaseModel):
     suggestions: list[str] = Field(default_factory=list)
 
     agent_trace: list[AgentKind] = Field(default_factory=list, description="거쳐 간 에이전트")
+    steps: list[dict] = Field(default_factory=list,
+                              description="글라스박스 — 노드별 실측 로그(만진 데이터·ms)")
     elapsed_ms: int = 0
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

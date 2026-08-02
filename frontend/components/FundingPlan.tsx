@@ -20,6 +20,8 @@ interface Step {
 interface Plan {
   ok: boolean; reason?: string; target_krw: number; covered_krw: number;
   gap_krw: number; grant_krw: number; monthly_total_krw: number;
+  benchmark: { rate_pct: number; assumed: boolean; monthly_krw: number;
+               total_krw: number; plan_total_krw: number; save_krw: number } | null;
   steps: Step[]; extras: { name: string; funding_type: string; url: string }[];
   note: string;
 }
@@ -39,16 +41,18 @@ export default function FundingPlan({ region, industry }: {
 }) {
   const [amt, setAmt] = useState(5000);        // 만원
   const [purpose, setPurpose] = useState('운영');
+  const [bench, setBench] = useState(6.5);     // 시중 금리 '가정' — 직접 바꿔 봄
   const [plan, setPlan] = useState<Plan | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const run = async () => {
+  const run = async (benchPct?: number) => {
     if (busy) return;
     setBusy(true);
     try {
       const r = await fetch('/api/v1/plan', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount_krw: amt * 10_000, purpose,
+                              bench_rate_pct: benchPct ?? bench,
                               region: region || null, industry: industry || null }),
       });
       setPlan(await r.json());
@@ -88,7 +92,7 @@ export default function FundingPlan({ region, industry }: {
             {p}자금
           </button>
         ))}
-        <button onClick={run} disabled={busy}
+        <button onClick={() => run()} disabled={busy}
           className="rounded-xl bg-kb-yellow px-6 py-2.5 text-[15px] font-bold
                      text-kb-ink shadow-sm transition hover:brightness-105
                      disabled:opacity-50">
@@ -112,6 +116,33 @@ export default function FundingPlan({ region, industry }: {
               </div>
             ))}
           </div>
+
+          {/* 시중 대출과의 비교 — "AI가 설계하면 얼마가 달라지나"를 숫자로.
+              기준 금리는 공시값이 아니라 '가정'이며, 사장님이 직접 바꿔 볼
+              수 있습니다. 절감액 = 전액 시중 대출 시 5년 총 상환 − 이 설계의
+              융자 상환 총액(보조금 몫은 갚지 않으므로 0). */}
+          {plan.benchmark && plan.benchmark.save_krw > 0 && (
+            <div className="mt-4 rounded-xl bg-gradient-to-r from-emerald-500/[.1]
+                            to-kb-yellow/[.12] p-4 ring-1 ring-emerald-500/30">
+              <p className="text-[13px] font-bold text-kb-ink/70">
+                같은 돈을 전부 시중 신용대출로 빌렸다면 (연{' '}
+                <input type="number" value={bench} min={0.1} max={20} step={0.5}
+                  onChange={(e) => setBench(Number(e.target.value))}
+                  onBlur={() => run()}
+                  className="w-14 rounded-md bg-white px-1.5 py-0.5 text-center
+                             text-[13px] font-bold text-kb-ink ring-1
+                             ring-kb-ink/[.15] focus:outline-none" />
+                % 가정 — 바꿔 보세요)
+              </p>
+              <p className="mt-1.5 text-[17px] text-kb-ink">
+                5년 총 {won(plan.benchmark.total_krw)} 상환 → 이 설계는{' '}
+                {won(plan.benchmark.plan_total_krw)} 상환.{' '}
+                <b className="text-[21px] font-extrabold text-emerald-700">
+                  {won(plan.benchmark.save_krw)} 아낍니다
+                </b>
+              </p>
+            </div>
+          )}
 
           {/* 스택 바 — 무엇으로 채워지는지 한 눈에 */}
           <div className="mt-4 flex h-6 w-full overflow-hidden rounded-full

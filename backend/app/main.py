@@ -321,10 +321,27 @@ def funding_plan(payload: dict) -> dict:
             remaining -= alloc
 
     covered = amount - max(0, remaining)
+
+    # 시중 신용대출과의 비교 — 같은 조달액을 전부 시중 금리로 빌렸다면.
+    # 기준 금리는 확정값이 없으므로 '가정'으로 명시하고, 화면에서 사장님이
+    # 직접 바꿔 볼 수 있게 요청으로 받습니다. 지어낸 공시값이 아닙니다.
+    benchmark = None
+    if covered > 0:
+        bench_pct = float(payload.get("bench_rate_pct") or 6.5)
+        bench_pct = min(max(bench_pct, 0.1), 20.0)
+        bench_monthly = monthly(covered, bench_pct)
+        plan_total = sum(s["monthly_krw"] for s in steps) * 60  # 융자 상환 총액
+        benchmark = {"rate_pct": bench_pct, "assumed": True,
+                     "monthly_krw": bench_monthly,
+                     "total_krw": bench_monthly * 60,
+                     "plan_total_krw": plan_total,
+                     "save_krw": max(0, bench_monthly * 60 - plan_total)}
+
     return {"ok": True, "target_krw": amount, "covered_krw": covered,
             "gap_krw": max(0, remaining),
             "grant_krw": sum(s["alloc_krw"] for s in steps if s["bucket"] == "grant"),
             "monthly_total_krw": sum(s["monthly_krw"] for s in steps),
+            "benchmark": benchmark,
             "steps": steps,
             "extras": [{"name": e.get("name") or e.get("title"), "funding_type": e.get("funding_type"),
                         "url": url_of(e)} for e in extras[:3]],

@@ -174,6 +174,8 @@ export interface ChatResponse {
   /** 다음에 물을 만한 것. 누르면 그대로 질문됩니다 */
   suggestions: string[];
   agent_trace: AgentKind[];
+  /** 글라스박스 — 노드별 실측 로그(만진 데이터·걸린 ms). 전부 실측입니다 */
+  steps?: { node: string; label: string; detail: string; ms: number }[];
   elapsed_ms: number;
   generated_at: string;
 }
