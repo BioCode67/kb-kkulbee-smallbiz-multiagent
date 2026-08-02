@@ -137,6 +137,9 @@ export default function Page() {
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
   const [speech, setSpeech] = useState(GREETING);
   const [mode, setMode] = useState(0);
+  // 로딩 중에도 방금 물은 말이 보여야 합니다. 답이 올 때까지 질문이
+  // 사라지면 "내가 뭐라고 보냈더라"가 됩니다.
+  const [pendingQ, setPendingQ] = useState('');
   // 내 가게 — 등록해 두면 모든 질문에 동네·업종이 자동으로 붙습니다.
   const [shop, setShop] = useState<ShopProfile | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -159,6 +162,7 @@ export default function Page() {
   const ask = useCallback(async (q: string) => {
     if (!q.trim() || loading) return;
     setLoading(true);
+    setPendingQ(q);
     setError('');
     setMood('thinking');
     setSpeech('잠깐만요, 자료를 살펴볼게요…');
@@ -200,6 +204,7 @@ export default function Page() {
     } finally {
       clearTimeout(slowTimer);
       setLoading(false);
+      setPendingQ('');
     }
   }, [loading, res?.session_id, shop]);
 
@@ -547,7 +552,24 @@ export default function Page() {
                     )}
                   </motion.div>
                 ))}
-                {loading && <Thinking />}
+                {loading && (
+                  <div className="mt-6 space-y-5">
+                    {/* 방금 물은 말 — 답이 오기 전에도 대화는 이어져 보여야 합니다 */}
+                    {pendingQ && (
+                      <motion.div initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="flex justify-end">
+                        <p className="max-w-[75%] rounded-2xl rounded-br-md
+                                      bg-kb-yellow/[.14] px-4 py-2.5 text-[13.5px]
+                                      leading-relaxed text-kb-amber ring-1
+                                      ring-kb-yellow/[.25]">
+                          {pendingQ}
+                        </p>
+                      </motion.div>
+                    )}
+                    <Thinking />
+                  </div>
+                )}
               </div>
             </section>
           </div>
