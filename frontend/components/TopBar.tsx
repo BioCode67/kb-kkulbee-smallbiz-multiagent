@@ -11,6 +11,8 @@
 
 import { useEffect, useState } from 'react';
 import ProtectionDrawer from './ProtectionDrawer';
+import SavedDrawer from './SavedDrawer';
+import { loadSaved, onSavedChange } from '@/lib/saved';
 
 interface Sources {
   market?: { stores?: number; dongs_kept?: number; source?: string; source_url?: string };
@@ -21,6 +23,14 @@ export default function TopBar() {
   const [src, setSrc] = useState<Sources | null>(null);
   const [open, setOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
+  const [savedN, setSavedN] = useState(0);
+
+  useEffect(() => {
+    const load = () => setSavedN(loadSaved().length);
+    load();
+    return onSavedChange(load);
+  }, []);
 
   useEffect(() => {
     fetch('/api/v1/sources')
@@ -64,6 +74,20 @@ export default function TopBar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">
+          {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
+          <button onClick={() => setSavedOpen(true)}
+                  title="찜한 지원사업 — 마감 가까운 순"
+                  className="relative rounded-lg px-2 py-1.5 text-[15px] text-kb-ink/55
+                             transition hover:text-kb-amber">
+            ☆
+            {savedN > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4
+                               place-items-center rounded-full bg-kb-yellow px-1
+                               text-[9.5px] font-bold text-kb-ink">
+                {savedN}
+              </span>
+            )}
+          </button>
           {stores && docs && (
             <span className="hidden items-center gap-1.5 text-[11.5px] text-kb-ink/55
                              lg:flex">
@@ -112,6 +136,7 @@ export default function TopBar() {
         </div>
       )}
       <ProtectionDrawer open={drawer} onClose={() => setDrawer(false)} />
+      <SavedDrawer open={savedOpen} onClose={() => setSavedOpen(false)} />
     </header>
   );
 }

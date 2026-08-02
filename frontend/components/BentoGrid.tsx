@@ -15,6 +15,7 @@ import type {
 } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import DraftModal from './DraftModal';
+import { isSaved, onSavedChange, toggleSaved } from '@/lib/saved';
 import LocationMap from './LocationMap';
 
 // 서버가 정한 폭(1~6)을 격자 칸으로 옮깁니다. 무엇을 얼마나 넓게 보여
@@ -570,6 +571,31 @@ const FUNDING_TONE: Record<string, string> = {
   '기타': 'bg-kb-ink/[.05] text-kb-ink/60 ring-kb-ink/[.14]',
 };
 
+/** 찜 별 — 누르면 브라우저에 담기고, 상단 '내 찜'에서 D-day 순으로 모입니다. */
+function SaveStar({ m }: { m: PolicyMatch }) {
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    setSaved(isSaved(m.program_id));
+    return onSavedChange(() => setSaved(isSaved(m.program_id)));
+  }, [m.program_id]);
+  return (
+    <button
+      onClick={() => toggleSaved({
+        id: m.program_id, name: m.name, provider: m.provider,
+        funding_type: m.funding_type, deadline: m.apply_deadline ?? null,
+        apply_period: m.apply_period ?? '',
+        url: m.source_url || m.apply_url || '',
+      })}
+      title={saved ? '찜 해제' : '찜해 두고 마감 챙기기'}
+      className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[15px]
+                  transition ${saved
+        ? 'text-kb-amber' : 'text-kb-ink/25 hover:text-kb-amber/70'}`}
+    >
+      {saved ? '★' : '☆'}
+    </button>
+  );
+}
+
 function PolicyCard({ items }: { items: PolicyMatch[] }) {
   // 자금 성격 필터 — 결과 안에서 "주는 돈만" 골라 보는 가장 빠른 길.
   // 재검색 없이 화면에서 거릅니다.
@@ -623,6 +649,7 @@ function PolicyCard({ items }: { items: PolicyMatch[] }) {
                              [font-variant-numeric:tabular-nums]">
               {m.match_score.toFixed(0)}점
             </span>
+            <SaveStar m={m} />
           </div>
 
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5
