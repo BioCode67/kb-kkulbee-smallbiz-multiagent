@@ -486,6 +486,11 @@ export default function BeeCharacter3D({
         beeRoot.scale.setScalar(k);
         const px = flyOverride ? flyOverride.x : rect.left + rect.width / 2;
         const py = flyOverride ? flyOverride.y : rect.top + rect.height / 2;
+        // 시선 보정 — 오른쪽에 서 있으면 몸을 왼쪽(화면 중앙)으로 살짝
+        // 틀어 사용자 쪽을 봅니다. 정면 응시 원칙은 유지하되 '바깥을
+        // 본다'는 인상(사용자 신고)을 없앱니다.
+        const gazeYaw = Math.max(-0.3, Math.min(
+          0.3, ((winW / 2 - px) / winW) * 0.6));
         const txw = (px - winW / 2) * wpp();
         const tyw = (winH / 2 - py) * wpp();
         if (ball.on) {
@@ -579,7 +584,7 @@ export default function BeeCharacter3D({
         head.rotation.y = thinking ? Math.sin(t * 0.7) * 0.12 : 0;
         head.rotation.x = sad ? 0.34 + Math.sin(t * 0.9) * 0.04 : 0;
         head.rotation.z = thinking ? 0.16 + Math.sin(t * 0.5) * 0.05 : 0;
-        bee.rotation.y = spin;
+        bee.rotation.y = spin + gazeYaw;
         // 축하 백덤블링 — 뒤로 한 바퀴 (S·A등급 콘페티와 함께)
         const fp = (t - flipFrom) / 1.0;
         const flip = fp >= 0 && fp < 1 ? -(1 - Math.pow(1 - fp, 3)) * Math.PI * 2 : 0;

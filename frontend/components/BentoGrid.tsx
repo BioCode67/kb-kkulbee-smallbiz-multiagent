@@ -671,6 +671,7 @@ function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: str
 interface BankRates {
   banks: { bank: string; rate_avg: number }[];
   kb: { bank: string; rate_avg: number } | null;
+  kb_products?: { name: string; rate_avg: number }[];
   low: number | null; high: number | null; n_banks: number; note: string;
 }
 
@@ -707,6 +708,34 @@ function RatesCard({ d }: { d: BankRates }) {
           );
         })}
       </ul>
+      {/* KB 상품 추천 — 지어낸 추천이 아니라 금감원 공시에 신고된
+          KB국민은행 실상품(상품별 최저 평균 금리 순)입니다. */}
+      {(d.kb_products?.length ?? 0) > 0 && (
+        <div className="mt-3.5 rounded-xl bg-kb-yellow/[.1] p-3.5 ring-1
+                        ring-kb-yellow/40">
+          <p className="text-[13.5px] font-bold text-kb-ink">
+            ⭐ KB국민은행 공시 상품
+          </p>
+          <ul className="mt-2 space-y-1">
+            {d.kb_products!.map((p) => (
+              <li key={p.name} className="flex items-baseline justify-between
+                                          gap-2 text-[14px]">
+                <span className="min-w-0 truncate text-kb-ink/88">{p.name}</span>
+                <span className="shrink-0 font-bold text-kb-amber
+                                 [font-variant-numeric:tabular-nums]">
+                  평균 {p.rate_avg}%
+                </span>
+              </li>
+            ))}
+          </ul>
+          <a href="https://obank.kbstar.com/quics?page=C019327"
+             target="_blank" rel="noreferrer"
+             className="mt-2 inline-block text-[13px] font-bold text-kb-amber
+                        underline-offset-2 hover:underline">
+            KB 사업자 대출 상담 창구 →
+          </a>
+        </div>
+      )}
       <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[12.5px]
                     leading-relaxed text-amber-800">
         {d.note}

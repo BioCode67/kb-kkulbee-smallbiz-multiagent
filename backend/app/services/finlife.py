@@ -62,6 +62,8 @@ async def _fetch_credit_loans() -> list[dict] | None:
                 body = r.json().get("result", {})
                 base = {b["fin_co_no"]: b["kor_co_nm"]
                         for b in body.get("baseList", [])}
+                prdt = {(b["fin_co_no"], b["fin_prdt_cd"]): b.get("fin_prdt_nm", "")
+                        for b in body.get("baseList", [])}
                 for o in body.get("optionList", []):
                     # 유형 A(대출금리)만 — 기준금리·가산금리·가감조정금리를
                     # 섞어 최솟값을 취하면 우대조정치(0.x%)가 '평균 금리'처럼
@@ -70,6 +72,8 @@ async def _fetch_credit_loans() -> list[dict] | None:
                         continue
                     rows.append({
                         "bank": base.get(o.get("fin_co_no"), ""),
+                        "product": prdt.get((o.get("fin_co_no"),
+                                             o.get("fin_prdt_cd")), ""),
                         "type": o.get("crdt_lend_rate_type_nm", ""),
                         # 신용점수 900점 초과 구간·평균 금리(%)
                         "rate_900": _f(o.get("crdt_grad_1")),
@@ -108,9 +112,21 @@ def summarize(rows: list[dict]) -> dict:
         key=lambda x: x["rate_avg"])
     kb = next((b for b in banks if "국민" in b["bank"]), None)
     rates = [b["rate_avg"] for b in banks]
+
+    # KB국민은행 '상품' 목록 — 공시에 상품명이 그대로 있습니다. 지어낸
+    # 추천이 아니라 금감원에 신고된 실상품(상품별 최저 평균 금리 순)입니다.
+    kb_seen: dict[str, float] = {}
+    for r in rows:
+        if "국민" in r["bank"] and r.get("product") and r["rate_avg"] is not None:
+            kb_seen[r["product"]] = min(
+                kb_seen.get(r["product"], 99.0), r["rate_avg"])
+    kb_products = [{"name": n, "rate_avg": round(v, 2)}
+                   for n, v in sorted(kb_seen.items(), key=lambda x: x[1])][:3]
+
     return {
         "banks": banks[:8],
         "kb": kb,
+        "kb_products": kb_products,
         "low": min(rates) if rates else None,
         "high": max(rates) if rates else None,
         "n_banks": len(banks),
