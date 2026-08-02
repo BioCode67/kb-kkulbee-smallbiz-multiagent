@@ -27,7 +27,7 @@ from pptx import Presentation
 from pptx.util import Emu
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DECK = os.path.join(ROOT, "..", "docs", "KB-꿀비_기술설명서.pptx")
+DECK = os.path.join(ROOT, "..", "docs", "꿀비_기술설명서.pptx")
 
 SLACK = 1.15          # 이만큼까지는 넘쳐도 눈에 안 띕니다
 MIN_OVERLAP = 0.15    # 넓이의 15% 넘게 겹치면 알립니다

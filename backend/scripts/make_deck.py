@@ -24,12 +24,13 @@ from pptx.util import Emu, Inches, Pt
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "..", "docs", "KB-꿀비_기술설명서.pptx")
+OUT = os.path.join(ROOT, "..", "docs", "꿀비_기술설명서.pptx")
+SHOTS = os.path.join(ROOT, ".cache", "deck")
 
 # ── 색 ────────────────────────────────────────────────────────────────────
-# KB 노랑을 주조로 씁니다. 배경은 밝게 갔습니다 — 소상공인 서비스이고,
-# 발표장 빔프로젝터는 어두운 배경에서 글씨가 뭉개집니다.
-INK = RGBColor(0x1C, 0x18, 0x14)
+# KB 로고의 두 색(옐로 #FFBC00 + 웜 잉크)이 그대로 슬라이드의 주조입니다.
+# 웹과 발표자료가 같은 얼굴이어야 합니다 — 심사위원은 둘을 나란히 봅니다.
+INK = RGBColor(0x38, 0x32, 0x2A)
 GRAY = RGBColor(0x6B, 0x62, 0x59)
 LINE = RGBColor(0xE4, 0xDE, 0xD4)
 YELLOW = RGBColor(0xFF, 0xBC, 0x00)
@@ -154,8 +155,8 @@ def build() -> str:
     text(s, Inches(0.9), Inches(1.95), Inches(8.6), Inches(1.15),
          "꿀비", size=64, bold=True, color=WHITE)
     text(s, Inches(0.9), Inches(3.3), Inches(8.6), Inches(1.2),
-         "어디에 열지 · 자금은 어떻게 · 억울한 일이 생기면\n"
-         "소상공인 사장님의 세 가지를 한자리에서",
+         "사장님의 세 가지 고민, 한 번에 물어보세요\n"
+         "어디에 열지 · 자금은 어떻게 · 억울한 일이 생기면",
          size=21, color=RGBColor(0xE8, 0xE0, 0xD4), spacing=1.4)
     text(s, Inches(0.9), Inches(4.7), Inches(8.6), Inches(0.9),
          f"전국 점포 {mk['stores']:,}개 · 정부 지원사업 공고 {pl['docs']}건\n"
@@ -169,6 +170,30 @@ def build() -> str:
         # 왼쪽 자리를 폭만큼 빼서 잡습니다.
         s.shapes.add_picture(bee_png, Inches(9.0), Inches(1.5),
                              height=Inches(4.4))
+
+    # ── 1.5 차별화 — 작년에 비슷한 이름이 있었다 ─────────────────────────
+    #
+    # 제7회 본선에 「사장님의 꿀벌 비서」가 있다. 심사위원은 기억한다.
+    # 먼저 말하지 않으면 "또 벌 비서네"로 시작한다. 정면으로 짚고 간다.
+    s = blank(prs)
+    header(s, "WHY DIFFERENT", "작년에도 '꿀벌 비서'가 있었습니다 — 무엇이 다른가")
+    text(s, Inches(0.75), Inches(1.95), Inches(11.8), Inches(0.6),
+         "제7회 본선 「사장님의 꿀벌 비서」는 흩어진 정보를 모아 보여주는 서비스였습니다. "
+         "꿀비는 '보여주기'가 아니라 '실측으로 답하고 증명하는' 쪽에 섰습니다.",
+         size=14, color=GRAY)
+    rows5 = [
+        ("실측 규모", "점포 272만 개 좌표 · 공고 900건 하이브리드 검색 P@1 0.875 — 정보 나열이 아니라 검색·분석"),
+        ("3픽 크로스오버", "입지×금융×소비자보호가 한 질문에서 동시에 켜지고, 어떤 에이전트가 돌았는지 화면에 남습니다"),
+        ("구조로 보장되는 가드레일", "금소법 검사가 그래프의 마지막 노드 — LLM이 쓴 문장도 예외 없이 거칩니다"),
+        ("정직성의 설계", "없는 자료는 없다고 화면에 적고, 모르는 동네에 점수를 주지 않고, 추천마다 원문 링크"),
+        ("키·GPU 없이 영구 동작", "검색은 int8 ONNX CPU 5ms — 시연 환경과 외부 한도를 타지 않습니다"),
+    ]
+    y = Inches(2.7)
+    for t, d in rows5:
+        text(s, Inches(0.75), y, Inches(3.4), Inches(0.35), t, size=14.5, bold=True)
+        text(s, Inches(4.3), y + Inches(0.02), Inches(8.2), Inches(0.5),
+             d, size=12, color=GRAY)
+        y += Inches(0.82)
 
     # ── 2. 문제 ──────────────────────────────────────────────────────────
     s = blank(prs)
@@ -334,12 +359,13 @@ def build() -> str:
          "요인마다 전국 행정동 분포에서의 백분위로 잽니다.", size=13, color=GRAY)
 
     text(s, Inches(0.75), Inches(2.5), Inches(6.2), Inches(0.35),
-         "서울 마포구 연남동 · 카페 → 60.8점 (B등급)", size=16, bold=True, color=INK)
+         "서울 마포구 연남동 · 카페 → 66.8점 (B등급)", size=16, bold=True, color=INK)
     demo = [
         ("동종업종 경쟁", -12.9, "카페 204개 · 전국 상위 0.5%"),
         ("상권 규모", 10.9, "점포 2,327개 · 전국 상위 4.8%"),
         ("점포 밀집도", 9.7, "0.55㎢에 2,327개 · ㎢당 4,208개"),
         ("같은 계열 집적", 4.6, "음식 39% · 전국 평균의 1.3배"),
+        ("생활 인프라", 6.0, "약국·편의점·의원 등 9종 모두"),
         ("업종 다양성", -1.5, "몇몇 업종에 쏠린 편"),
     ]
     y = Inches(3.0)
@@ -401,6 +427,51 @@ def build() -> str:
          "무엇을 왜 고쳤는지 응답에 함께 실어 화면에 띄웁니다. "
          "/api/v1/guardrail/check 에 문장을 넣어 그 자리에서 확인하실 수 있습니다.",
          size=12, color=INK)
+
+    # ── 7.5 자유주제 3종 — "어떻게 했지" ─────────────────────────────────
+    s = blank(prs)
+    header(s, "BEYOND", "데이터사이언스 · 생성 · 접근성 — 세 방향의 자유 기능")
+    cols = [
+        ("닮은 상권 찾기", "업종 구성 247차원 코사인 유사도",
+         "연남동 ↔ 광안리·서교동·망원동\n서면 ↔ 부평역·안양일번가\n"
+         "붙어 있는 동네가 아니라 '성격이 닮은' 동네.\n"
+         "2호점·확장 후보의 출발점. 질의 0.4ms, 외부 의존 0."),
+        ("민원서 초안 생성", "규칙이 법조문, LLM은 사실관계만",
+         "\"수수료를 왜 떼요\" 한 문장이 제출 가능한\n"
+         "민원서 꼴이 됩니다. 없는 날짜·금액은 [빈칸]으로\n"
+         "강제 — LLM이 §를 지어낼 수 없는 구조.\n생성문도 가드레일 통과."),
+        ("음성 대화 + 지도 투어", "브라우저 내장 — 다운로드 0바이트",
+         "말로 묻고(Web Speech) 꿀비가 읽어 줍니다.\n"
+         "지도는 전국에서 그 동네로 날아 들어가\n"
+         "4막 투어(점포→열지도→비교)를 자막·음성으로.\n"
+         "금융 접근성 — 이 대회가 역대로 상을 준 각도."),
+    ]
+    for i, (t, sub, d) in enumerate(cols):
+        x = Inches(0.75 + i * 4.02)
+        rect(s, x, Inches(2.1), Inches(3.72), Inches(4.3),
+             fill=RGBColor(0xFA, 0xF8, 0xF4), line=LINE)
+        text(s, x + Inches(0.3), Inches(2.4), Inches(3.1), Inches(0.5),
+             t, size=16, bold=True)
+        text(s, x + Inches(0.3), Inches(2.95), Inches(3.1), Inches(0.4),
+             sub, size=11, bold=True, color=RGBColor(0x9A, 0x6B, 0x00))
+        text(s, x + Inches(0.3), Inches(3.5), Inches(3.2), Inches(2.6),
+             d, size=11, color=GRAY, spacing=1.4)
+
+    # ── 7.6 실제 화면 ────────────────────────────────────────────────────
+    s = blank(prs)
+    header(s, "SCREENS", "지금 접속해 보실 수 있습니다")
+    text(s, Inches(0.75), Inches(1.9), Inches(11.8), Inches(0.4),
+         "kb-kkulbee-smallbiz-multiagent.onrender.com — 목업이 아니라 배포 중인 실서비스의 화면입니다.",
+         size=13, color=GRAY)
+    shots = [("F1.png", Inches(0.75), Inches(3.9), "첫 화면 — 다섯 갈래 선택"),
+             ("tour.png", Inches(5.15), Inches(3.9), "지도 투어 — 점포 위 자막"),
+             ("policy.png", Inches(9.15), Inches(3.55), "자금 — 성격·추천 이유")]
+    for fn, x, hh, cap in shots:
+        fp = os.path.join(SHOTS, fn)
+        if os.path.exists(fp):
+            s.shapes.add_picture(fp, x, Inches(2.5), height=hh)
+            text(s, x, Inches(6.55), Inches(3.8), Inches(0.35),
+                 cap, size=11, bold=True, color=BROWN)
 
     # ── 8. 시스템 ────────────────────────────────────────────────────────
     s = blank(prs)
