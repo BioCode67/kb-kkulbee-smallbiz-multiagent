@@ -40,7 +40,7 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
       <button onClick={() => set(Math.max(0, v - step))}
         className="grid h-7 w-7 place-items-center rounded-lg border
                    border-kb-ink/[.14] text-kb-ink/60 hover:border-kb-yellow">−</button>
-      <span className="min-w-[86px] text-center text-[13.5px] font-bold text-kb-ink
+      <span className="min-w-[86px] text-center text-[14.5px] font-bold text-kb-ink
                        [font-variant-numeric:tabular-nums]">
         {won(v)}{suffix}
       </span>
@@ -57,14 +57,14 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
       <button onClick={() => setOpen((v) => !v)}
               className="flex w-full items-center justify-between text-left">
         <div>
-          <h3 className="font-display text-[16px] font-bold text-kb-ink">
+          <h3 className="font-display text-[17px] font-bold text-kb-ink">
             하루 몇 명이면 본전일까
           </h3>
-          <p className="mt-0.5 text-[12px] text-kb-ink/50">
+          <p className="mt-0.5 text-[13px] text-kb-ink/50">
             월세·인건비를 넣으면 손익분기 손님 수를 계산해 드려요
           </p>
         </div>
-        <span className="text-[13px] text-kb-ink/40">{open ? '접기 ▲' : '계산해 보기 ▼'}</span>
+        <span className="text-[14px] text-kb-ink/40">{open ? '접기 ▲' : '계산해 보기 ▼'}</span>
       </button>
 
       {open && (
@@ -79,11 +79,11 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
               ['한 달 영업일', days, setDays, 1, '일'],
             ] as const).map(([label, v, set, step, suffix]) => (
               <div key={label} className="flex items-center justify-between gap-2">
-                <span className="text-[12.5px] text-kb-ink/70">{label}</span>
+                <span className="text-[13.5px] text-kb-ink/70">{label}</span>
                 <Num v={v} set={set} step={step} suffix={suffix} />
               </div>
             ))}
-            <p className="text-[10.5px] leading-relaxed text-kb-ink/40">
+            <p className="text-[11.5px] leading-relaxed text-kb-ink/40">
               처음 보이는 숫자는 입력 예시일 뿐이에요. 사장님 상황에 맞게
               바꿔 주세요. 계산은 이 화면에서만 하고 어디에도 저장하지 않아요.
             </p>
@@ -91,20 +91,20 @@ export default function BreakEven({ loc }: { loc: LocationScore }) {
 
           <div className="flex flex-col justify-center rounded-xl bg-kb-yellow/[.1]
                           px-4 py-5 text-center ring-1 ring-kb-yellow/40">
-            <p className="text-[12px] text-kb-ink/60">하루에</p>
+            <p className="text-[13px] text-kb-ink/60">하루에</p>
             <p className="my-1 text-[40px] font-extrabold leading-none text-kb-ink
                           [font-variant-numeric:tabular-nums]">
               {perDay > 0 ? `${won(perDay)}명` : '—'}
             </p>
-            <p className="text-[12px] text-kb-ink/60">
+            <p className="text-[13px] text-kb-ink/60">
               오시면 본전이에요
               <br />
-              <span className="text-[11px] text-kb-ink/45">
+              <span className="text-[12px] text-kb-ink/45">
                 (한 달 {perMonth > 0 ? won(perMonth) : '—'}명 · 고정비 {won(fixed)}원)
               </span>
             </p>
             <div className="mt-3 border-t border-kb-yellow/30 pt-2.5 text-left">
-              <p className="text-[10.5px] leading-relaxed text-kb-ink/55">
+              <p className="text-[11.5px] leading-relaxed text-kb-ink/55">
                 참고 — 이 동네 {loc.industry !== '업종 미지정' ? loc.industry : '같은 업종'}
                 {loc.same_industry_count != null ? ` ${loc.same_industry_count}곳과 나눠 받게 됩니다` : ''}
                 {loc.living_pop ? `. 사람이 가장 많은 시간은 ${loc.living_pop.peak_hour}시예요` : ''}.

@@ -49,14 +49,14 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
       <button onClick={load}
         className="flex w-full items-center justify-between px-5 py-4 text-left">
         <div>
-          <h3 className="font-display text-[16px] text-kb-ink">
+          <h3 className="font-display text-[17px] text-kb-ink">
             만약 업종을 바꾼다면 <span className="text-kb-amber">What-If</span>
           </h3>
-          <p className="mt-0.5 text-[12px] text-kb-ink/60">
+          <p className="mt-0.5 text-[13px] text-kb-ink/60">
             같은 동네를 40개 업종으로 다시 재 봤어요 — 점수를 바꾸는 변수를 역계산
           </p>
         </div>
-        <span className="text-[13px] text-kb-ink/40">
+        <span className="text-[14px] text-kb-ink/40">
           {busy ? '재는 중…' : open ? '접기 ▲' : '돌려 보기 ▼'}
         </span>
       </button>
@@ -71,7 +71,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
                               py-[5px] text-left transition ${r.current
                     ? 'bg-kb-yellow/[.14] ring-1 ring-kb-yellow/40'
                     : 'hover:bg-white/70'}`}>
-                  <span className="w-[110px] shrink-0 truncate text-[12px]
+                  <span className="w-[110px] shrink-0 truncate text-[13px]
                                    font-medium text-kb-ink/85">
                     {r.industry}{r.current && ' (지금)'}
                   </span>
@@ -80,11 +80,11 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
                       r.current ? 'bg-kb-yellow' : 'bg-kb-amber/50'}`}
                          style={{ width: `${(r.score / max) * 100}%` }} />
                   </div>
-                  <span className="w-[46px] shrink-0 text-right text-[12px] font-bold
+                  <span className="w-[46px] shrink-0 text-right text-[13px] font-bold
                                    text-kb-ink [font-variant-numeric:tabular-nums]">
                     {r.score.toFixed(1)}
                   </span>
-                  <span className={`w-[52px] shrink-0 text-right text-[11px] font-bold
+                  <span className={`w-[52px] shrink-0 text-right text-[12px] font-bold
                                     [font-variant-numeric:tabular-nums] ${
                     r.current ? 'text-kb-ink/35'
                       : r.delta > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
@@ -94,7 +94,7 @@ export default function WhatIf({ loc }: { loc: LocationScore }) {
               </li>
             ))}
           </ul>
-          <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[10.5px]
+          <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[11.5px]
                         leading-relaxed text-amber-800">
             {note}
           </p>

@@ -59,7 +59,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
              className={open ? 'opacity-40' : ''} />
         {!open && history.length > 0 && (
           <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center
-                           rounded-full bg-kb-ink text-[10px] font-bold text-white">
+                           rounded-full bg-kb-ink text-[11px] font-bold text-white">
             {history.length}
           </span>
         )}
@@ -80,8 +80,8 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/kkulbee.svg" alt="" width={22} height={25} />
               <div className="flex-1">
-                <p className="text-[13.5px] font-bold text-kb-ink">꿀비</p>
-                <p className="text-[10.5px] text-kb-ink/50">
+                <p className="text-[14.5px] font-bold text-kb-ink">꿀비</p>
+                <p className="text-[11.5px] text-kb-ink/50">
                   {loading ? '생각하는 중…' : '무엇이든 물어보세요'}
                 </p>
               </div>
@@ -93,7 +93,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
             <div ref={bodyRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3.5">
               {history.length === 0 && (
                 <div className="rounded-2xl rounded-tl-md bg-kb-ink/[.05] px-3.5 py-2.5
-                                text-[13px] leading-relaxed text-kb-ink/85">
+                                text-[14px] leading-relaxed text-kb-ink/85">
                   안녕하세요 사장님! 동네 이야기도, 지원금도, 억울한 일도 —
                   편하게 물어보세요. 예) &ldquo;장사가 안돼서 돈이 급해요&rdquo;
                 </div>
@@ -102,11 +102,11 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
                 <div key={i} className="space-y-2">
                   <div className="flex justify-end">
                     <p className="max-w-[85%] rounded-2xl rounded-br-md bg-kb-yellow/[.25]
-                                  px-3.5 py-2 text-[13px] text-kb-ink">{q}</p>
+                                  px-3.5 py-2 text-[14px] text-kb-ink">{q}</p>
                   </div>
                   <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-kb-ink/[.05]
                                   px-3.5 py-2.5">
-                    <p className="whitespace-pre-line text-[13px] leading-relaxed
+                    <p className="whitespace-pre-line text-[14px] leading-relaxed
                                   text-kb-ink/85">
                       {r.answer.split('\n\n·')[0].slice(0, 400)}
                       {r.answer.length > 400 ? '…' : ''}
@@ -120,7 +120,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
                             ?.querySelectorAll('.space-y-10 > div')[i]
                             ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className="mt-1.5 text-[11.5px] font-semibold text-kb-amber
+                        className="mt-1.5 text-[12.5px] font-semibold text-kb-amber
                                    hover:underline">
                         지도·표로 자세히 보기 →
                       </button>
@@ -142,7 +142,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
                   {last.suggestions.slice(0, 2).map((sq) => (
                     <button key={sq} onClick={() => onAsk(sq)}
                       className="rounded-full border border-kb-yellow/50 px-2.5 py-1
-                                 text-[11.5px] text-kb-amber hover:bg-kb-yellow/[.12]">
+                                 text-[12.5px] text-kb-amber hover:bg-kb-yellow/[.12]">
                       {sq}
                     </button>
                   ))}
@@ -159,11 +159,11 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
                 }}
                 placeholder="꿀비에게 물어보세요"
                 className="min-w-0 flex-1 rounded-xl border border-kb-ink/[.12] px-3
-                           py-2.5 text-[13px] text-kb-ink placeholder:text-kb-ink/35
+                           py-2.5 text-[14px] text-kb-ink placeholder:text-kb-ink/35
                            focus:border-kb-yellow focus:outline-none"
               />
               <button onClick={send} disabled={loading || !text.trim()}
-                className="rounded-xl bg-kb-yellow px-4 text-[13px] font-bold
+                className="rounded-xl bg-kb-yellow px-4 text-[14px] font-bold
                            text-kb-ink disabled:opacity-40">
                 전송
               </button>

@@ -81,26 +81,36 @@ export default function BeeCharacter3D({
 
       // ── 무대 ─────────────────────────────────────────────────────────
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      // 드래그하면 벌이 캔버스 밖으로 나가며 잘렸다 — 보이지 않는 박스.
-      // 가로 1.7배·세로 1.18배로 무대를 넓혀 늘어나도 안 가로막힌다.
-      const W = Math.round(size * 1.7), H = Math.round(size * 1.1);
-      renderer.setSize(W, H);
+      // '보이지 않는 박스'를 아예 없앱니다 — 무대가 화면 전체입니다.
+      // 캔버스를 화면에 고정(fixed)하고 클릭은 통과, 벌은 레이아웃 속
+      // 앵커(host)의 위치를 매 프레임 따라갑니다. 드래그하면 화면
+      // 어디로든 가고, 놓으면 스프링이 제자리로 데려옵니다.
+      let winW = window.innerWidth, winH = window.innerHeight;
+      renderer.setSize(winW, winH);
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
-      host.appendChild(renderer.domElement);
-      renderer.domElement.style.display = 'block';
+      document.body.appendChild(renderer.domElement);
+      Object.assign(renderer.domElement.style, {
+        position: 'fixed', inset: '0', zIndex: '55',
+        pointerEvents: 'none', display: 'block',
+      });
+      const onResize = () => {
+        winW = window.innerWidth; winH = window.innerHeight;
+        renderer.setSize(winW, winH);
+        camera.aspect = winW / winH;
+        camera.updateProjectionMatrix();
+      };
+      window.addEventListener('resize', onResize);
 
       const scene = new THREE.Scene();
-      // 프레이밍 — 더듬이 끝(y≈2.5)부터 발끝(y≈-1.6)까지가 들어와야 합니다.
-      // 처음엔 8.2에 두었더니 화면 높이가 4.70이라 통통 튈 때 더듬이가
-      // 잘려 나갔습니다. 9.4에서 5.39가 되어 여유가 생깁니다.
-      const camera = new THREE.PerspectiveCamera(32, W / H, 0.1, 100);
-      // 시선을 위로 올려 발끝이 캔버스 바닥선에 붙습니다 — 캔버스 아래
-      // 빈 띠가 다음 요소를 덮던 것이 사라집니다.
-      camera.position.set(0, 0.62, 9.8);
-      camera.lookAt(0, 0.55, 0);
+      const camera = new THREE.PerspectiveCamera(32, winW / winH, 0.1, 100);
+      camera.position.set(0, 0, 20);
+      camera.lookAt(0, 0, 0);
+      // 세계 1단위 = 화면 몇 px — 앵커 좌표·크기 환산의 기준
+      const worldH = 2 * Math.tan((32 * Math.PI) / 360) * 20;
+      const wpp = () => worldH / winH;
 
       // ── 빛 ───────────────────────────────────────────────────────────
       //
@@ -153,8 +163,12 @@ export default function BeeCharacter3D({
       });
 
       // ── 몸 ───────────────────────────────────────────────────────────
+      // beeRoot가 앵커 위치·크기(k)를 맡고, bee(자식)는 기존 애니메이션
+      // 좌표계를 그대로 씁니다.
+      const beeRoot = new THREE.Group();
+      scene.add(beeRoot);
       const bee = new THREE.Group();
-      scene.add(bee);
+      beeRoot.add(bee);
 
       // 머리 — 후드. 살짝 눌러 둥글넓적하게 두어야 귀엽습니다.
       const head = new THREE.Group();
@@ -304,7 +318,11 @@ export default function BeeCharacter3D({
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = -2.05;
       floor.receiveShadow = true;
-      scene.add(floor);
+      beeRoot.add(floor);
+      // 그림자 카메라도 로밍 범위를 덮게
+      key.shadow.camera.left = key.shadow.camera.bottom = -16;
+      key.shadow.camera.right = key.shadow.camera.top = 16;
+      key.shadow.camera.updateProjectionMatrix();
 
       // ── 마우스 추적 ──────────────────────────────────────────────────
       let tx = 0, ty = 0, cx = 0, cy = 0;
@@ -342,8 +360,11 @@ export default function BeeCharacter3D({
         ty = Math.max(-1, Math.min(1,
           (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2)));
         if (dragging) {
-          pullX = Math.max(-1.7, Math.min(1.7, (e.clientX - grabX) / 70));
-          pullY = Math.max(-1.4, Math.min(1.4, -(e.clientY - grabY) / 70));
+          // 픽셀 이동량 → 벌 좌표계 1:1. 화면 어디까지든 따라옵니다.
+          const kk = beeRoot.scale.x || 1;
+          const f = wpp() / kk / 0.75;
+          pullX = (e.clientX - grabX) * f;
+          pullY = -(e.clientY - grabY) * f;
         }
       };
       const onDown = (e: PointerEvent) => {
@@ -419,6 +440,15 @@ export default function BeeCharacter3D({
       const tick = () => {
         raf = requestAnimationFrame(tick);
         const t = clock.getElapsedTime();
+
+        // 앵커(레이아웃 속 자리)를 따라갑니다 — 스크롤·리사이즈에도 정확히.
+        const rect = host.getBoundingClientRect();
+        const k = (size * wpp()) / 5.0;
+        beeRoot.scale.setScalar(k);
+        beeRoot.position.set(
+          (rect.left + rect.width / 2 - winW / 2) * wpp(),
+          (winH / 2 - (rect.top + rect.height / 2)) * wpp(),
+          0);
         const m = motionRef.current;
         const happy = m === 'fly_happy';
         const thinking = m === 'thinking';
@@ -515,6 +545,8 @@ export default function BeeCharacter3D({
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onUp);
         window.removeEventListener('pointerdown', onDownGlobal);
+        window.removeEventListener('resize', onResize);
+        renderer.domElement.remove();
         document.body.style.cursor = '';
         // WebGL 자원은 가비지 컬렉터가 안 걷어 갑니다. 화면을 오갈 때마다
         // 텍스처와 버퍼가 GPU에 쌓이면 결국 탭이 죽습니다.
@@ -545,8 +577,7 @@ export default function BeeCharacter3D({
       className={`relative select-none ${className}`}
       // 무대(캔버스)는 가로 1.7배로 넓지만 차지하는 자리는 size 기준 —
       // 음수 마진으로 겹치게 두어 레이아웃을 밀지 않습니다.
-      style={{ width: Math.round(size * 1.7), height: Math.round(size * 1.1),
-               margin: `0 ${-Math.round(size * 0.35)}px` }}
+      style={{ width: size, height: size }}
       aria-label="마스코트 꿀비"
       role="img"
     />

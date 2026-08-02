@@ -24,9 +24,9 @@ export default function SiteFooter() {
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/kkulbee.svg" alt="" width={20} height={23} />
-              <span className="text-[14px] font-bold text-kb-ink">꿀비</span>
+              <span className="text-[15px] font-bold text-kb-ink">꿀비</span>
             </div>
-            <p className="mt-2.5 text-[12px] leading-relaxed text-kb-ink/55">
+            <p className="mt-2.5 text-[13px] leading-relaxed text-kb-ink/55">
               소상공인 사장님의 입지·자금·권리를
               <br />실제 자료로 함께 살피는 AI 동료
             </p>
@@ -34,13 +34,13 @@ export default function SiteFooter() {
               {/* 상단바에서 내려온 것들 — 매일 쓰는 기능이 아니라서 여기가 자리 */}
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('kkulbee:protection'))}
-                className="text-[11.5px] font-semibold text-kb-amber
+                className="text-[12.5px] font-semibold text-kb-amber
                            underline-offset-2 hover:underline">
                 소비자 보호 도구 (쉬운 용어·금소법 검사기)
               </button>
               <a href="https://github.com/BioCode67/kb-kkulbee-smallbiz-multiagent"
                  target="_blank" rel="noreferrer"
-                 className="text-[11.5px] font-semibold text-kb-amber
+                 className="text-[12.5px] font-semibold text-kb-amber
                             underline-offset-2 hover:underline">
                 소스코드 (GitHub) →
               </a>
@@ -48,12 +48,12 @@ export default function SiteFooter() {
           </div>
 
           <div>
-            <p className="text-[10.5px] font-bold uppercase tracking-wider text-kb-ink/45">
+            <p className="text-[11.5px] font-bold uppercase tracking-wider text-kb-ink/45">
               쓰는 자료
             </p>
             <dl className="mt-2 space-y-1">
               {DATA.map(([k, v]) => (
-                <div key={k} className="flex gap-2 text-[11.5px] leading-relaxed">
+                <div key={k} className="flex gap-2 text-[12.5px] leading-relaxed">
                   <dt className="w-14 shrink-0 font-semibold text-kb-ink/60">{k}</dt>
                   <dd className="text-kb-ink/50">{v}</dd>
                 </div>
@@ -62,7 +62,7 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <p className="mt-8 border-t border-kb-ink/[.06] pt-4 text-[10.5px]
+        <p className="mt-8 border-t border-kb-ink/[.06] pt-4 text-[11.5px]
                       leading-relaxed text-kb-ink/40">
           모든 안내는 참고용이며 대출 승인·한도·금리를 보장하지 않습니다.
           매출·폐업률·임대료는 공개 자료에 없어 점수에 넣지 않았고, 생활인구는

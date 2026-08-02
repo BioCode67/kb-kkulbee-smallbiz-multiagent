@@ -183,27 +183,27 @@ export default function KakaoMap({
         {tourStep && (
           <div className="absolute bottom-3 left-1/2 z-[600] w-[88%] max-w-[420px]
                           -translate-x-1/2 rounded-xl bg-kb-ink/85 px-4 py-2.5
-                          text-center text-[12.5px] font-medium text-white
+                          text-center text-[13.5px] font-medium text-white
                           shadow-lg backdrop-blur">
             {tourStep}
           </div>
         )}
         <div className="absolute left-2.5 top-2.5 z-[500] flex gap-1.5">
           <button onClick={runTour} disabled={touring}
-            className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[11.5px] font-bold
+            className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[12.5px] font-bold
                        text-kb-ink shadow transition hover:brightness-105
                        disabled:opacity-60">
             {touring ? '투어 중…' : '▶ 지도 투어'}
           </button>
           <button onClick={() => setSpeakOn((v) => !v)}
-            className={`rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold shadow
+            className={`rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold shadow
                         transition ${speakOn ? 'bg-white text-kb-ink'
                                              : 'bg-white/70 text-kb-ink/50'}`}>
             {speakOn ? '🔊' : '🔇'}
           </button>
         </div>
       </div>
-      <p className="mt-2 text-[10.5px] text-kb-ink/40">
+      <p className="mt-2 text-[11.5px] text-kb-ink/40">
         카카오 지도 · 주황 점은 실제 {industry ?? '동종업종'} 점포
         {shops ? ` ${shops.total.toLocaleString()}곳` : ''} · 점수 칩은 비교 상권
       </p>

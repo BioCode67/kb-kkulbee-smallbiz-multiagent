@@ -100,7 +100,7 @@ export default function ProtectionDrawer({ open, onClose }: {
                   .map(([k, label]) => (
                     <button key={k}
                       onClick={() => setTab(k)}
-                      className={`flex-1 rounded-lg px-3 py-2 text-[12.5px] font-semibold
+                      className={`flex-1 rounded-lg px-3 py-2 text-[13.5px] font-semibold
                                   transition ${tab === k
                         ? 'bg-kb-yellow text-kb-ink'
                         : 'text-kb-ink/65 hover:text-kb-ink'}`}>
@@ -120,32 +120,32 @@ export default function ProtectionDrawer({ open, onClose }: {
                 <ul className="space-y-3">
                   {terms.map((t) => (
                     <li key={t.term} className="surface-1 p-3.5">
-                      <p className="text-[13.5px] font-bold text-kb-ink">{t.term}</p>
-                      <p className="mt-1 text-[12.5px] leading-relaxed text-kb-amber">
+                      <p className="text-[14.5px] font-bold text-kb-ink">{t.term}</p>
+                      <p className="mt-1 text-[13.5px] leading-relaxed text-kb-amber">
                         {t.easy}
                       </p>
                       {t.detail && (
-                        <p className="mt-1 text-[11.5px] leading-relaxed text-kb-ink/60">
+                        <p className="mt-1 text-[12.5px] leading-relaxed text-kb-ink/60">
                           {t.detail}
                         </p>
                       )}
                       {t.caution && (
                         <p className="mt-1.5 rounded-md bg-rose-400/[.08] px-2 py-1.5
-                                      text-[11px] leading-snug text-rose-700">
+                                      text-[12px] leading-snug text-rose-700">
                           ⚠ {t.caution}
                         </p>
                       )}
                     </li>
                   ))}
                   {!terms.length && (
-                    <p className="py-8 text-center text-[12px] text-kb-ink/50">
+                    <p className="py-8 text-center text-[13px] text-kb-ink/50">
                       불러오는 중…
                     </p>
                   )}
                 </ul>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-[12px] leading-relaxed text-kb-ink/60">
+                  <p className="text-[13px] leading-relaxed text-kb-ink/60">
                     아무 문장이나 넣어 보세요. 꿀비의 모든 답변이 통과하는
                     <b className="text-kb-ink/80"> 바로 그 검사</b>를 그대로 돌립니다 —
                     시연용 흉내가 아닙니다.
@@ -154,12 +154,12 @@ export default function ProtectionDrawer({ open, onClose }: {
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     rows={3}
-                    className="w-full rounded-xl bg-kb-ink/[.05] p-3 text-[13px] text-kb-ink
+                    className="w-full rounded-xl bg-kb-ink/[.05] p-3 text-[14px] text-kb-ink
                                ring-1 ring-kb-ink/[.14] placeholder:text-kb-ink/40
                                focus:outline-none focus:ring-kb-yellow/40"
                   />
                   <button onClick={check} disabled={busy}
-                          className="w-full rounded-xl bg-kb-yellow py-2.5 text-[13px]
+                          className="w-full rounded-xl bg-kb-yellow py-2.5 text-[14px]
                                      font-bold text-kb-ink transition hover:brightness-105
                                      disabled:opacity-40">
                     {busy ? '검사 중…' : '금소법 검사 돌리기'}
@@ -167,7 +167,7 @@ export default function ProtectionDrawer({ open, onClose }: {
 
                   {result && (
                     <div className="space-y-2.5">
-                      <p className={`rounded-lg px-3 py-2 text-[12px] font-semibold ${
+                      <p className={`rounded-lg px-3 py-2 text-[13px] font-semibold ${
                         result.report.passed
                           ? 'bg-emerald-400/[.12] text-emerald-700'
                           : 'bg-rose-400/[.12] text-rose-700'}`}>
@@ -179,15 +179,15 @@ export default function ProtectionDrawer({ open, onClose }: {
                         <>
                           <ul className="space-y-1">
                             {result.report.violations.map((v, i) => (
-                              <li key={i} className="text-[11.5px] text-rose-700">
+                              <li key={i} className="text-[12.5px] text-rose-700">
                                 · {v}
                               </li>
                             ))}
                           </ul>
                           <div className="surface-1 p-3">
-                            <p className="text-[10.5px] font-bold uppercase tracking-wider
+                            <p className="text-[11.5px] font-bold uppercase tracking-wider
                                           text-kb-ink/50">빨간 펜 교정 — 지운 말과 바꾼 말</p>
-                            <p className="mt-1.5 text-[12.5px] leading-[1.9] text-kb-ink/90">
+                            <p className="mt-1.5 text-[13.5px] leading-[1.9] text-kb-ink/90">
                               {wordDiff(result.original ?? text,
                                         result.safe.split('\n')[0]).map((t, i) => (
                                 t.k === 'del' ? (
@@ -223,7 +223,7 @@ export default function ProtectionDrawer({ open, onClose }: {
               )}
             </div>
 
-            <footer className="border-t border-kb-ink/[.1] p-3 text-center text-[10.5px]
+            <footer className="border-t border-kb-ink/[.1] p-3 text-center text-[11.5px]
                                text-kb-ink/45">
               금융소비자보호법 §19(설명의무) · §20(불공정영업 금지) · §21(부당권유 금지)
             </footer>
