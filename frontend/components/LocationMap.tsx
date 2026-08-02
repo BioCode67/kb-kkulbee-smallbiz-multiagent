@@ -59,6 +59,11 @@ export default function LocationMap({
   // 점 ↔ 열지도. 점은 "한 곳 한 곳이 어디"를, 열지도는 "어디가 뜨거운가"를
   // 보여 줍니다. 점포가 수백 개면 점만으로는 밀집의 정도가 안 읽힙니다.
   const [heat, setHeat] = useState(false);
+  // 시네마틱 투어 — 지도를 보면서 설명을 '듣는' 경험.
+  // 카메라가 단계별로 움직이고, 각 단계의 캡션을 꿀비가 읽어 줍니다.
+  const [tourStep, setTourStep] = useState<string | null>(null);
+  const [touring, setTouring] = useState(false);
+  const [speakOn, setSpeakOn] = useState(true);
   const heatRef = useRef<HeatLayer | null>(null);
   const pointsRef = useRef<[number, number][]>([]);
   const LRef = useRef<LWithHeat | null>(null);
@@ -80,8 +85,10 @@ export default function LocationMap({
 
       const target = pins.find((p) => p.is_target) ?? pins[0];
       const map = L.map(boxRef.current, {
-        center: [target.latitude, target.longitude],
-        zoom: 14,
+        // 전국 뷰에서 시작해 그 동네로 '날아 들어갑니다'. 어디쯤인지가
+        // 몸으로 먼저 이해되고, 화면이 살아 있다는 첫인상을 만듭니다.
+        center: [36.4, 127.8],
+        zoom: 7,
         zoomControl: true,
         attributionControl: false,
         scrollWheelZoom: false,
@@ -145,14 +152,9 @@ export default function LocationMap({
         if (p.is_target) marker.openTooltip();
       });
 
-      // 점포가 있으면 그 범위에 맞춥니다. 조회한 동네를 꽉 채워 보여 주는
-      // 편이, 옆 동네까지 다 들어오게 축소하는 것보다 쓸모 있습니다.
-      if (fitted.length > 2) {
-        map.fitBounds(fitted, { padding: [26, 26], maxZoom: 16 });
-      } else if (pins.length > 1) {
-        map.fitBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number]),
-                      { padding: [36, 36] });
-      }
+      // 도착 비행 — 전국 → 이 동네. 이후 투어가 이어받습니다.
+      map.flyTo([target.latitude, target.longitude], 15,
+                { duration: 2.2, easeLinearity: 0.2 });
     })();
 
     return () => {
@@ -162,6 +164,54 @@ export default function LocationMap({
       mapRef.current = null;
     };
   }, [pins, dongCode, industryCode]);
+
+  // ── 시네마틱 투어 ────────────────────────────────────────────────
+  const speak = (t: string) => {
+    if (!speakOn || typeof speechSynthesis === 'undefined') return;
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'ko-KR'; u.rate = 1.05;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  };
+
+  const runTour = async () => {
+    type FlyMap = { flyTo: (c: [number, number], z: number, o?: object) => void;
+                    flyToBounds: (b: [number, number][], o?: object) => void };
+    const map = mapObjRef.current as FlyMap | null;
+    const target = pins.find((p) => p.is_target) ?? pins[0];
+    if (!map || !target || touring) return;
+    setTouring(true);
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const step = (label: string) => { setTourStep(label); speak(label); };
+
+    try {
+      step(`${target.name}입니다`);
+      map.flyTo([target.latitude, target.longitude], 15, { duration: 1.6 });
+      await wait(2600);
+
+      if (shops && shops.total > 0) {
+        step(`주황 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
+        map.flyTo([target.latitude, target.longitude], 16, { duration: 1.2 });
+        await wait(3000);
+
+        step('열지도로 보면 경쟁이 몰린 골목이 드러납니다');
+        setHeat(true);
+        await wait(3200);
+        setHeat(false);
+      }
+
+      if (pins.length > 1) {
+        step('옆 동네와 나란히 놓고 봐야 이 점수의 높낮이가 읽힙니다');
+        map.flyToBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number]),
+                        { padding: [40, 40], duration: 1.6 });
+        await wait(3400);
+      }
+
+      step('구석구석은 마우스로 직접 움직여 보세요');
+      await wait(2200);
+    } finally {
+      setTourStep(null); setTouring(false);
+    }
+  };
 
   // 열지도 켜고 끄기 — 지도를 다시 만들지 않고 층만 얹고 뗍니다.
   useEffect(() => {
@@ -185,8 +235,32 @@ export default function LocationMap({
       <div className="relative">
         <div
           ref={boxRef}
-          className="h-[320px] w-full overflow-hidden rounded-xl ring-1 ring-kb-ink/[.1]"
+          className="h-[380px] w-full overflow-hidden rounded-xl ring-1 ring-kb-ink/[.1]"
         />
+        {/* 투어 캡션 — 지도 아래쪽 자막 */}
+        {tourStep && (
+          <div className="absolute bottom-3 left-1/2 z-[600] w-[88%] max-w-[420px]
+                          -translate-x-1/2 rounded-xl bg-kb-ink/85 px-4 py-2.5
+                          text-center text-[12.5px] font-medium text-white
+                          shadow-lg backdrop-blur">
+            {tourStep}
+          </div>
+        )}
+        <div className="absolute left-2.5 top-2.5 z-[500] flex gap-1.5">
+          <button onClick={runTour} disabled={touring}
+            className="rounded-lg bg-kb-yellow px-3 py-1.5 text-[11.5px] font-bold
+                       text-kb-ink shadow transition hover:brightness-105
+                       disabled:opacity-60">
+            {touring ? '투어 중…' : '▶ 지도 투어'}
+          </button>
+          <button onClick={() => setSpeakOn((v) => !v)}
+            title="설명을 소리로"
+            className={`rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold shadow
+                        transition ${speakOn
+              ? 'bg-white text-kb-ink' : 'bg-white/70 text-kb-ink/50'}`}>
+            {speakOn ? '🔊' : '🔇'}
+          </button>
+        </div>
         {shops && shops.total > 0 && (
           <div className="absolute right-2.5 top-2.5 z-[500] flex overflow-hidden
                           rounded-lg ring-1 ring-kb-ink/[.14]">

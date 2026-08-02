@@ -66,7 +66,7 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
           <span aria-hidden className={`absolute inset-x-0 top-0 h-[3px]
                                         ${BAR[c.accent] ?? BAR.neutral}`} />
           <header className="mb-4">
-            <h3 className="text-[15px] font-bold tracking-tight text-kb-ink">{c.title}</h3>
+            <h3 className="font-display text-[16px] font-bold text-kb-ink">{c.title}</h3>
             {c.subtitle && (
               <p className="mt-0.5 text-[12px] leading-relaxed text-kb-ink/60">
                 {c.subtitle}

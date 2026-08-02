@@ -318,7 +318,16 @@ export default function Page() {
                       return (
                         <button
                           key={m.key}
-                          onClick={() => setMode(i)}
+                          onClick={() => {
+                            setMode(i);
+                            // 클릭했는데 화면이 그대로면 고장으로 읽힙니다.
+                            // 입력창으로 데려가 포커스까지 줘야 "골랐다"가
+                            // 몸으로 확인됩니다 — 특히 모바일에서.
+                            document.querySelector<HTMLInputElement>('#ask input')
+                              ?.focus({ preventScroll: false });
+                            document.getElementById('ask')
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }}
                           aria-pressed={on}
                           className={`group flex flex-col items-center gap-1 rounded-xl
                                       px-2 pb-2.5 pt-3 transition-all duration-200 ${
@@ -531,9 +540,14 @@ function summarize(d: ChatResponse): string {
 function useSpeechInput(onText: (t: string) => void) {
   const recRef = useRef<{ start: () => void; stop: () => void } | null>(null);
   const [listening, setListening] = useState(false);
-  const supported = typeof window !== 'undefined' &&
-    !!((window as unknown as Record<string, unknown>).webkitSpeechRecognition ||
-       (window as unknown as Record<string, unknown>).SpeechRecognition);
+  // 서버 렌더에서는 window가 없어 false, 브라우저에서는 true — 이 차이가
+  // React #418(hydration mismatch)을 만들었습니다. 마운트 뒤에만 판정합니다.
+  const [supported, setSupported] = useState(false);
+  useEffect(() => {
+    setSupported(!!((window as unknown as Record<string, unknown>)
+      .webkitSpeechRecognition ||
+      (window as unknown as Record<string, unknown>).SpeechRecognition));
+  }, []);
 
   const toggle = () => {
     if (!supported) return;

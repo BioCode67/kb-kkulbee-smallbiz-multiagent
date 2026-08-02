@@ -14,6 +14,19 @@
  * 보여 주는 것보다 낫습니다.
  */
 @font-face {
+  font-family: 'Gowun Batang';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/gowunbatang-r.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Gowun Batang';
+  font-weight: 700;
+  font-display: swap;
+  src: url('/gowunbatang-b.woff2') format('woff2');
+}
+
+@font-face {
   font-family: 'Pretendard Variable';
   font-weight: 45 920;
   font-style: normal;
@@ -73,11 +86,11 @@
     @apply overflow-hidden rounded-2xl border border-kb-ink/[.12]
            bg-white shadow-[0_40px_100px_-36px_rgba(56,50,42,.35)];
   }
-  /* 참고 사이트(Lovable)의 세리프 헤드라인 감성 — 한국어는 명조 계열로 */
+  /* 헤드라인 세리프 — 고운바탕(OFL). 시스템 바탕체는 기기마다 제각각이라
+     직접 담았습니다. 쓰는 글자만 남겨 R 220KB대 · B 220KB대입니다. */
   .font-display {
-    font-family: 'Nanum Myeongjo', 'Noto Serif KR', Batang,
-                 'DM Serif Display', Georgia, serif;
-    letter-spacing: -0.01em;
+    font-family: 'Gowun Batang', 'Nanum Myeongjo', Batang, Georgia, serif;
+    letter-spacing: -0.015em;
   }
 
   ::selection { @apply bg-kb-yellow/30; }
