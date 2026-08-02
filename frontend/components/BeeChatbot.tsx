@@ -50,7 +50,7 @@ export default function BeeChatbot({ history, loading, onAsk, hidden }: Props) {
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
         onClick={() => setOpen((v) => !v)}
         aria-label="꿀비와 대화하기"
-        className="fixed bottom-5 right-5 z-[70] grid h-16 w-16 place-items-center
+        className="print:hidden fixed bottom-5 right-5 z-[70] grid h-16 w-16 place-items-center
                    rounded-full bg-kb-yellow shadow-[0_10px_30px_-8px_rgba(255,188,0,.6)]
                    ring-4 ring-white"
       >

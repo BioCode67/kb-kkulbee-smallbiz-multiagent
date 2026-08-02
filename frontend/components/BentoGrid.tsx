@@ -60,7 +60,7 @@ export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
           transition={{ delay: i * 0.06, duration: 0.42, ease: [0.22, 0.9, 0.3, 1] }}
           className={`${SPAN[c.span]} relative overflow-hidden rounded-2xl p-5
                       shadow-glass ring-1 backdrop-blur-xl
-                      ${ACCENT[c.accent] ?? ACCENT.neutral}`}
+                      ${c.kind === 'map' ? 'print:hidden ' : ''}${ACCENT[c.accent] ?? ACCENT.neutral}`}
         >
           {/* 카드 머리의 가는 색띠. 카드가 여럿일 때 종류를 색으로 먼저
               구분하게 해 줍니다 — 제목을 읽기 전에 눈이 갈래를 잡습니다. */}

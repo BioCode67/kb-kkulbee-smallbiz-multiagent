@@ -43,7 +43,7 @@ export default function TopBar() {
   const docs = src?.policy?.docs;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-kb-ink/[.1]
+    <header className="print:hidden sticky top-0 z-40 border-b border-kb-ink/[.1]
                        bg-kb-cream/90 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1200px] items-center px-5 lg:px-8">
         <a href="/" className="flex items-center gap-2.5">

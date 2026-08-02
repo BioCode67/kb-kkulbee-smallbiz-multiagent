@@ -199,3 +199,20 @@
   0%, 60%, 100% { opacity: 0; transform: translateY(7px); }
   20%, 45% { opacity: 1; transform: translateY(0); }
 }
+
+/* ── 인쇄 — 상담을 종이로 들고 가는 사장님을 위해 ─────────────────────────
+   화면 장식(입력창·꿀비·칩)은 print:hidden으로 빠지고, 여기서는 종이에서
+   깨지기 쉬운 것들을 잡습니다: 카드가 페이지 사이에서 반으로 잘리는 것,
+   배경색이 빠져 배지 글자만 남는 것. */
+@media print {
+  .surface-1, .surface-2 {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* 지도·3D는 종이에서 의미가 없고 잉크만 씁니다 */
+  .leaflet-container, canvas { display: none !important; }
+}

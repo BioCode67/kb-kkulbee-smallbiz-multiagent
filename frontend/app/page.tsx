@@ -438,7 +438,7 @@ export default function Page() {
         {/* ── ② 결과 — 꿀비가 옆으로 물러나 동행합니다 ── */}
         {!hero && (
           <div className="grid gap-6 pt-6 lg:grid-cols-[272px_minmax(0,1fr)]">
-            <aside className="lg:sticky lg:top-[4.5rem] lg:self-start">
+            <aside className="print:hidden lg:sticky lg:top-[4.5rem] lg:self-start">
               <div className="surface-2 flex flex-col items-center px-4 pb-5 pt-4">
                 <motion.div layoutId="bee" transition={SPRING}>
                   <BeeStage motion={mood} size={132} speech={speech} />
@@ -456,10 +456,21 @@ export default function Page() {
             </aside>
 
             <section className="min-w-0">
-              <motion.div layoutId="askbox" transition={SPRING}>
+              <motion.div layoutId="askbox" transition={SPRING} className="print:hidden">
                 <AskBox value={input} onChange={setInput}
                         onSubmit={() => { ask(input); setInput(''); }} loading={loading} />
               </motion.div>
+
+              {/* 인쇄에만 나오는 머리말 — 은행·지원센터 창구에 들고 갈 수
+                  있는 문서가 되도록 출처와 날짜를 박습니다. */}
+              <div className="hidden print:block border-b border-kb-ink/20 pb-3">
+                <p className="text-[16px] font-bold text-kb-ink">🐝 꿀비 상담 리포트</p>
+                <p className="mt-1 text-[10px] text-kb-ink/60">
+                  kb-kkulbee-smallbiz-multiagent.onrender.com ·
+                  인쇄일 {new Date().toLocaleDateString('ko-KR')} ·
+                  참고용 정보이며 대출 승인·한도·금리를 보장하지 않습니다
+                </p>
+              </div>
 
               <AnimatePresence>
                 {error && (
@@ -503,7 +514,7 @@ export default function Page() {
                     {/* 다음 걸음 — 마지막 답에만 답니다. 지나간 답의 칩은
                         지금 맥락과 어긋날 수 있습니다. */}
                     {i === history.length - 1 && !loading && r.suggestions.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <div className="print:hidden flex flex-wrap items-center gap-2 pt-1">
                         <span className="text-[11.5px] text-kb-ink/50">이어서 물어보기</span>
                         {r.suggestions.map((sq) => (
                           <button
@@ -730,7 +741,18 @@ function Answer({ res }: { res: ChatResponse }) {
     <div className="surface-2 relative p-5 sm:p-6">
       {/* 이 화면을 그대로 여는 링크. 질문이 주소에 실려 있어 받은 사람도
           같은 답을 봅니다. */}
-      <div className="absolute right-4 top-4 flex gap-1.5">
+      <div className="print:hidden absolute right-4 top-4 flex gap-1.5">
+        {/* 종이로 들고 가는 상담 — 은행·지원센터 창구에서는 화면보다
+            출력물이 통합니다. 브라우저 인쇄로 PDF 저장도 됩니다. */}
+        <button
+          onClick={() => window.print()}
+          title="이 상담을 인쇄하거나 PDF로 저장합니다"
+          className="rounded-lg bg-kb-ink/[.05] px-2.5 py-1.5 text-[11px]
+                     text-kb-ink/65 ring-1 ring-kb-ink/[.1] transition
+                     hover:bg-kb-ink/[.08] hover:text-kb-ink"
+        >
+          📄 저장
+        </button>
         {/* 꿀비가 읽어줍니다 — 브라우저 내장 합성음. 화면을 오래 못 보는
             상황(운전·조리 중)에서도 답을 들을 수 있습니다. */}
         <button
