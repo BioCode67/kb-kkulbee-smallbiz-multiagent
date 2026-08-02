@@ -189,10 +189,8 @@ def analyze(region: str, industry: str | None = None) -> LocationScore | None:
                  for o in market_data.saturated(d["code"], 4)],
         peer_median=50.0,
         data_source="public_api",
-        note=("공공데이터포털 「소상공인시장진흥공단_상가(상권)정보」 2026-03-31 "
-              f"실측입니다. 전국 점포 272만 개·행정동 3,450곳 기준 백분위로 "
-              f"계산했습니다. 유동인구·매출·폐업률은 이 자료에 없어 "
-              f"점수에 넣지 않았습니다."),
+        note=("실제 전국 가게 272만 곳 자료(공공데이터포털 상가정보, 2026-03)로 "
+              "계산했어요. 매출·폐업률은 공개 자료가 없어 점수에 넣지 않았습니다."),
     )
 
 

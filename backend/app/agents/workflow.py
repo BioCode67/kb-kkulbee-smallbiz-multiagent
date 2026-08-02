@@ -341,17 +341,17 @@ def _cards(state: GraphState) -> list[BentoCard]:
             accent="yellow" if loc.total_score >= 65 else "neutral",
             payload=loc.model_dump(mode="json")))
         cards.append(BentoCard(
-            id="factors", kind=BentoCardKind.FACTORS, title="점수를 만든 요인",
-            subtitle="기준 50점에서 각 요인이 올리고 내린 몫", span=4,
+            id="factors", kind=BentoCardKind.FACTORS, title="점수가 이렇게 나온 이유",
+            subtitle="50점에서 무엇이 올리고 내렸는지", span=4,
             accent="brown",
             payload={"base": loc.base_score,
                      "factors": [f.model_dump(mode="json") for f in loc.factors]}))
     if loc and (loc.gaps or loc.crowded):
         cards.append(BentoCard(
-            id="gaps", kind=BentoCardKind.GAPS, title="이 동네에 덜 나온 업종",
+            id="gaps", kind=BentoCardKind.GAPS, title="이 동네에 아직 부족한 가게",
             # 폭을 3으로 두었더니 카드 안을 다시 둘로 나누면서 한 칸이
             # 200px밖에 안 됐습니다. 이름·막대·숫자가 겹쳐 막대가 사라졌습니다.
-            subtitle="비슷한 규모 동네와 견줘 본 것입니다", span=6, accent="green",
+            subtitle="비슷한 크기의 다른 동네와 비교했어요", span=6, accent="green",
             payload={"gaps": [g.model_dump(mode="json") for g in loc.gaps],
                      "crowded": [g.model_dump(mode="json") for g in loc.crowded],
                      "region": loc.region_name}))
@@ -360,15 +360,15 @@ def _cards(state: GraphState) -> list[BentoCard]:
         if sim:
             cards.append(BentoCard(
                 id="similar", kind=BentoCardKind.SIMILAR,
-                title="이 상권과 닮은 동네",
-                subtitle="업종 구성 247차원의 코사인 유사도 — 2호점·확장 후보를 찾는 자입니다",
+                title="분위기가 닮은 동네",
+                subtitle="가게 구성이 비슷한 동네 — 2호점 자리를 찾을 때 보세요",
                 span=3, accent="neutral",
                 payload={"items": sim, "industry": loc.industry,
                          "base": loc.region_name}))
     if state.get("pins"):
         cards.append(BentoCard(
-            id="map", kind=BentoCardKind.MAP, title="주변 상권 비교",
-            subtitle="점수 하나만으로는 높은지 알 수 없습니다", span=3,
+            id="map", kind=BentoCardKind.MAP, title="지도로 보기",
+            subtitle="주황 점이 실제 경쟁 가게예요", span=3,
             payload={"pins": [p.model_dump(mode="json") for p in state["pins"]],
                      # 지도가 실제 점포를 불러올 수 있게 좌표 키를 함께 보냅니다.
                      "dong_code": getattr(loc, "dong_code", None),
@@ -382,8 +382,8 @@ def _cards(state: GraphState) -> list[BentoCard]:
             accent="yellow", payload=state["bank_rates"]))
     if state.get("policies"):
         cards.append(BentoCard(
-            id="policy", kind=BentoCardKind.POLICY, title="맞는 지원사업",
-            subtitle="추천 이유를 함께 적었습니다", span=3, accent="green",
+            id="policy", kind=BentoCardKind.POLICY, title="사장님께 맞는 지원사업",
+            subtitle="왜 골랐는지 이유를 함께 적었어요", span=3, accent="green",
             payload={"items": [p.model_dump(mode="json") for p in state["policies"]]}))
     pack = state.get("protection")
     if pack:

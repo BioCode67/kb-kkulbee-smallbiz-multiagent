@@ -20,6 +20,9 @@ import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import BentoGrid from '@/components/BentoGrid';
 import BeeStage from '@/components/BeeStage';
 import TopBar from '@/components/TopBar';
+import MyShop, { type ShopProfile } from '@/components/MyShop';
+import BreakEven from '@/components/BreakEven';
+import BeeChatbot from '@/components/BeeChatbot';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -115,8 +118,8 @@ function ModeIcon({ name, on }: { name: string; on: boolean }) {
 }
 
 const AGENT_LABEL: Record<string, string> = {
-  router: '길잡이', location: '상권 분석', policy: '자금 매칭',
-  protection: '소비자 보호', guardrail: '금소법 검사',
+  router: '질문 알아듣기', location: '동네 분석', policy: '지원금 찾기',
+  protection: '권리 확인', guardrail: '표현 안전 검사(금소법)',
 };
 
 const GREETING = '안녕하세요 사장님! 무엇이 궁금하세요?';
@@ -133,6 +136,8 @@ export default function Page() {
   const [mood, setMood] = useState<CharacterMotion>('fly_happy');
   const [speech, setSpeech] = useState(GREETING);
   const [mode, setMode] = useState(0);
+  // 내 가게 — 등록해 두면 모든 질문에 동네·업종이 자동으로 붙습니다.
+  const [shop, setShop] = useState<ShopProfile | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const hero = !res && !loading;
@@ -165,7 +170,11 @@ export default function Page() {
       const r = await fetch('/api/v1/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: q, session_id: res?.session_id ?? null }),
+        body: JSON.stringify({
+          message: q, session_id: res?.session_id ?? null,
+          // 내 가게가 등록돼 있으면 매 질문에 자동으로 붙습니다.
+          region: shop?.region || null, industry: shop?.industry || null,
+        }),
       });
       if (!r.ok) throw new Error(`서버가 ${r.status}로 응답했습니다`);
       const data: ChatResponse = await r.json();
@@ -191,7 +200,7 @@ export default function Page() {
       clearTimeout(slowTimer);
       setLoading(false);
     }
-  }, [loading, res?.session_id]);
+  }, [loading, res?.session_id, shop]);
 
   // 카드 안(닮은 동네 행 등)에서 흘려보낸 질문을 받습니다.
   useEffect(() => {
@@ -238,6 +247,12 @@ export default function Page() {
                 <span className="h-1.5 w-1.5 rounded-full bg-kb-yellow" />
                 전국 점포 272만 개 실측으로 답하는 소상공인 AI
               </motion.span>
+
+              {/* 내 가게 — 한 번 등록하면 모든 질문에 동네·업종이 자동으로.
+                  상담소에 갈 때마다 이름부터 다시 댈 이유가 없습니다. */}
+              <div className="mt-3">
+                <MyShop onChange={setShop} />
+              </div>
 
               <motion.h1
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -481,6 +496,9 @@ export default function Page() {
                     </div>
                     <Answer res={r} />
                     <BentoGrid cards={r.cards} />
+                    {/* 상권 답변엔 손익분기 계산기가 따라옵니다 — "그래서
+                        하루 몇 명이면 버티나"가 사장님의 진짜 질문이라서. */}
+                    {r.location && <BreakEven loc={r.location} />}
 
                     {/* 다음 걸음 — 마지막 답에만 답니다. 지나간 답의 칩은
                         지금 맥락과 어긋날 수 있습니다. */}
@@ -508,6 +526,8 @@ export default function Page() {
             </section>
           </div>
         )}
+        {/* 어디서든 대화 — 우하단 꿀비. 히어로에선 큰 꿀비가 있으니 숨깁니다. */}
+        <BeeChatbot history={history} loading={loading} onAsk={ask} hidden={hero} />
       </main>
     </LayoutGroup>
   );
@@ -741,7 +761,7 @@ function Answer({ res }: { res: ChatResponse }) {
       {(understood?.region || understood?.industry) && (
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 border-b
                         border-kb-ink/[.1] pb-3">
-          <span className="text-[10.5px] text-kb-ink/45">이렇게 알아들었어요</span>
+          <span className="text-[10.5px] text-kb-ink/45">이렇게 이해했어요</span>
           {understood.region && (
             <span className="rounded-md bg-kb-ink/[.05] px-2 py-0.5 text-[11.5px]
                              font-medium text-kb-ink/80">📍 {understood.region}</span>
@@ -787,7 +807,7 @@ function AgentTrace({ res }: { res: ChatResponse }) {
   return (
     <div className="surface-1 mt-4 p-4">
       <p className="text-[10.5px] font-semibold uppercase tracking-wider text-kb-ink/60">
-        거쳐 간 에이전트
+        꿀비가 한 일
       </p>
 
       <ol className="relative mt-3 space-y-0">

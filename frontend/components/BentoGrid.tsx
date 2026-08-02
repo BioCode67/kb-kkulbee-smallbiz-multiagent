@@ -165,7 +165,7 @@ function ScoreCard({ s }: { s: LocationScore }) {
 
         {s.peer_median != null && (
           <p className="mt-1.5 text-center text-[11.5px] leading-snug text-kb-ink/60">
-            전국 행정동 3,450곳의 한가운데가 {s.peer_median}점
+            전국 3,450개 동네 중 딱 중간이 {s.peer_median}점
             <span className={s.total_score >= s.peer_median
               ? ' text-emerald-700' : ' text-amber-800'}>
               {' · '}{s.total_score >= s.peer_median ? '중간 이상' : '중간 이하'}
@@ -179,7 +179,7 @@ function ScoreCard({ s }: { s: LocationScore }) {
       {s.living_pop && (
         <div className="mt-4 rounded-xl bg-kb-ink/[.04] px-3.5 py-3">
           <div className="flex items-baseline justify-between">
-            <span className="text-[12px] text-kb-ink/65">생활인구 (실측)</span>
+            <span className="text-[12px] text-kb-ink/65">이 동네에 실제로 있는 사람</span>
             <span className="text-[15px] font-bold text-kb-ink
                              [font-variant-numeric:tabular-nums]">
               일평균 {s.living_pop.avg.toLocaleString()}명
@@ -410,9 +410,9 @@ function GapsCard({ gaps, crowded, region }: {
       </div>
 
       <p className="text-[11px] leading-relaxed text-kb-ink/50 md:col-span-2">
-        점포 수가 비슷한 전국 동네들과 견준 값입니다. 적다고 해서 반드시 기회는
-        아닙니다 — 임대료나 상권 성격 때문에 안 들어온 것일 수도 있습니다.
-        무엇을 알아볼지 정하는 출발점으로 보시면 됩니다.
+        규모가 비슷한 전국 동네들과 비교한 것입니다. 적다고 무조건 기회는
+        아니에요 — 임대료나 동네 특성 때문일 수도 있으니, 무엇을 알아볼지
+        정하는 출발점으로 봐 주세요.
       </p>
     </div>
   );
@@ -450,7 +450,7 @@ function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: str
                 <span className="block truncate text-[13px] font-medium text-kb-ink/90
                                  group-hover:text-kb-ink">{d.name}</span>
                 <span className="block truncate text-[10.5px] text-kb-ink/50">
-                  공통 결: {d.shared.slice(0, 3).join(' · ')}
+                  둘 다 많은: {d.shared.slice(0, 3).join(' · ')}
                 </span>
               </span>
               <span className="w-[74px] shrink-0">
@@ -470,8 +470,8 @@ function SimilarCard({ items, industry }: { items: SimilarDong[]; industry?: str
         ))}
       </ul>
       <p className="mt-2.5 text-[10.5px] leading-relaxed text-kb-ink/50">
-        업종 구성(247종 비중)의 코사인 유사도입니다. 붙어 있는 동네가 아니라
-        성격이 닮은 동네를 찾습니다 — 2호점·확장을 알아볼 때 출발점이 됩니다.
+        가게 구성이 비슷한 동네끼리 묶은 것입니다. 옆 동네가 아니라 '분위기가
+        닮은' 동네가 나와요 — 2호점 자리를 알아볼 때 출발점이 됩니다.
       </p>
     </div>
   );
