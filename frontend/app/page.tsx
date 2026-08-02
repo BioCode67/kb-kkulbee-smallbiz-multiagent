@@ -394,8 +394,8 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              <div className="grid w-full max-w-[1560px] grid-cols-1 items-center gap-10
-                              lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="grid w-full max-w-[1560px] grid-cols-1 items-center gap-6
+                              lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="flex min-w-0 max-w-full flex-col items-center
                                 text-center lg:items-start lg:text-left">
                   <motion.span
@@ -411,8 +411,8 @@ export default function Page() {
                   <motion.h1
                     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.08 }}
-                    className="font-display mt-5 text-[36px] font-bold
-                               leading-[1.08] text-kb-ink sm:text-[70px]"
+                    className="font-display mt-5 text-[38px] font-bold
+                               leading-[1.06] text-kb-ink sm:text-[84px]"
                   >
                     사장님의
                     <br />

@@ -44,7 +44,8 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       if (!h || !b) return;
       const r = h.getBoundingClientRect();
       b.style.left = `${r.left + r.width / 2}px`;
-      b.style.top = `${r.top - 6}px`;
+      // 상단바(56px) 아래로 클램프 — 말풍선이 헤더에 물리지 않게
+      b.style.top = `${Math.max(120, r.top - 6)}px`;
     };
     tick();
     return () => cancelAnimationFrame(raf);
