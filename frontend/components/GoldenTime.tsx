@@ -9,7 +9,7 @@
  * 법에 기간이 명시된 것만 — 기산점 주의 문구를 항상 함께 냅니다.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Item {
   name: string; due: string; days_left: number;
@@ -54,6 +54,11 @@ export default function GoldenTime() {
   const [kind, setKind] = useState<'loan' | 'lease'>('loan');
   const [base, setBase] = useState('');
   const [known, setKnown] = useState('');
+  // 기본값은 오늘 — 빈 달력부터 채우게 하지 않습니다. "오늘 계약서를
+  // 받았다면"이 가장 흔한 질문이고, 바꾸는 건 클릭 한 번입니다.
+  useEffect(() => {
+    setBase(new Date().toISOString().slice(0, 10));
+  }, []);
   const [r, setR] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const K = KINDS.find((k) => k.key === kind)!;
