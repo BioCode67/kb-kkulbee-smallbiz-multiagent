@@ -43,6 +43,16 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       const h = hostRef.current, b = bubbleRef.current;
       if (!h || !b) return;
       const r = h.getBoundingClientRect();
+      // 무대가 화면에 없으면 말풍선도 숨깁니다 — 두 경우입니다:
+      // ①모바일 모드 페이지처럼 host가 hidden ②스크롤로 무대가 뷰포트
+      // 밖(모바일 결과 화면 — 클램프 때문에 말풍선만 상단에 남아
+      // 본문·지도를 가리며 따라다녔음).
+      const out = r.bottom < 56 || r.top > window.innerHeight;
+      if (r.width < 8 || h.offsetParent === null || out) {
+        b.style.display = 'none';
+        return;
+      }
+      b.style.display = '';
       b.style.left = `${r.left + r.width / 2}px`;
       // 위 모서리 기준 — 말풍선 '전체'가 헤더(56px) 아래 있도록 높이를
       // 반영해 클램프합니다 (바닥 기준 클램프는 윗부분이 파고들었음)
