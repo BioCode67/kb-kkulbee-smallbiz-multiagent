@@ -486,11 +486,11 @@ export default function Page() {
               {/* 2단 히어로 — 왼쪽은 말, 오른쪽은 꿀비. 세로로 쌓았을 때는
                   벌이 글에 밀려 작아 보였습니다. 나란히 서면 '캐릭터가
                   화면의 주인'이라는 인상이 생깁니다. 모바일에선 다시 세로. */}
-              {/* 판을 1360으로 좁힙니다 — 1560일 때 글은 왼쪽 끝, 꿀비는
-                  오른쪽 끝에 붙어 가운데가 통째로 비었습니다(사용자 신고).
-                  컨테이너가 좁아지면 양쪽이 중앙으로 모입니다. */}
-              <div className="grid w-full max-w-[1360px] grid-cols-1 items-center gap-6
-                              lg:grid-cols-[1.15fr_0.85fr]">
+              {/* 판을 1200까지 좁히고 글 기둥에 왼쪽 여백 — 1560일 때 글은
+                  왼쪽 끝, 꿀비는 오른쪽 끝에 붙어 가운데가 통째로 비었습니다
+                  (사용자 신고 2회). 글이 중앙 가까이 서야 시선이 모입니다. */}
+              <div className="grid w-full max-w-[1200px] grid-cols-1 items-center gap-6
+                              lg:grid-cols-[1.1fr_0.9fr] lg:pl-10 xl:pl-16">
                 <div className="flex min-w-0 max-w-full flex-col items-center
                                 text-center lg:items-start lg:text-left">
                   <motion.span
