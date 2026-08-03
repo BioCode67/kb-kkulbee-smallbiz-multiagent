@@ -852,6 +852,7 @@ export default function Page() {
           )}
 
         {/* ── ② 결과 — 꿀비가 옆으로 물러나 동행합니다 ── */}
+        {!hero && <ChatBar onAsk={ask} loading={loading} />}
         {!hero && (
           <div className="grid gap-8 pt-6 lg:grid-cols-[300px_minmax(0,1fr)]">
             <aside className="print:hidden lg:sticky lg:top-[4.5rem] lg:self-start">
@@ -1319,6 +1320,44 @@ function BeePatrol() {
       <span className="bee-patrol text-[19px] leading-none">
         <span>🐝</span>
       </span>
+    </div>
+  );
+}
+
+/* ── 하단 대화창 — 답을 받은 뒤에도 대화가 이어지게 (챗봇 문법) ─────────
+ * 서버는 이미 직전 상담(지역·업종·질문)을 기억합니다. 화면만 검색기
+ * 같았을 뿐입니다 — 입력창을 화면 바닥에 상주시키면 "그럼 자금은?"이
+ * 자연스러워집니다. */
+function ChatBar({ onAsk, loading }: {
+  onAsk: (q: string) => void; loading: boolean;
+}) {
+  const [q, setQ] = useState('');
+  return (
+    <div className="print:hidden fixed inset-x-0 bottom-4 z-[36] flex
+                    justify-center px-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!q.trim() || loading) return;
+          onAsk(q.trim());
+          setQ('');
+        }}
+        className="flex w-full max-w-[680px] items-center gap-2 rounded-2xl
+                   border border-kb-ink/[.14] bg-white/95 py-1.5 pl-4 pr-1.5
+                   shadow-[0_18px_44px_-16px_rgba(56,50,42,.45)] backdrop-blur"
+      >
+        <input value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="이어서 물어보세요 — 방금 상담을 기억하고 있습니다"
+          aria-label="이어서 질문하기"
+          className="min-w-0 flex-1 bg-transparent py-2 text-[15px] text-kb-ink
+                     placeholder:text-kb-ink/45 focus:outline-none" />
+        <button type="submit" disabled={loading || !q.trim()}
+          className="shrink-0 rounded-xl bg-kb-yellow px-4 py-2 text-[14px]
+                     font-bold text-kb-ink transition hover:brightness-105
+                     disabled:opacity-40">
+          {loading ? '생각 중…' : '보내기'}
+        </button>
+      </form>
     </div>
   );
 }
