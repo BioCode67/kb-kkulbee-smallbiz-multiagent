@@ -8,9 +8,31 @@ Pick 2 최적 입지 × Pick 3 소상공인 금융 × Pick 4 소비자 보호
 [시연 딥링크](https://kb-kkulbee-smallbiz-multiagent.onrender.com/?q=연남동에서%20카페%20열려는데%20상권%20어때%3F)로 바로 질문이 실행됩니다)
 
 <p align="center">
-  <img src="docs/screens/home.png" width="70%" alt="꿀비 첫 화면">
-  <img src="docs/screens/tour.png" width="24%" alt="지도 투어 — 연남동 열지도">
+  <img src="docs/screens/home.png" width="92%" alt="꿀비 첫 화면 — 실행 이력 배지와 3D 꿀비">
 </p>
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screens/tour.png" alt="지도 투어 — 작은 꿀비가 날며 해설, 열지도·주변 가게">
+      <p align="center"><b>지도 투어</b> — 작은 꿀비가 직접 날며 해설 · 열지도 · 클릭하면 주변 실제 가게</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screens/gapscout.png" alt="기회 업종 — 빈 자리 동네·성지 랭킹·궁합 업종">
+      <p align="center"><b>기회 업종</b> — 빈 자리 동네 역탐색 · 성지 랭킹 · 궁합 업종</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screens/trend.png" alt="경기·트렌드 — 임대지수·공실률·임대료 공시 대시보드">
+      <p align="center"><b>경기·트렌드</b> — 임대가격지수·공실률·임대료, 전부 공시 통계</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screens/moneyhub.png" alt="자금 설계 — 조달 포트폴리오와 자금 허브">
+      <p align="center"><b>자금 설계</b> — 실공고 조달 설계 · 마감 임박 공고 · 예적금 공시 · KB 창구</p>
+    </td>
+  </tr>
+</table>
 
 > "요즘 통 손님이 없어서 월세도 빠듯해요" — 이 문장에는 '자금'도 '대출'도
 > 없습니다. 그런데 이 사장님께 필요한 것은 소상공인 경영안정자금입니다.
@@ -58,7 +80,18 @@ Pick 2 최적 입지 × Pick 3 소상공인 금융 × Pick 4 소비자 보호
 - **지역 소상공인지원센터 협업 추진 중** — 실데이터 연계와 시범 배치를
   두고 협의를 진행하고 있습니다.
 
-<!-- 현장 검증 사진: docs/screens/field/ 에 추가 예정 -->
+<!-- 현장 사진 4장을 docs/screens/field/ 에 아래 이름으로 넣고 주석을 풀면
+     표가 완성됩니다: store1.jpg(신전떡볶이 동성로점) store2.jpg(1058맨)
+     store3.jpg(단디피트니스 계양점) center.jpg(소상공인지원센터)
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screens/field/store1.jpg" alt="신전떡볶이 동성로점 현장 검증"><p align="center">신전떡볶이 동성로점</p></td>
+    <td width="25%"><img src="docs/screens/field/store2.jpg" alt="1058맨 현장 검증"><p align="center">1058맨</p></td>
+    <td width="25%"><img src="docs/screens/field/store3.jpg" alt="단디피트니스 계양점 현장 검증"><p align="center">단디피트니스 계양점</p></td>
+    <td width="25%"><img src="docs/screens/field/center.jpg" alt="소상공인지원센터 협의"><p align="center">소상공인지원센터</p></td>
+  </tr>
+</table>
+-->
 
 ---
 
