@@ -24,6 +24,7 @@ CACHE_TTL = 86400
 _CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                            "data", "franchise_cache.json")
 _mem: dict = {}
+_trend_mem: dict = {}
 _lock = threading.Lock()
 
 
@@ -33,6 +34,36 @@ def api_key() -> str:
 
 def available() -> bool:
     return bool(api_key())
+
+
+def _fetch_year(yr: str) -> list[dict] | None:
+    """한 해치 전체 브랜드 통계. 실패하면 None."""
+    key = api_key()
+    if not key:
+        return None
+    rows: list[dict] = []
+    try:
+        r = httpx.get(BASE, params={
+            "serviceKey": key, "pageNo": 1, "numOfRows": 1,
+            "resultType": "json", "yr": yr}, timeout=20)
+        r.raise_for_status()
+        total = int(r.json().get("totalCount") or 0)
+        if total == 0:
+            return None
+        page = 1
+        while len(rows) < total and page <= 15:
+            r = httpx.get(BASE, params={
+                "serviceKey": key, "pageNo": page, "numOfRows": 1000,
+                "resultType": "json", "yr": yr}, timeout=30)
+            r.raise_for_status()
+            chunk = r.json().get("items", [])
+            if not chunk:
+                break
+            rows += chunk
+            page += 1
+    except (httpx.HTTPError, ValueError, KeyError):
+        return None
+    return rows or None
 
 
 def _fetch() -> dict | None:
@@ -139,3 +170,64 @@ def search(brand: str, k: int = 5) -> dict:
             "note": (f"공정거래위원회 가맹사업 통계({d['yr']}년, 정보공개서 기반 "
                      "공시)입니다. '닫은 가맹점'은 계약 종료+해지 합계이며, "
                      "평균매출은 가맹점 연평균(공시 단위 환산)입니다.")}
+
+
+def industry_trend(k: int = 6) -> dict:
+    """업종별 창업 흐름 — 최신 연도와 전년의 가맹점 수를 공시로 비교.
+
+    '요즘 무엇이 뜨나'를 감(感)이 아니라 정보공개서 합계로 봅니다.
+    브랜드 1.2만 개를 중분류 업종으로 접어, 가맹점 수가 는 업종과 준
+    업종을 나란히 놓습니다. 개점·폐점(계약 종료+해지)도 함께.
+    """
+    if not available():
+        return {"ok": False, "reason": "공정위 가맹 통계 키가 아직 연결되지 않았습니다"}
+    d = _data()
+    if not d:
+        return {"ok": False, "reason": "공정위 가맹 통계를 지금 불러오지 못했습니다"}
+    now_t = time.time()
+    with _lock:
+        if _trend_mem.get("at", 0) > now_t - CACHE_TTL:
+            return _trend_mem["data"]
+    prev_yr = str(int(d["yr"]) - 1)
+    prev = _fetch_year(prev_yr)
+    if not prev:
+        return {"ok": False, "reason": f"{prev_yr}년 공시를 불러오지 못했습니다"}
+
+    def agg(rows):
+        out: dict[str, dict] = {}
+        for r in rows:
+            ind = f"{r.get('indutyLclasNm','')}·{r.get('indutyMlsfcNm','')}"
+            o = out.setdefault(ind, {"stores": 0, "opened": 0, "closed": 0,
+                                     "brands": 0})
+            o["stores"] += int(r.get("frcsCnt") or 0)
+            o["opened"] += int(r.get("newFrcsRgsCnt") or 0)
+            o["closed"] += (int(r.get("ctrtEndCnt") or 0)
+                            + int(r.get("ctrtCncltnCnt") or 0))
+            o["brands"] += 1
+        return out
+
+    now, before = agg(d["rows"]), agg(prev)
+    items = []
+    for ind, o in now.items():
+        b = before.get(ind, {}).get("stores", 0)
+        if o["stores"] < 300 and b < 300:      # 표본이 너무 작은 업종 제외
+            continue
+        items.append({"industry": ind, "stores": o["stores"],
+                      "delta": o["stores"] - b,
+                      "pct": round((o["stores"] / b - 1) * 100, 1) if b else None,
+                      "opened": o["opened"], "closed": o["closed"],
+                      "brands": o["brands"]})
+    # 1년 새 ±80%가 넘는 급변은 분류 개편(브랜드 이동)일 가능성이 높아
+    # 트렌드로 읽으면 오독입니다 — 제외하고 그 사실을 각주에 남깁니다.
+    items = [x for x in items if x["pct"] is not None and abs(x["pct"]) <= 65]
+    items.sort(key=lambda x: -(x["delta"]))
+    result = {"ok": True, "yr": d["yr"], "prev_yr": prev_yr,
+            "rising": items[:k],
+            "falling": sorted(items, key=lambda x: x["delta"])[:k],
+            "note": (f"공정거래위원회 가맹사업 통계 — {prev_yr}→{d['yr']}년 "
+                     "정보공개서 기반 가맹점 수 증감입니다. 가맹(프랜차이즈) "
+                     "시장 기준이며 독립 점포는 없습니다. 1년 새 ±65%를 넘는 "
+                     "급변 업종은 분류 개편 가능성이 있어 뺐습니다.")}
+    with _lock:
+        _trend_mem.update({"at": now_t, "data": result})
+    return result

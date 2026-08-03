@@ -20,6 +20,7 @@ import httpx
 
 BASE = "https://www.reb.or.kr/r-one/openapi/SttsApiTblData.do"
 STATBL_SMALL_SHOP = "T248223134698125"
+STATBL_INDEX_TS = "TT246323134644307"   # 소규모 상가 임대가격지수(시계열)
 CACHE_TTL = 86400
 _CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                            "data", "rone_cache.json")
@@ -149,3 +150,83 @@ def rent_for(region_name: str) -> dict | None:
                  "상가 공시입니다. 행정동이 아니라 조사 상권 단위의 참고값이라 "
                  "점수에는 넣지 않았습니다."),
     }
+
+
+# ── 지역 경기 흐름 — 임대가격지수 시계열(2015~) ──────────────────────────
+_IDX_CACHE = os.path.join(os.path.dirname(_CACHE_PATH), "rone_index_cache.json")
+_idx_mem: dict = {}
+
+
+def _fetch_index() -> dict | None:
+    key = api_key()
+    if not key:
+        return None
+    rows: list[dict] = []
+    try:
+        page = 1
+        while page <= 12:
+            r = httpx.get(BASE, params={
+                "KEY": key, "Type": "json", "pIndex": page, "pSize": 1000,
+                "STATBL_ID": STATBL_INDEX_TS, "DTACYCLE_CD": "QY"}, timeout=30)
+            r.raise_for_status()
+            body = r.json().get("SttsApiTblData")
+            chunk = body[1].get("row", []) if body else []
+            if not chunk:
+                break
+            rows += chunk
+            page += 1
+    except (httpx.HTTPError, ValueError, KeyError, IndexError):
+        return None
+    series: dict[str, dict[str, float]] = {}
+    for x in rows:
+        full = x.get("CLS_FULLNM", "")
+        if ">" in full:                      # 시도·전국 집계만
+            continue
+        v = x.get("DTA_VAL")
+        if isinstance(v, (int, float)):
+            series.setdefault(full, {})[x["WRTTIME_IDTFR_ID"]] = round(v, 2)
+    if not series:
+        return None
+    quarters = sorted({q for s in series.values() for q in s})[-5:]
+    regions = []
+    for name, s in series.items():
+        vals = [s.get(q) for q in quarters]
+        yoy = None
+        last_q = quarters[-1]
+        prev_q = f"{int(last_q[:4]) - 1}{last_q[4:]}"
+        if s.get(last_q) and s.get(prev_q):
+            yoy = round((s[last_q] / s[prev_q] - 1) * 100, 2)
+        regions.append({"name": name, "vals": vals, "yoy_pct": yoy})
+    regions.sort(key=lambda r: (r["yoy_pct"] is None, -(r["yoy_pct"] or 0)))
+    return {"quarters": [quarter_label(q) for q in quarters], "regions": regions}
+
+
+def index_trend() -> dict | None:
+    """시도별 소규모 상가 임대가격지수 — 최근 5분기와 전년동기 대비.
+
+    임대가격지수는 그 지역 상권 경기의 체온계입니다. 오르는 동네는
+    자리 경쟁이 붙고 있다는 뜻이고, 내리는 동네는 협상 여지가 있다는
+    뜻입니다 — 해석은 화면에 이렇게만 적고 예측은 하지 않습니다.
+    """
+    now = time.time()
+    with _lock:
+        if _idx_mem.get("at", 0) > now - CACHE_TTL:
+            return _idx_mem.get("data")
+        try:
+            with open(_IDX_CACHE, encoding="utf-8") as f:
+                disk = json.load(f)
+            if disk.get("at", 0) > now - CACHE_TTL:
+                _idx_mem.update(disk)
+                return disk.get("data")
+        except (OSError, ValueError):
+            pass
+    data = _fetch_index()
+    with _lock:
+        _idx_mem.update({"at": now, "data": data})
+        if data:
+            try:
+                with open(_IDX_CACHE, "w", encoding="utf-8") as f:
+                    json.dump({"at": now, "data": data}, f, ensure_ascii=False)
+            except OSError:
+                pass
+    return data

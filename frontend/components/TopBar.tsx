@@ -100,18 +100,12 @@ export default function TopBar() {
               {label}
             </button>
           ))}
-          {/* 시그니처 — '자금 설계사'로 직행. 금소법 검사기는 용어사전
-              느낌이라(사용자 피드백) 오른쪽 방패 아이콘으로 옮겼습니다. */}
-          <button
-            onClick={() => {
-              go(2);
-              setTimeout(() => document.getElementById('funding-plan')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 550);
-            }}
-            className="ml-1 rounded-lg bg-kb-yellow/[.14] px-3 py-1.5
-                       text-[15px] font-bold text-kb-yellow ring-1
-                       ring-kb-yellow/40 transition hover:bg-kb-yellow/[.22]">
-            💰 자금 설계사
+          {/* 자금 설계사는 '자금 찾기'와 같은 페이지라 중복(사용자
+              피드백) — 그 자리에 새 갈래 '경기·트렌드'를 둡니다. */}
+          <button onClick={() => go(4)}
+                  className="rounded-lg px-3 py-1.5 text-[15px] text-white/80
+                             transition hover:bg-white/[.08] hover:text-kb-yellow">
+            경기·트렌드
           </button>
         </nav>
 
