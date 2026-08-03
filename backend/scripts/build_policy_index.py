@@ -277,11 +277,29 @@ REGION_ALIAS = {
 
 
 def read_region(title: str) -> list[str]:
-    """제목 앞머리의 [경북] 같은 표시. 없으면 전국 사업으로 봅니다."""
-    m = re.match(r"\[([^\]]{2,10})\]", title or "")
-    if not m:
-        return []
-    return REGION_ALIAS.get(m.group(1).strip(), [m.group(1).strip()])
+    """공고 제목에서 지역을 읽습니다 — [경북] 표시, 시도명, 시군구명 순.
+
+    '고양시 영상기업 인센티브'처럼 괄호 없이 지역이 박힌 공고가 전국으로
+    분류되어 타지역 사장님께 나가던 것을 막습니다. 동음이의 지명('제품
+    양산')은 region_map이 접미 규칙으로 거릅니다."""
+    title = title or ""
+    m = re.match(r"\[([^\]]{2,20})\]", title)
+    if m:
+        parts = re.split(r"[ㆍ·,/]", m.group(1).strip())
+        out: list[str] = []
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            out.extend(REGION_ALIAS.get(part, [part] if len(part) <= 4 else []))
+        if out:
+            return sorted(set(out))
+    from app.services import region_map
+    sidos = region_map.sido_mentions(title)
+    sg = region_map.sido_of(title)
+    if sg:
+        sidos.add(sg)
+    return sorted(sidos)
 
 
 # ── 소상공인 적합도 ───────────────────────────────────────────────────────

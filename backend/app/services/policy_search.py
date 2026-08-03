@@ -23,6 +23,8 @@ from __future__ import annotations
 import math
 import os
 import re
+
+from app.services import region_map
 import threading
 from collections import defaultdict
 from datetime import date, datetime
@@ -182,7 +184,7 @@ _SIDO = ["서울", "경기", "인천", "부산", "대구", "광주", "대전", "
 
 
 def region_of(text: str | None) -> str | None:
-    """'서울 마포구 연남동'에서 '서울'을 읽습니다."""
+    """'서울 마포구 연남동'에서 '서울'을, '경산에서'에서 '경북'을 읽습니다."""
     if not text:
         return None
     for s in _SIDO:
@@ -190,7 +192,11 @@ def region_of(text: str | None) -> str | None:
             return s
     # 광역시 축약형도 봅니다 — '서울특별시', '부산광역시'
     m = re.search(r"([가-힣]{2})(?:특별시|광역시|특별자치시|도|특별자치도)", text)
-    return m.group(1) if m and m.group(1) in _SIDO else None
+    if m and m.group(1) in _SIDO:
+        return m.group(1)
+    # 시도가 없으면 시군구 이름으로 — "경산에서 카페" 같은 실제 말투.
+    # 여기서 못 읽으면 지역 필터가 통째로 꺼져 타지역 공고가 새어 나갑니다.
+    return region_map.sido_of(text)
 
 
 _MONEY_WORDS = ("자금", "대출", "융자", "보증", "금리", "빌리", "돈", "한도", "이자", "상환")
