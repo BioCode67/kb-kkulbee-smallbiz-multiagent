@@ -55,7 +55,7 @@ export default function GapRadar() {
                         border-emerald-400/50 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(16,120,80,.3)]">
       <h2 className="font-display text-[24px] text-kb-ink">
-        📡 기회 업종 레이더 <span className="text-emerald-700">— 이 동네엔 뭐가 비어 있나</span>
+        기회 업종 레이더 <span className="text-emerald-700">— 이 동네엔 뭐가 비어 있나</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         주요 업종을 전국 백분위 같은 자로 전부 다시 재서, <b>점수는 높은데

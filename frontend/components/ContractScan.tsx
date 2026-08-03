@@ -84,7 +84,7 @@ export default function ContractScan() {
                         border-rose-300/70 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(190,74,90,.35)]">
       <h2 className="font-display text-[24px] text-kb-ink">
-        🚦 계약서 신호등 <span className="text-rose-600">— 서명하기 전에 확인하세요</span>
+        계약서 신호등 <span className="text-rose-600">— 서명하기 전에 확인하세요</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         임대차·프랜차이즈 계약서 문구를 붙여넣으면, 사장님께 불리한 조항
@@ -121,7 +121,7 @@ export default function ContractScan() {
         <label className="cursor-pointer rounded-xl px-4 py-2.5 text-[13.5px]
                           font-semibold text-kb-ink/62 ring-1 ring-kb-ink/[.14]
                           hover:text-kb-ink">
-          📄 PDF 파일로 검사
+          PDF 파일로 검사
           <input type="file" accept=".pdf" className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -175,7 +175,7 @@ export default function ContractScan() {
                 <p className="mt-1.5 text-[12.5px] text-kb-ink/60">근거: {f.law}</p>
                 <p className="mt-2 rounded-lg bg-white/85 px-3 py-2 text-[13.5px]
                               font-medium text-kb-ink/85 ring-1 ring-kb-ink/[.06]">
-                  ✍️ {f.tip}
+                  {f.tip}
                 </p>
               </li>
             ))}

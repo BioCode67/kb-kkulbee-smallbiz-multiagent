@@ -36,7 +36,7 @@ function downloadDeadlines(items: Item[]) {
     lines.push(
       'BEGIN:VEVENT', `UID:goldentime-${n}-${i.due}@kkulbee`,
       `DTSTART;VALUE=DATE:${i.due.replace(/-/g, '')}`,
-      `SUMMARY:${esc(`⏳ [권리 마감] ${i.name}`)}`,
+      `SUMMARY:${esc(`[권리 마감] ${i.name}`)}`,
       `DESCRIPTION:${esc(`${i.law}\n${i.action}\n— 꿀비 골든타임 계산기`)}`,
       'BEGIN:VALARM', 'ACTION:DISPLAY',
       `DESCRIPTION:${esc(`내일 마감: ${i.name}`)}`,
@@ -80,7 +80,7 @@ export default function GoldenTime() {
                         border-kb-yellow/60 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(224,144,0,.35)]">
       <h2 className="font-display text-[24px] text-kb-ink">
-        ⏳ 골든타임 <span className="text-kb-amber">— 권리에는 마감일이 있습니다</span>
+        골든타임 <span className="text-kb-amber">— 권리에는 마감일이 있습니다</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         분쟁에서 지는 흔한 이유는 내용이 아니라 <b>시기</b>입니다. 날짜를 넣으면
@@ -169,7 +169,7 @@ export default function GoldenTime() {
               className="mt-3 rounded-xl px-4 py-2.5 text-[13.5px] font-bold
                          text-kb-ink/78 ring-1 ring-kb-ink/[.16] transition
                          hover:bg-kb-ink/[.04] hover:text-kb-ink">
-              📅 폰 캘린더에 심기 (.ics)
+              폰 캘린더에 심기 (.ics)
             </button>
           )}
           <p className="mt-3 rounded-lg bg-kb-ink/[.04] px-3 py-2.5 text-[12.5px]

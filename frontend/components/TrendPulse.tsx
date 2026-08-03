@@ -54,7 +54,7 @@ export default function TrendPulse() {
                           bg-white p-6
                           shadow-[0_20px_50px_-20px_rgba(200,110,40,.3)]">
         <h2 className="font-display text-[24px] text-kb-ink">
-          📈 지역 상가 경기 <span className="text-orange-700">— 임대가격지수 최근 5분기</span>
+          지역 상가 경기 <span className="text-orange-700">— 임대가격지수 최근 5분기</span>
         </h2>
         <p className="mt-1 text-[14.5px] text-kb-ink/70">
           지수가 오르는 지역은 <b>상가 자리 경쟁이 붙고 있다</b>는 신호,
@@ -102,7 +102,7 @@ export default function TrendPulse() {
                           bg-white p-6
                           shadow-[0_20px_50px_-20px_rgba(200,110,40,.3)]">
         <h2 className="font-display text-[24px] text-kb-ink">
-          🔥 업종 창업 흐름 <span className="text-orange-700">— 가맹점이 는 업종, 준 업종</span>
+          업종 창업 흐름 <span className="text-orange-700">— 가맹점이 는 업종, 준 업종</span>
         </h2>
         <p className="mt-1 text-[14.5px] text-kb-ink/70">
           정보공개서에 신고된 가맹점 수를 두 해로 비교했습니다 — 광고가
@@ -116,8 +116,8 @@ export default function TrendPulse() {
         {ind?.ok && (
           <>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              {([['🌱 늘어난 업종', ind.rising ?? [], 'text-emerald-700'],
-                 ['🍂 줄어든 업종', ind.falling ?? [], 'text-rose-600'],
+              {([['늘어난 업종', ind.rising ?? [], 'text-emerald-700'],
+                 ['줄어든 업종', ind.falling ?? [], 'text-rose-600'],
               ] as [string, TrendItem[], string][]).map(([title, rows, tone]) => (
                 <div key={title} className="rounded-xl bg-kb-ink/[.03] p-4
                                             ring-1 ring-kb-ink/[.08]">

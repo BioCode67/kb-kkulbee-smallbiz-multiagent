@@ -45,7 +45,7 @@ export default function HeroTicker() {
     >
       <span className="shrink-0 rounded-full bg-rose-500/[.12] px-2 py-0.5
                        text-[12.5px] font-bold text-rose-700">
-        ⏰ 곧 마감
+        곧 마감
       </span>
       {/* absolute 자식만 있으면 폭이 0으로 접힙니다 — 폭을 명시합니다 */}
       <span className="relative h-[18px] w-[150px] overflow-hidden sm:w-[340px]">

@@ -353,11 +353,11 @@ export default function Page() {
   // 진짜 기능으로 안내합니다. 마스코트가 튜토리얼이 되는 순간입니다.
   useEffect(() => {
     const LINES = [
-      '아이 간지러워요! 🐝',
+      '아이 간지러워요!',
       '저를 잡아 늘여 보세요 — 쫀득해요!',
-      '⭐를 누르면 공고를 찜할 수 있습니다',
+      '☆을 누르면 공고를 찜할 수 있습니다',
       '☆ 서랍에서 "모두 재확인"을 누르면 제가 원문을 순찰합니다!',
-      '📄 저장을 누르면 상담을 종이로 들고 가실 수 있습니다',
+      '저장을 누르면 상담을 종이로 들고 가실 수 있습니다',
       "키보드 '/'를 누르면 바로 물어볼 수 있습니다",
       '지도 카드에서 "지도 투어"를 눌러 보세요!',
     ];
@@ -367,7 +367,7 @@ export default function Page() {
       setSpeech(LINES[i % LINES.length]);
       i += 1;
     };
-    const dizzy = () => { setMood('thinking'); setSpeech('어… 어지러워요 🌀 그만 찔러요~'); };
+    const dizzy = () => { setMood('thinking'); setSpeech('어… 어지러워요 그만 찔러요~'); };
     window.addEventListener('kkulbee:poked', h);
     window.addEventListener('kkulbee:dizzy', dizzy);
     return () => {
@@ -384,8 +384,8 @@ export default function Page() {
       '"연남동이랑 성수동 비교해줘"라고 물어보세요 — 나란히 보여 드립니다',
       '내 가게를 등록하면 ☀️ 원클릭 브리핑이 생겨요',
       '융자 답변 밑에는 "한 달에 얼마 갚나" 계산기가 따라와요',
-      '저를 콕 찔러 보세요. 네 번 빠르게 찌르면… 비밀입니다 🌀',
-      '아래 "⏰ 곧 마감"은 진짜 공고예요 — 눌러 보세요',
+      '저를 콕 찔러 보세요. 네 번 빠르게 찌르면… 비밀입니다',
+      '아래 "곧 마감"은 진짜 공고입니다 — 눌러 보세요',
     ];
     let i = Math.floor(Math.random() * TIPS.length);
     const t = setInterval(() => {
@@ -940,7 +940,7 @@ export default function Page() {
               {/* 인쇄에만 나오는 머리말 — 은행·지원센터 창구에 들고 갈 수
                   있는 문서가 되도록 출처와 날짜를 박습니다. */}
               <div className="hidden print:block border-b border-kb-ink/20 pb-3">
-                <p className="text-[18px] font-bold text-kb-ink">🐝 꿀비 상담 리포트</p>
+                <p className="text-[18px] font-bold text-kb-ink">꿀비 상담 리포트</p>
                 <p className="mt-1 text-[12px] text-kb-ink/78">
                   kb-kkulbee-smallbiz-multiagent.onrender.com ·
                   인쇄일 {new Date().toLocaleDateString('ko-KR')} ·
@@ -1170,7 +1170,7 @@ function AskBox({ value, onChange, onSubmit, loading, placeholder, lastQ }: {
             <button key={n} onMouseDown={(e) => { e.preventDefault(); pick(n); }}
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left
                          text-[14px] text-kb-ink/85 transition hover:bg-kb-yellow/[.12]">
-              <span>🏪</span>{n}
+              {n}
             </button>
           ))}
         </div>
@@ -1373,8 +1373,9 @@ function BeePatrol() {
                                 overflow-hidden">
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed
                       border-kb-ink/[.12]" />
-      <span className="bee-patrol text-[19px] leading-none">
-        <span>🐝</span>
+      <span className="bee-patrol leading-none">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <span><img src="/kkulbee.svg" alt="" width={20} height={22} /></span>
       </span>
     </div>
   );
@@ -1476,7 +1477,7 @@ function Answer({ res }: { res: ChatResponse }) {
                      text-kb-ink/82 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
-          📄 저장
+          저장
         </button>
         {/* 꿀비가 읽어줍니다 — 브라우저 내장 합성음. 화면을 오래 못 보는
             상황(운전·조리 중)에서도 답을 들을 수 있습니다. */}
@@ -1491,7 +1492,7 @@ function Answer({ res }: { res: ChatResponse }) {
                      text-kb-ink/82 ring-1 ring-kb-ink/[.1] transition
                      hover:bg-kb-ink/[.08] hover:text-kb-ink"
         >
-          🔊 읽어줘
+          읽어줘
         </button>
         <button
           onClick={share}
@@ -1662,11 +1663,11 @@ function Coachmark() {
                  rounded-2xl border border-kb-ink/[.14] bg-white
                  p-4 shadow-2xl print:hidden"
     >
-      <p className="text-[15px] font-bold text-kb-ink">🐝 처음이시죠? 세 가지만 알려드리겠습니다</p>
+      <p className="text-[15px] font-bold text-kb-ink">처음이시죠? 세 가지만 알려드리겠습니다</p>
       <ul className="mt-2 space-y-1.5 text-[13.5px] leading-relaxed text-kb-ink/78">
         <li><b className="text-kb-amber">①</b> 아래 다섯 배너에서 갈래를 고르면 예시 질문이 바뀝니다</li>
         <li><b className="text-kb-amber">②</b> 꿀비를 잡아 늘이거나 휙 던져 보세요 — 진짜 날아가요</li>
-        <li><b className="text-kb-amber">③</b> 지원사업의 ⭐를 누르면 상단 ☆ 서랍에 모입니다</li>
+        <li><b className="text-kb-amber">③</b> 지원사업의 ☆을 누르면 상단 서랍에 모입니다</li>
       </ul>
       <button onClick={close}
         className="mt-3 w-full rounded-xl bg-kb-yellow py-2 text-[13.5px] font-bold

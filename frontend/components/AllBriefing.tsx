@@ -46,7 +46,7 @@ export default function AllBriefing({ onAsk }: { onAsk: (q: string) => void }) {
                         border-violet-400/50 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(90,70,180,.3)]">
       <h2 className="font-display text-[24px] text-kb-ink">
-        🐝 한 번에 브리핑 <span className="text-violet-700">— 두 칸이면 세 에이전트가 움직여요</span>
+        한 번에 브리핑 <span className="text-violet-700">— 두 칸이면 세 에이전트가 움직여요</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         동네와 업종만 고르면 <b>입지 점수와 정책자금을 한 번에</b> 살펴 드립니다.

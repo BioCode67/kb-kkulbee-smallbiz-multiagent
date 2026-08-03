@@ -64,7 +64,7 @@ function LiveCheckRow({ s, r, busy, onRun }: {
           {(r.attachments ?? []).slice(0, 3).map((a) => (
             <a key={a.url} href={a.url} target="_blank" rel="noreferrer"
                className="block truncate text-kb-amber underline-offset-2 hover:underline">
-              📎 {a.name}
+              {a.name}
             </a>
           ))}
           <div className="flex flex-wrap gap-x-3">
@@ -182,7 +182,7 @@ export default function SavedDrawer({ open, onClose }: {
             <header className="border-b border-kb-ink/[.1] px-4 py-3.5">
               <div className="flex items-center justify-between">
                 <p className="text-[17px] font-bold text-kb-ink">
-                  ⭐ 찜한 지원사업 <span className="text-kb-ink/55">{items.length}</span>
+                  찜한 지원사업 <span className="text-kb-ink/55">{items.length}</span>
                 </p>
                 <button onClick={onClose}
                   className="grid h-9 w-9 place-items-center rounded-lg text-kb-ink/68
@@ -194,7 +194,7 @@ export default function SavedDrawer({ open, onClose }: {
                              font-bold text-kb-ink transition hover:brightness-105
                              disabled:opacity-50">
                   {sweeping ? `원문 ${bizItems.length}건 순찰 중…`
-                    : `🤖 모두 재확인 — ${bizItems.length}건 원문 순찰`}
+                    : `모두 재확인 — ${bizItems.length}건 원문 순찰`}
                 </button>
               )}
               {done.length > 0 && (
@@ -209,7 +209,7 @@ export default function SavedDrawer({ open, onClose }: {
               {sorted.length === 0 && (
                 <p className="py-10 text-center text-[15px] leading-relaxed text-kb-ink/62">
                   아직 담은 공고가 없습니다.
-                  <br />지원사업 카드의 ⭐를 눌러 담아 두세요 —
+                  <br />지원사업 카드의 ☆을 눌러 담아 두세요 —
                   <br />마감 가까운 순으로 여기 모입니다.
                 </p>
               )}
@@ -277,7 +277,7 @@ export default function SavedDrawer({ open, onClose }: {
                              hover:bg-kb-ink/[.09] hover:text-kb-ink"
                   title="구글·애플·네이버 캘린더에 넣을 수 있는 표준 파일"
                 >
-                  📅 마감을 내 캘린더로 — .ics 내려받기
+                  마감을 내 캘린더로 — .ics 내려받기
                 </button>
               )}
               <p className="text-center text-[12.5px] text-kb-ink/55">

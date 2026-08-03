@@ -121,9 +121,14 @@ export default function TopBar() {
           {/* 금소법 검사기 — 상시 접근은 유지하되 보조 자리로 */}
           <button onClick={() => setDrawer(true)}
                   title="소비자 보호 도구 — 금소법 표현 검사기·쉬운 용어"
-                  className="rounded-lg px-2 py-1.5 text-[16px] text-white/70
-                             transition hover:text-kb-yellow">
-            🛡
+                  className="rounded-lg px-2 py-1.5 text-white/70 transition
+                             hover:text-kb-yellow">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"
+                 strokeLinejoin="round" aria-hidden>
+              <path d="M12 3.5 5 6v5.2c0 4.3 2.9 7.6 7 9.3 4.1-1.7 7-5 7-9.3V6Z" />
+              <path d="m8.8 12 2.2 2.2 4.2-4.4" />
+            </svg>
           </button>
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}

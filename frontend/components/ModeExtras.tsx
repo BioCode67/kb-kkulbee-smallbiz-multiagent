@@ -99,7 +99,7 @@ const EXTRAS: Record<string, Extra> = {
     tips: [
       '한 질문에 여러 갈래가 동시에 켜집니다 — "성수동에 빵집 열건데 자금이랑 상권 다 봐줘"',
       '꿀비는 직전 상담을 기억합니다 — "그럼 자금은?"처럼 짧게 이어 물어도 됩니다',
-      '📄 저장을 누르면 상담 전체가 창구에 들고 갈 리포트로 인쇄됩니다',
+      '저장을 누르면 상담 전체가 창구에 들고 갈 리포트로 인쇄됩니다',
     ],
     sources: [
       ['LangGraph 멀티에이전트', '라우터 → 갈래 병렬 → 금소법 가드레일(마지막 관문)'],
@@ -134,7 +134,7 @@ export default function ModeExtras({ k }: { k: string }) {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-2xl border border-kb-ink/[.1] bg-white/80 p-5">
-          <p className="text-[15px] font-bold text-kb-ink">💡 이렇게 써보세요</p>
+          <p className="text-[15px] font-bold text-kb-ink">이렇게 써보세요</p>
           <ul className="mt-2.5 space-y-2">
             {x.tips.map((t) => (
               <li key={t} className="flex gap-2 text-[14px] leading-relaxed
@@ -145,7 +145,7 @@ export default function ModeExtras({ k }: { k: string }) {
           </ul>
         </div>
         <div className="rounded-2xl border border-kb-ink/[.1] bg-white/80 p-5">
-          <p className="text-[15px] font-bold text-kb-ink">📚 이 갈래가 쓰는 데이터</p>
+          <p className="text-[15px] font-bold text-kb-ink">이 갈래가 쓰는 데이터</p>
           <ul className="mt-2.5 space-y-2">
             {x.sources.map(([name, what]) => (
               <li key={name} className="text-[13.5px] leading-snug">

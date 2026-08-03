@@ -76,7 +76,7 @@ export default function FundingPlan({ region, industry }: {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-[24px] text-kb-ink">
-            💰 자금 설계사 <span className="text-kb-amber">— 얼마가 필요하세요?</span>
+            자금 설계사 <span className="text-kb-amber">— 얼마가 필요하세요?</span>
           </h2>
           <p className="mt-1 text-[14.5px] text-kb-ink/70">
             실제 접수 중인 공고로 <b>그냥 받는 돈부터</b> 쌓아 드립니다.
@@ -238,7 +238,7 @@ export default function FundingPlan({ region, industry }: {
         <div className="mt-5 rounded-xl bg-kb-yellow/[.08] p-4 ring-1
                         ring-kb-yellow/40">
           <p className="text-[14.5px] font-bold text-kb-ink">
-            🏦 지금 은행 공시 금리
+            지금 은행 공시 금리
             <span className="ml-2 font-semibold text-kb-ink/62">
               개인신용대출 평균 {rates.low}%~{rates.high}% ({rates.n_banks}개 은행)
             </span>

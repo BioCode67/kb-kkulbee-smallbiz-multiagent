@@ -199,7 +199,7 @@ export default function KakaoMap({
             className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
                         transition ${speakOn ? 'bg-white text-kb-ink'
                                              : 'bg-white/70 text-kb-ink/68'}`}>
-            {speakOn ? '🔊' : '🔇'}
+            {speakOn ? '소리 켬' : '소리 끔'}
           </button>
         </div>
       </div>

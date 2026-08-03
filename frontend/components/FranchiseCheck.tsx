@@ -43,7 +43,7 @@ export default function FranchiseCheck() {
                         border-sky-400/50 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(40,110,180,.3)]">
       <h2 className="font-display text-[24px] text-kb-ink">
-        🔍 가맹 브랜드 실측 조회 <span className="text-sky-700">— 서명 전에 공시부터</span>
+        가맹 브랜드 실측 조회 <span className="text-sky-700">— 서명 전에 공시부터</span>
       </h2>
       <p className="mt-1 text-[14.5px] text-kb-ink/70">
         본사 홍보물 말고 <b>공정위에 신고된 숫자</b>로 봅니다 — 가맹점이 몇

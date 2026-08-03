@@ -63,7 +63,7 @@ export default function MyShop({ onChange }: {
                    transition hover:border-kb-yellow hover:text-kb-ink"
         title="내 가게를 등록하면 매번 동네·업종을 말하지 않아도 됩니다"
       >
-        🏪 {shop ? `${shop.region.split(' ').pop()}${shop.industry ? ` · ${shop.industry}` : ''}`
+        {shop ? `${shop.region.split(' ').pop()}${shop.industry ? ` · ${shop.industry}` : ''}`
                  : '내 가게 등록'}
       </button>
 

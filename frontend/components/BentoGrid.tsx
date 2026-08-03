@@ -715,7 +715,7 @@ function RatesCard({ d }: { d: BankRates }) {
         <div className="mt-3.5 rounded-xl bg-kb-yellow/[.1] p-3.5 ring-1
                         ring-kb-yellow/40">
           <p className="text-[13.5px] font-bold text-kb-ink">
-            ⭐ KB국민은행 공시 상품
+            KB국민은행 공시 상품
           </p>
           <ul className="mt-2 space-y-1">
             {d.kb_products!.map((p) => (
@@ -1014,7 +1014,7 @@ function SaveStar({ m }: { m: PolicyMatch }) {
     if (!to) return;
     const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
     const fly = document.createElement('span');
-    fly.textContent = '⭐';
+    fly.textContent = '★';
     Object.assign(fly.style, {
       position: 'fixed', left: `${a.left + a.width / 2}px`,
       top: `${a.top + a.height / 2}px`, zIndex: '99', fontSize: '22px',
