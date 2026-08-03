@@ -746,3 +746,55 @@ def companions(industry: str, dong_code: str | None = None, k: int = 6) -> dict:
         "note": ("전국 3,450개 동의 업종 점유율로 잰 피어슨 상관입니다. "
                  "함께 있는 경향이지 인과·수요 예측이 아닙니다."),
     }
+
+
+def hot_spots(industry: str, sido: str | None = None, k: int = 10) -> dict:
+    """성지 랭킹 — 전국에서 이 업종이 가장 '진한' 동네.
+
+    빈 자리(empty_spots)의 반대편입니다. 점유율(그 동네 점포 중 이 업종
+    비율)로 재고, 전국 평균 점유율의 몇 배인지를 붙입니다. 표본이 얇은
+    동네(전체 300곳 미만)는 비율이 요동쳐서 뺍니다.
+    """
+    hit = resolve_industry(industry)
+    if not hit:
+        return {"ok": False, "reason": "모르는 업종입니다. 목록에서 골라 주세요."}
+    code, name = hit
+    ck = ("hot", code, sido or "")
+    with _gap_lock:
+        if ck in _gap_mem:
+            return _gap_mem[ck]
+
+    ix = _load()
+    nat = ix["nation"]["small_national"].get(code, 0)
+    total = sum(d["stores"] for d in ix["dong"].values())
+    nat_share = nat / total if total else 0
+    rows = []
+    for dcode, d in ix["dong"].items():
+        if sido and d["sido"] != sido:
+            continue
+        if d["stores"] < 300:
+            continue
+        act = d["small"].get(code, 0)
+        if act < 5:
+            continue
+        share = act / d["stores"]
+        rows.append({
+            "code": dcode,
+            "name": f"{d['sido']} {d['sgg']} {d['dong']}",
+            "stores": d["stores"], "actual": act,
+            "share_pct": round(share * 100, 1),
+            "vs_national": round(share / nat_share, 1) if nat_share else None,
+        })
+    rows.sort(key=lambda x: -x["share_pct"])
+    out = {
+        "ok": True, "industry": name, "code": code,
+        "national_share_pct": round(nat_share * 100, 2),
+        "rows": rows[:k],
+        "note": (f"그 동네 전체 점포 중 {name} 비율(점유율) 순위입니다. "
+                 "전체 300곳 이상·해당 업종 5곳 이상인 동네만 — 표본이 "
+                 "얇으면 비율이 요동칩니다. 밀집은 성지일 수도, 레드오션일 "
+                 "수도 있습니다. 판단 재료이지 추천이 아닙니다."),
+    }
+    with _gap_lock:
+        _gap_mem[ck] = out
+    return out

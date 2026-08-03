@@ -25,6 +25,10 @@ interface SpotRow { code: string; name: string; stores: number;
                     actual: number; expected: number; gap: number; }
 interface Spots { ok: boolean; reason?: string; industry?: string;
                   national?: number; rows?: SpotRow[]; note?: string; }
+interface HotRow { code: string; name: string; stores: number;
+                   actual: number; share_pct: number; vs_national: number | null; }
+interface Hots { ok: boolean; reason?: string; industry?: string;
+                 national_share_pct?: number; rows?: HotRow[]; note?: string; }
 interface CompRow { code: string; industry: string; corr: number;
                     together_pct: number; }
 interface Comps { ok: boolean; reason?: string; industry?: string;
@@ -38,6 +42,7 @@ export default function GapScout() {
   const [region, setRegion] = useState('');
   const [hints, setHints] = useState<string[]>([]);
   const [spots, setSpots] = useState<Spots | null>(null);
+  const [hots, setHots] = useState<Hots | null>(null);
   const [comps, setComps] = useState<Comps | null>(null);
   const [busy, setBusy] = useState(false);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,12 +73,14 @@ export default function GapScout() {
       if (sido !== '전국') s.set('sido', sido);
       const c = new URLSearchParams({ industry: ind.trim() });
       if (region.trim()) c.set('region', region.trim());
-      const [rs, rc] = await Promise.all([
+      const [rs, rh, rc] = await Promise.all([
         fetch(`/api/v1/empty-spots?${s}`).then((r) => r.json()),
+        fetch(`/api/v1/hot-spots?${s}`).then((r) => r.json()),
         fetch(`/api/v1/companions?${c}`).then((r) => r.json()),
       ]);
-      setSpots(rs); setComps(rc);
-    } catch { setSpots(null); setComps(null); } finally { setBusy(false); }
+      setSpots(rs); setHots(rh); setComps(rc);
+    } catch { setSpots(null); setHots(null); setComps(null); }
+    finally { setBusy(false); }
   };
 
   return (
@@ -83,12 +90,13 @@ export default function GapScout() {
                       shadow-[0_20px_50px_-20px_rgba(16,120,80,.3)]">
         <h2 className="font-display text-[24px] text-kb-ink">
           업종에서 시작하기 <span className="text-emerald-700">
-            — 빈 자리 동네 · 궁합 업종</span>
+            — 빈 자리 · 성지 · 궁합</span>
         </h2>
         <p className="mt-1 text-[14.5px] text-kb-ink/70">
           위 레이더가 "이 동네엔 뭐가 비어 있나"라면, 여기는 반대입니다 —
-          업종을 정하면 <b>어느 동네가 비어 있는지</b>, 그리고 <b>무엇과 같이
-          다니는 업종인지</b>를 272만 점포 실측으로 찾아드립니다.
+          업종을 정하면 <b>어느 동네가 비어 있는지</b>, <b>어디에 가장 진하게
+          몰려 있는지(성지)</b>, <b>무엇과 같이 다니는 업종인지</b>를 272만
+          점포 실측으로 찾아드립니다.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2.5">
           <select value={ind} onChange={(e) => setInd(e.target.value)}
@@ -133,7 +141,7 @@ export default function GapScout() {
         </div>
 
         {(spots || comps) && (
-          <div className="mt-5 grid items-start gap-5 lg:grid-cols-2">
+          <div className="mt-5 grid items-start gap-5 lg:grid-cols-3">
             {/* ① 빈 자리 동네 */}
             <div className="rounded-xl bg-emerald-50/60 p-5 ring-1 ring-emerald-200">
               <h3 className="text-[17px] font-bold text-kb-ink">
@@ -176,7 +184,51 @@ export default function GapScout() {
               )}
             </div>
 
-            {/* ② 궁합 업종 */}
+            {/* ② 성지 랭킹 */}
+            <div className="rounded-xl bg-emerald-50/60 p-5 ring-1 ring-emerald-200">
+              <h3 className="text-[17px] font-bold text-kb-ink">
+                성지 랭킹
+                <span className="ml-1.5 text-[13.5px] font-medium text-kb-ink/60">
+                  — {hots?.industry ?? ''}이 가장 진한 동네
+                </span>
+              </h3>
+              {hots?.ok ? (
+                <>
+                  <ol className="mt-3 space-y-2">
+                    {(hots.rows ?? []).slice(0, 8).map((r, i) => (
+                      <li key={r.code}
+                          className="flex items-baseline gap-2.5 rounded-lg
+                                     bg-white px-3 py-2 text-[14px]">
+                        <span className="w-4 shrink-0 text-right text-[12.5px]
+                                         font-bold text-emerald-700">{i + 1}</span>
+                        <span className="min-w-0 flex-1 truncate font-semibold
+                                         text-kb-ink/88">{r.name}</span>
+                        <span className="shrink-0 text-[12.5px] text-kb-ink/62
+                                         [font-variant-numeric:tabular-nums]">
+                          {r.actual}곳 · {r.share_pct}%
+                          {r.vs_national != null && (
+                            <b className="ml-1 text-emerald-700">
+                              전국의 {r.vs_national}배
+                            </b>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  {hots.note && (
+                    <p className="mt-3 text-[12px] leading-relaxed text-kb-ink/58">
+                      {hots.note}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-3 text-[13.5px] text-kb-ink/60">
+                  {hots?.reason ?? '표본이 충분한 동네가 없습니다.'}
+                </p>
+              )}
+            </div>
+
+            {/* ③ 궁합 업종 */}
             <div className="rounded-xl bg-emerald-50/60 p-5 ring-1 ring-emerald-200">
               <h3 className="text-[17px] font-bold text-kb-ink">
                 궁합 업종

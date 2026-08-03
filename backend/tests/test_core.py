@@ -496,3 +496,15 @@ def test_companions_shape():
         assert -1 <= t["corr"] <= 1
         assert t["industry"] != "카페"
         assert 0 <= t["together_pct"] <= 100
+
+
+def test_hot_spots_shape():
+    """성지 랭킹 — 점유율 내림차순, 표본 하한(300곳·5곳)을 지켜야 합니다."""
+    from app.services import market_data
+
+    r = market_data.hot_spots("카페")
+    assert r["ok"] and r["rows"]
+    shares = [x["share_pct"] for x in r["rows"]]
+    assert shares == sorted(shares, reverse=True)
+    for x in r["rows"]:
+        assert x["stores"] >= 300 and x["actual"] >= 5

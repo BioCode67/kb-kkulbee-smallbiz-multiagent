@@ -95,6 +95,14 @@ def empty_spots(industry: str, sido: str | None = None) -> dict:
     return market_data.empty_spots(industry, sido or None)
 
 
+@app.get("/api/v1/hot-spots")
+def hot_spots(industry: str, sido: str | None = None) -> dict:
+    """성지 랭킹 — 이 업종이 전국에서 가장 진하게 몰린 동네."""
+    from app.services import market_data
+
+    return market_data.hot_spots(industry, sido or None)
+
+
 @app.get("/api/v1/companions")
 def companions(industry: str, region: str | None = None) -> dict:
     """궁합 업종 — 전국 분포에서 이 업종과 같이 다니는 업종.
