@@ -144,11 +144,15 @@ export default function BeeCharacter3D({
       // ── 재질 ─────────────────────────────────────────────────────────
       const stripeTex = makeStripeTexture(THREE);
 
-      const hoodMat = new THREE.MeshStandardMaterial({
-        map: makeHeadTexture(THREE), roughness: 0.5, metalness: 0.02,
+      // 클리어코트 — 매트한 플라스틱에서 '캔디 피규어' 광택으로.
+      // 비율·표정은 그대로 두고 표면만 올립니다(디자인 개선 요청).
+      const hoodMat = new THREE.MeshPhysicalMaterial({
+        map: makeHeadTexture(THREE), roughness: 0.46, metalness: 0.02,
+        clearcoat: 0.5, clearcoatRoughness: 0.38,
       });
-      const bodyMat = new THREE.MeshStandardMaterial({
-        map: stripeTex, roughness: 0.42, metalness: 0.02,
+      const bodyMat = new THREE.MeshPhysicalMaterial({
+        map: stripeTex, roughness: 0.4, metalness: 0.02,
+        clearcoat: 0.55, clearcoatRoughness: 0.34,
       });
       const eyeMat = new THREE.MeshPhysicalMaterial({
         color: 0x1a1209, roughness: 0.08, metalness: 0.0,
