@@ -554,6 +554,17 @@ def _cards(state: GraphState) -> list[BentoCard]:
                 span=3, accent="neutral",
                 payload={"items": sim, "industry": loc.industry,
                          "base": loc.region_name}))
+        # 임대료 참고(부동산원 공시) — "임대료는 자료가 없다"던 칸을
+        # 시도·상권 단위 실측으로 일부 채웁니다. 키 없으면 조용히 빠짐.
+        from app.services import rone
+        if rone.available():
+            rent = rone.rent_for(loc.region_name)
+            if rent:
+                cards.append(BentoCard(
+                    id="rent", kind=BentoCardKind.RENT,
+                    title="소규모 상가 임대료 참고",
+                    subtitle=f"한국부동산원 공시 · {rent['quarter']}",
+                    span=3, accent="neutral", payload=rent))
     if state.get("bank_rates"):
         cards.append(BentoCard(
             id="rates", kind=BentoCardKind.RATES, title="은행권 공시 금리",

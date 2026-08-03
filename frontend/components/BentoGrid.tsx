@@ -53,7 +53,7 @@ const ACCENT: Record<string, string> = {
 // 근거 공개의 핵심인데 접혀 있으면 없는 것과 같습니다. gaps·similar는
 // 보조 정보라 접어 두어 화면 과밀을 막습니다.
 const OPEN_BY_DEFAULT = new Set(['score', 'factors', 'policy', 'procedure',
-                                 'notice', 'compare', 'map', 'rates']);
+                                 'notice', 'compare', 'map', 'rates', 'rent']);
 
 export default function BentoGrid({ cards }: { cards: BentoCard[] }) {
   if (!cards.length) return null;
@@ -142,6 +142,7 @@ function CardBody({ card }: { card: BentoCard }) {
                                   region={p.region as unknown as string} />;
     case 'rates': return <RatesCard d={p as unknown as BankRates} />;
     case 'compare': return <CompareCard a={p.a as never} b={p.b as never} />;
+    case 'rent': return <RentCard d={p as unknown as RentInfo} />;
     case 'similar': return <SimilarCard items={p.items as unknown as SimilarDong[]}
                                         industry={p.industry as unknown as string} />;
     default: return null;
@@ -738,6 +739,57 @@ function RatesCard({ d }: { d: BankRates }) {
       )}
       <p className="mt-3 rounded-lg bg-amber-400/[.08] px-2.5 py-2 text-[12.5px]
                     leading-relaxed text-amber-800">
+        {d.note}
+      </p>
+    </div>
+  );
+}
+
+/* ── 임대료 참고 — 부동산원 상업용부동산 임대동향조사(소규모 상가) ────── */
+
+interface RentInfo {
+  quarter: string; unit: string; sido: string;
+  sido_rent: number; national: number | null;
+  districts: { name: string; rent: number }[]; note: string;
+}
+
+function RentCard({ d }: { d: RentInfo }) {
+  const max = Math.max(...d.districts.map((x) => x.rent), d.sido_rent, 1);
+  return (
+    <div>
+      <div className="flex items-baseline gap-3">
+        <p className="text-[26px] font-extrabold text-kb-ink
+                      [font-variant-numeric:tabular-nums]">
+          {d.sido_rent}
+          <span className="ml-1 text-[13px] font-semibold text-kb-ink/62">
+            {d.unit}
+          </span>
+        </p>
+        <p className="text-[13.5px] text-kb-ink/72">
+          {d.sido} 평균{d.national != null && <> · 전국 {d.national}</>}
+        </p>
+      </div>
+      {d.districts.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {d.districts.map((x) => (
+            <li key={x.name} className="flex items-center gap-2 text-[13.5px]">
+              <span className="w-[96px] shrink-0 truncate text-kb-ink/85">
+                {x.name}
+              </span>
+              <div className="h-[6px] flex-1 rounded-full bg-kb-ink/[.05]">
+                <div className="h-full rounded-full bg-kb-yellow/70"
+                     style={{ width: `${(x.rent / max) * 100}%` }} />
+              </div>
+              <span className="w-[46px] shrink-0 text-right font-semibold
+                               text-kb-ink/85 [font-variant-numeric:tabular-nums]">
+                {x.rent}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-3 rounded-lg bg-kb-ink/[.04] px-2.5 py-2 text-[12px]
+                    leading-relaxed text-kb-ink/62">
         {d.note}
       </p>
     </div>

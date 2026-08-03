@@ -44,3 +44,4 @@ frontend/out/
 backend/.cache/market/
 backend/app/data/sessions.db*
 backend/app/data/finlife_cache.json
+backend/app/data/rone_cache.json

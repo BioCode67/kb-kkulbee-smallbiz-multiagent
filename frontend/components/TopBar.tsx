@@ -14,8 +14,10 @@ import ProtectionDrawer from './ProtectionDrawer';
 import SavedDrawer from './SavedDrawer';
 import { loadSaved, onSavedChange } from '@/lib/saved';
 
-/** page.tsx의 MODES 순서 그대로 — 인덱스로 통신합니다 */
-const NAV = ['입지 진단', '기회 업종', '자금 찾기', '권리 지키기', '한 번에'];
+/** page.tsx의 MODES 순서 그대로 — 인덱스로 통신합니다.
+ *  '한 번에'는 홈 배너에 이미 있어 상단에서는 뺐고(사용자 피드백),
+ *  그 자리에 다른 데 없는 킬러 기능(금소법 검사기)을 둡니다. */
+const NAV = ['입지 진단', '기회 업종', '자금 찾기', '권리 지키기'];
 
 export default function TopBar() {
   // 큰글씨 모드 — 소상공인의 큰 축은 중장년입니다. 돋보기 없이 읽히는
@@ -58,8 +60,10 @@ export default function TopBar() {
     window.dispatchEvent(new CustomEvent('kkulbee:mode', { detail: i }));
 
   return (
-    <header className="print:hidden sticky top-0 z-40 border-b border-kb-ink/[.1]
-                       bg-kb-cream/90 backdrop-blur-xl">
+    // 다크 헤더 — 크림색 본문과 확실히 구별됩니다(사용자 피드백).
+    // 노란 배지·CTA가 잉크 위에서 제일 잘 삽니다.
+    <header className="print:hidden sticky top-0 z-40 border-b border-white/10
+                       bg-kb-ink/[.97] backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-[1760px] items-center px-5 lg:px-12">
         {/* 로고 — KB 노랑 배지 + 꿀비 워드마크. 좁은 배지 안 꿀벌은
             뭉개져 보였고, 출품작 이름이 KB-kkulbee이니 배지는 KB가
@@ -79,7 +83,7 @@ export default function TopBar() {
             KB
           </span>
           <span className="leading-none">
-            <span className="block text-[19px] font-black tracking-[-0.02em] text-kb-ink">
+            <span className="block text-[19px] font-black tracking-[-0.02em] text-white">
               꿀비
             </span>
             <span className="mt-[3px] block text-[10px] font-bold tracking-[0.02em]
@@ -94,16 +98,21 @@ export default function TopBar() {
                         md:flex">
           {NAV.map((label, i) => (
             <button key={label} onClick={() => go(i)}
-                    className="rounded-lg px-3 py-1.5 text-[15px] text-kb-ink/82
-                               transition hover:bg-kb-ink/[.04] hover:text-kb-ink">
+                    className="rounded-lg px-3 py-1.5 text-[15px] text-white/80
+                               transition hover:bg-white/[.08] hover:text-kb-yellow">
               {label}
             </button>
           ))}
+          <button onClick={() => setDrawer(true)}
+                  className="rounded-lg px-3 py-1.5 text-[15px] text-white/80
+                             transition hover:bg-white/[.08] hover:text-kb-yellow">
+            금소법 검사기
+          </button>
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">
           {stat.stores && stat.docs && (
-            <span className="hidden items-center gap-1.5 text-[13.5px] text-kb-ink/72
+            <span className="hidden items-center gap-1.5 text-[13.5px] text-white/65
                              lg:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {(stat.stores / 10000).toFixed(0)}만 점포 · {stat.docs}건 실측
@@ -113,15 +122,15 @@ export default function TopBar() {
           <button onClick={toggleBig}
                   title={big ? '기본 글씨로' : '큰글씨로 보기'}
                   className={`rounded-lg px-2 py-1 text-[15px] font-bold transition ${
-                    big ? 'bg-kb-yellow/[.25] text-kb-amber'
-                        : 'text-kb-ink/55 hover:text-kb-ink'}`}>
+                    big ? 'bg-kb-yellow/[.25] text-kb-yellow'
+                        : 'text-white/55 hover:text-white'}`}>
             가+
           </button>
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}
                   title="찜한 지원사업 — 마감 가까운 순"
-                  className="relative rounded-lg px-2 py-1.5 text-[17px] text-kb-ink/72
-                             transition hover:text-kb-amber">
+                  className="relative rounded-lg px-2 py-1.5 text-[17px] text-white/70
+                             transition hover:text-kb-yellow">
             ☆
             {savedN > 0 && (
               <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4
