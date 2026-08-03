@@ -80,7 +80,6 @@ function LeafletMap({
                url: string }[] } | null>(null);
   const clickDotRef = useRef<{ remove: () => void } | null>(null);
   const [touring, setTouring] = useState(false);
-  const [speakOn, setSpeakOn] = useState(true);
   const heatRef = useRef<HeatLayer | null>(null);
   const pointsRef = useRef<[number, number][]>([]);
   const LRef = useRef<LWithHeat | null>(null);
@@ -207,12 +206,6 @@ function LeafletMap({
   }, [pins, dongCode, industryCode]);
 
   // ── 시네마틱 투어 ────────────────────────────────────────────────
-  const speak = (t: string) => {
-    if (!speakOn || typeof speechSynthesis === 'undefined') return;
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = 'ko-KR'; u.rate = 1.05;
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-  };
 
   const runTour = async () => {
     type FlyMap = { flyTo: (c: [number, number], z: number, o?: object) => void;
@@ -223,24 +216,33 @@ function LeafletMap({
     if (!map || !target || touring) return;
     setTouring(true);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    const step = (label: string) => { setTourStep(label); speak(label); };
-    // 꿀비가 투어에 직접 합류합니다 — 지도 위 지점(가로·세로 비율)으로
+    const step = (label: string) => setTourStep(label);
+    // 작은 꿀비가 투어에 직접 합류합니다 — 지도 위 지점(가로·세로 비율)으로
     // 날아가 그 막을 함께 봅니다. 마스코트가 해설자가 되는 순간.
-    // 꿀비는 투어에 '따라 날지' 않습니다 — 2D 지도 위 3D 비행이
-    // 이질적이라는 피드백. 카메라와 자막·음성만 움직입니다.
+    // (한 번 뺐다가 사용자 요청으로 복원 — 비행 중엔 0.52배로 작아져
+    //  지도를 가리지 않습니다. 음성은 뺐습니다.)
+    const beeTo = (fx: number, fy: number) => {
+      const r = boxRef.current?.getBoundingClientRect();
+      if (!r) return;
+      window.dispatchEvent(new CustomEvent('kkulbee:flyto', {
+        detail: { x: r.left + r.width * fx, y: r.top + r.height * fy } }));
+    };
     const beeHome = () => window.dispatchEvent(new CustomEvent('kkulbee:flyhome'));
 
     try {
       step(`${target.name}입니다`);
+      beeTo(0.84, 0.2);
       map.flyTo([target.latitude, target.longitude], 15, { duration: 1.6 });
       await wait(2600);
 
       if (shops && shops.total > 0) {
         step(`주황 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
+        beeTo(0.16, 0.28);
         map.flyTo([target.latitude, target.longitude], 16, { duration: 1.2 });
         await wait(3000);
 
         step('열지도로 보면 경쟁이 몰린 골목이 드러납니다');
+        beeTo(0.5, 0.16);
         setHeat(true);
         await wait(3200);
         setHeat(false);
@@ -248,6 +250,7 @@ function LeafletMap({
 
       if (pins.length > 1) {
         step('옆 동네와 나란히 놓고 봐야 이 점수의 높낮이가 읽힙니다');
+        beeTo(0.84, 0.72);
         map.flyToBounds(pins.map((p) => [p.latitude, p.longitude] as [number, number]),
                         { padding: [40, 40], duration: 1.6 });
         await wait(3400);
@@ -301,13 +304,6 @@ function LeafletMap({
                        text-kb-ink shadow transition hover:brightness-105
                        disabled:opacity-60">
             {touring ? '투어 중…' : '▶ 지도 투어'}
-          </button>
-          <button onClick={() => setSpeakOn((v) => !v)}
-            title="설명을 소리로"
-            className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
-                        transition ${speakOn
-              ? 'bg-white text-kb-ink' : 'bg-white/70 text-kb-ink/68'}`}>
-            {speakOn ? '소리 켬' : '소리 끔'}
           </button>
         </div>
         {shops && shops.total > 0 && (

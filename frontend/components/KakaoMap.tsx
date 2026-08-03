@@ -88,7 +88,6 @@ export default function KakaoMap({
   const [heat, setHeat] = useState(false);
   const circlesRef = useRef<{ setOptions: (o: object) => void }[]>([]);
   const [touring, setTouring] = useState(false);
-  const [speakOn, setSpeakOn] = useState(true);
   // 지도를 누른 자리 주변의 실제 가게 — 카카오 로컬 실시간 검색
   const [near, setNear] = useState<Near | null>(null);
   const clickDotRef = useRef<{ setMap: (m: KMap | null) => void } | null>(null);
@@ -199,12 +198,6 @@ export default function KakaoMap({
           strokeOpacity: 0.9, fillColor: '#FF3B1F', fillOpacity: 0.9 }));
   };
 
-  const speak = (t: string) => {
-    if (!speakOn || typeof speechSynthesis === 'undefined') return;
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = 'ko-KR'; u.rate = 1.05;
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-  };
 
   const runTour = async () => {
     const kakao = kakaoRef.current; const map = mapRef.current;
@@ -212,20 +205,32 @@ export default function KakaoMap({
     if (!kakao || !map || !target || touring) return;
     setTouring(true);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    const step = (t: string) => { setTourStep(t); speak(t); };
+    const step = (t: string) => setTourStep(t);
+    // 작은 꿀비가 투어에 합류 — 지도 위 비율 좌표로 날아가 해설합니다
+    const beeTo = (fx: number, fy: number) => {
+      const r = boxRef.current?.getBoundingClientRect();
+      if (!r) return;
+      window.dispatchEvent(new CustomEvent('kkulbee:flyto', {
+        detail: { x: r.left + r.width * fx, y: r.top + r.height * fy } }));
+    };
+    const beeHome = () => window.dispatchEvent(new CustomEvent('kkulbee:flyhome'));
     const center = new kakao.maps.LatLng(target.latitude, target.longitude);
     try {
       step(`${target.name}입니다`);
+      beeTo(0.84, 0.2);
       map.panTo(center); map.setLevel(4, { animate: true }); await wait(2400);
       if (shops && shops.total > 0) {
         step(`빨간 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
+        beeTo(0.16, 0.28);
         map.panTo(center); map.setLevel(2, { animate: true }); await wait(3000);
         step('열지도로 보면 경쟁이 몰린 골목이 드러납니다');
+        beeTo(0.5, 0.16);
         applyHeat(true); await wait(2800);
         applyHeat(false);
       }
       if (pins.length > 1) {
         step('옆 동네와 나란히 놓고 봐야 이 점수의 높낮이가 읽힙니다');
+        beeTo(0.84, 0.72);
         const b = new kakao.maps.LatLngBounds();
         pins.forEach((p) => b.extend(new kakao.maps.LatLng(p.latitude, p.longitude)));
         map.setBounds(b, 40); await wait(3200);
@@ -233,7 +238,7 @@ export default function KakaoMap({
       }
       step('구석구석은 직접 움직여 보세요 — 건물 이름까지 보입니다');
       await wait(2200);
-    } finally { setTourStep(null); setTouring(false); }
+    } finally { beeHome(); setTourStep(null); setTouring(false); }
   };
 
   return (
@@ -261,12 +266,6 @@ export default function KakaoMap({
                         transition ${heat ? 'bg-kb-ink text-white'
                                           : 'bg-white text-kb-ink/78'}`}>
             {heat ? '점으로' : '열지도'}
-          </button>
-          <button onClick={() => setSpeakOn((v) => !v)}
-            className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
-                        transition ${speakOn ? 'bg-white text-kb-ink'
-                                             : 'bg-white/70 text-kb-ink/68'}`}>
-            {speakOn ? '소리 켬' : '소리 끔'}
           </button>
         </div>
       </div>
