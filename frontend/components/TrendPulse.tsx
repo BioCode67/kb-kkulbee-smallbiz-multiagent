@@ -250,7 +250,7 @@ export default function TrendPulse() {
       {/* ── ⑥ 업종 흐름 ── */}
       <section className={`mt-5 ${CARD}`}>
         <h2 className="font-display text-[21px] text-kb-ink">
-          업종 창업 흐름 <span className="text-orange-700">— 가맹점이 는 업종, 준 업종</span>
+          업종 창업 흐름 <span className="text-orange-700">— 1년 새 가맹점이 늘어난 업종과 줄어든 업종</span>
         </h2>
         {!ind && <p className="mt-4 text-[14px] text-kb-ink/55">공시를 불러오는 중입니다…</p>}
         {ind && !ind.ok && (
