@@ -34,6 +34,7 @@ import GapRadar from '@/components/GapRadar';
 import FranchiseCheck from '@/components/FranchiseCheck';
 import AllBriefing from '@/components/AllBriefing';
 import TrendPulse from '@/components/TrendPulse';
+import ModeExtras from '@/components/ModeExtras';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -701,6 +702,10 @@ export default function Page() {
                 <TrendPulse />
               )}
 
+              {/* 갈래 공통 — 미리 보는 실제 화면·팁·출처 (페이지가 아래로
+                  더 길고 풍성하게, 사진 몇 장 더 — 사용자 피드백) */}
+              {view === 'mode' && <ModeExtras k={MODES[mode].key} />}
+
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은
                   목업 냄새가 났고 흰 상자 속 흰 입력창은 흐릿했습니다.
                   배경 위에 바로, 대신 카드 하나하나의 대비를 올립니다. */}
@@ -845,6 +850,34 @@ export default function Page() {
               {/* ── 꿀벌 순찰 + 업종 컨베이어 — 내려도 살아 있는 화면 ── */}
               <BeePatrol />
               <IndustryBelt />
+
+              {/* ── 미리 보는 실제 화면 — 목업이 아니라 배포 중인 화면 ── */}
+              <div className="mt-14 w-full max-w-[1240px]">
+                <p className="text-center text-[13px] font-bold uppercase
+                              tracking-wider text-kb-ink/55">
+                  미리 보는 실제 화면
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  {([['/shots/map.jpg', '경쟁 점포 273만 개 중 우리 골목'],
+                     ['/shots/plan.jpg', '자금 조달 설계 — 이자 절감액까지'],
+                     ['/shots/contract.jpg', '계약서 PDF 넣으면 독소조항 빨간 펜'],
+                  ] as [string, string][]).map(([src, cap], i) => (
+                    <motion.figure key={src}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ delay: i * 0.12, duration: 0.5 }}
+                      className="overflow-hidden rounded-2xl border
+                                 border-kb-ink/[.1] bg-white shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={cap} loading="lazy"
+                           className="h-[220px] w-full object-cover object-top" />
+                      <figcaption className="px-3.5 py-2.5 text-[13px]
+                                             text-kb-ink/72">{cap}</figcaption>
+                    </motion.figure>
+                  ))}
+                </div>
+              </div>
 
               {/* ── 무엇이 다른가 ── */}
               <div className="mb-20 mt-14 grid w-full max-w-[1240px] gap-5
