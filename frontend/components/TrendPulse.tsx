@@ -147,7 +147,9 @@ export default function TrendPulse() {
               <p className="mt-2 text-[13px] leading-snug text-kb-ink/68">
                 33㎡(10평) 가게라면 전국 평균 월
                 {econ.rents?.national != null
-                  ? ` 약 ${Math.round(econ.rents.national * 33 / 10) * 10}만원`
+                  /* 천원/㎡ × 33㎡ = 총액(천원) → ÷10이 만원. ×10으로
+                     68만원이 680만원이 됐던 10배 오류(사용자 제보). */
+                  ? ` 약 ${Math.round(econ.rents.national * 33 / 10)}만원`
                   : ' —'} 수준입니다.
               </p>
             </div>
