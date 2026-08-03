@@ -63,12 +63,26 @@ Pick 2 최적 입지 × Pick 3 소상공인 금융 × Pick 4 소비자 보호
   소상공인지원센터 대학가 상권 검증 — 양주시·동대문구 등 전국 센터로
   접촉 확대 중.
 
-<p align="center">
-  <img src="docs/field/sinjeon_dongseongro.jpg" height="150" alt="현장 검증 — 신전떡볶이 동성로점">
-  <img src="docs/field/105beon.jpg" height="150" alt="현장 검증 — 105번(동성로)">
-  <img src="docs/field/dandy_fitness.jpg" height="150" alt="현장 검증 — 단디휘트니스 계양점">
-  <img src="docs/field/semas_daegu_north.jpg" height="150" alt="소상공인시장진흥공단 대구북부센터 방문">
-</p>
+**현장 UX 테스트 · 인터뷰 — 대구·경산 소상공인**
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/field/sinjeon_dongseongro.jpg" height="168" alt="신전떡볶이 동성로점"><br><sub><b>신전떡볶이 동성로점</b><br>외식업 · 현장 인터뷰</sub></td>
+    <td align="center"><img src="docs/field/105beon.jpg" height="168" alt="105번 (동성로)"><br><sub><b>105번 (동성로)</b><br>외식업 · 상권 답사·인터뷰</sub></td>
+    <td align="center"><img src="docs/field/dandy_fitness.jpg" height="168" alt="단디휘트니스 계양점"><br><sub><b>단디휘트니스 계양점</b><br>서비스업 · UX 테스트</sub></td>
+  </tr>
+</table>
+
+**지원기관 방문 · 협력 접촉**
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/field/semas_daegu_north.jpg" height="150" alt="소상공인시장진흥공단 대구북부센터"><br><sub><b>소상공인시장진흥공단 대구북부센터 · 대구전용교육장</b><br>대구경북지역본부 연계 Pilot 추진 — 방문 협의</sub></td>
+  </tr>
+</table>
+
+<sub>대구신용보증재단(대구광역시 소상공인광역지원센터) · 와글와글센터 ·
+동대문구 소상공인지원센터 방문 기록은 정리되는 대로 추가합니다.</sub>
 
 ---
 
