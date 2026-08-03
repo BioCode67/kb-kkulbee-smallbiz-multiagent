@@ -598,3 +598,151 @@ def similar_dongs(code: str, k: int = 5) -> list[dict]:
         if len(out) >= k:
             break
     return out
+
+
+# ── 기회 업종 전용 도구 — 입지 진단과 겹치지 않는 두 관점 ────────────────
+#
+# 입지 진단은 "동네를 정했을 때"의 도구입니다. 기회 업종은 반대편에서
+# 시작합니다: 업종은 정했는데 어디로 갈지 모를 때(빈 자리 동네), 업종을
+# 정하기 전에 무엇이 같이 다니는지 볼 때(궁합 업종). 두 계산 모두 272만
+# 점포 실측 집계에서만 나오며 수요·매출 예측이 아닙니다.
+
+_gap_lock = threading.Lock()
+_gap_mem: dict = {}
+
+
+def resolve_industry(industry: str) -> tuple[str, str] | None:
+    """코드든 이름이든 소분류 (코드, 이름)으로. 모르면 None."""
+    ix = _load()
+    name = ix["nation"]["small_name"].get(industry)
+    if name:
+        return industry, name
+    return find_industry(industry)
+
+
+def empty_spots(industry: str, sido: str | None = None, k: int = 12) -> dict:
+    """업종 → 동네 역탐색: 규모는 비슷한데 이 업종만 유독 적은 동네.
+
+    기대치는 "그 동네 전체 점포 수 × 전국 비중"입니다. 상권 규모가 클수록
+    보통 그 업종도 비례해 있는데, 기대치의 35%도 안 되면 '빈 자리'로
+    봅니다. 수요 예측이 아니라 분포의 공백이며, 화면에 그렇게 적습니다.
+    """
+    hit = resolve_industry(industry)
+    if not hit:
+        return {"ok": False, "reason": "모르는 업종입니다. 목록에서 골라 주세요."}
+    code, name = hit
+    ck = ("spots", code, sido or "")
+    with _gap_lock:
+        if ck in _gap_mem:
+            return _gap_mem[ck]
+
+    ix = _load()
+    nat = ix["nation"]["small_national"].get(code, 0)
+    total = sum(d["stores"] for d in ix["dong"].values())
+    share = nat / total if total else 0
+    rows = []
+    for dcode, d in ix["dong"].items():
+        if sido and d["sido"] != sido:
+            continue
+        exp = d["stores"] * share
+        act = d["small"].get(code, 0)
+        # 기대 4곳 미만이면 원래 드문 곳 — '빈 자리'라 부르기 어렵습니다
+        if exp >= 4 and act <= 0.35 * exp:
+            rows.append({
+                "code": dcode,
+                "name": f"{d['sido']} {d['sgg']} {d['dong']}",
+                "stores": d["stores"], "actual": act,
+                "expected": round(exp, 1), "gap": round(exp - act, 1),
+            })
+    rows.sort(key=lambda x: -x["gap"])
+    out = {
+        "ok": True, "industry": name, "code": code,
+        "national": nat, "share_pct": round(share * 100, 2),
+        "rows": rows[:k], "n_candidates": len(rows),
+        "note": (f"전국 {name} {nat:,}곳(전체의 {share*100:.2f}%) 비중을 "
+                 "각 동네 규모에 대면 기대치가 나옵니다. 기대치의 35% 미만인 "
+                 "동네만 골랐습니다 — 분포의 공백이지 수요 예측이 아닙니다. "
+                 "임대료·유동인구는 자료에 없어 반영하지 않았습니다."),
+    }
+    with _gap_lock:
+        _gap_mem[ck] = out
+    return out
+
+
+def _share_matrix():
+    """동(3,450) × 주요 업종 점유율 행렬 — 궁합 계산의 재료. 1회 생성."""
+    import numpy as np
+
+    with _gap_lock:
+        if "M" in _gap_mem:
+            return _gap_mem["M"]
+    ix = _load()
+    # 전국 2,000곳 이상 업종만 — 표본이 얇으면 상관이 소음이 됩니다
+    codes = [c for c, n in ix["nation"]["small_national"].items() if n >= 2000]
+    dongs = list(ix["dong"].keys())
+    m = np.zeros((len(dongs), len(codes)), dtype=np.float32)
+    col = {c: j for j, c in enumerate(codes)}
+    for i, dc in enumerate(dongs):
+        d = ix["dong"][dc]
+        st = d["stores"] or 1
+        for c, cnt in d["small"].items():
+            j = col.get(c)
+            if j is not None:
+                m[i, j] = cnt / st
+    pack = {"m": m, "codes": codes, "col": col, "dongs": dongs}
+    with _gap_lock:
+        _gap_mem["M"] = pack
+    return pack
+
+
+def companions(industry: str, dong_code: str | None = None, k: int = 6) -> dict:
+    """궁합 업종 — 전국 분포에서 이 업종과 '같이 다니는' 업종.
+
+    3,450개 동의 업종 점유율 벡터로 피어슨 상관을 재고, 함께 있는 동네
+    비율(동시 존재율)을 붙입니다. 동네를 주면 그 동네에 궁합 업종이
+    있는지까지 — "보통 같이 있는데 여긴 없다"가 기회의 신호입니다.
+    """
+    import numpy as np
+
+    hit = resolve_industry(industry)
+    if not hit:
+        return {"ok": False, "reason": "모르는 업종입니다. 목록에서 골라 주세요."}
+    code, name = hit
+    pack = _share_matrix()
+    j = pack["col"].get(code)
+    if j is None:
+        return {"ok": False, "reason": "표본이 적은 업종이라 궁합을 재지 않습니다."}
+
+    m = pack["m"]
+    x = m[:, j]
+    xc = x - x.mean()
+    xs = float((xc ** 2).sum()) or 1.0
+    ix = _load()
+    nm = ix["nation"]["small_name"]
+    present_x = x > 0
+    out_rows = []
+    for jj, c in enumerate(pack["codes"]):
+        if jj == j:
+            continue
+        y = m[:, jj]
+        yc = y - y.mean()
+        denom = (xs * float((yc ** 2).sum())) ** 0.5 or 1.0
+        r = float((xc * yc).sum()) / denom
+        both = float(((y > 0) & present_x).sum()) / (float(present_x.sum()) or 1.0)
+        out_rows.append({"code": c, "industry": nm.get(c, c),
+                         "corr": round(r, 3), "together_pct": round(both * 100)})
+    out_rows.sort(key=lambda v: -v["corr"])
+    top = out_rows[:k]
+
+    here = None
+    if dong_code and dong_code in ix["dong"]:
+        d = ix["dong"][dong_code]
+        here = {"name": f"{d['sido']} {d['sgg']} {d['dong']}",
+                "counts": {t["code"]: d["small"].get(t["code"], 0) for t in top},
+                "self": d["small"].get(code, 0)}
+
+    return {
+        "ok": True, "industry": name, "code": code, "top": top, "here": here,
+        "note": ("전국 3,450개 동의 업종 점유율로 잰 피어슨 상관입니다. "
+                 "함께 있는 경향이지 인과·수요 예측이 아닙니다."),
+    }

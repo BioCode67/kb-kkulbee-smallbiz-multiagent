@@ -470,3 +470,29 @@ def test_golden_time_lease_window_and_expiry():
     # 이미 만료된 계약이면 전부 expired로 표시된다
     r = compute("lease", "2025-01-31", today=date(2026, 8, 2))
     assert r["expired_all"] and all(i["days_left"] < 0 for i in r["items"])
+
+
+def test_empty_spots_shape_and_logic():
+    """빈 자리 동네 — 뽑힌 동네는 전부 기대치의 35% 이하여야 합니다."""
+    from app.services import market_data
+
+    r = market_data.empty_spots("카페")
+    assert r["ok"] and r["rows"]
+    for row in r["rows"]:
+        assert row["actual"] <= 0.35 * row["expected"] + 1e-6
+        assert row["expected"] >= 4
+    # 시도 필터가 실제로 거릅니다
+    r2 = market_data.empty_spots("카페", sido="경상북도")
+    assert all(x["name"].startswith("경상북도") for x in r2["rows"])
+
+
+def test_companions_shape():
+    """궁합 업종 — 상관은 [-1,1], 자기 자신은 빠져야 합니다."""
+    from app.services import market_data
+
+    c = market_data.companions("카페", dong_code=None)
+    assert c["ok"] and c["top"]
+    for t in c["top"]:
+        assert -1 <= t["corr"] <= 1
+        assert t["industry"] != "카페"
+        assert 0 <= t["together_pct"] <= 100

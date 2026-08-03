@@ -31,6 +31,7 @@ import FundingPlan from '@/components/FundingPlan';
 import ContractScan from '@/components/ContractScan';
 import GoldenTime from '@/components/GoldenTime';
 import GapRadar from '@/components/GapRadar';
+import GapScout from '@/components/GapScout';
 import FranchiseCheck from '@/components/FranchiseCheck';
 import AllBriefing from '@/components/AllBriefing';
 import TrendPulse from '@/components/TrendPulse';
@@ -718,9 +719,10 @@ export default function Page() {
                 <GoldenTime />
               </>)}
 
-              {view === 'mode' && MODES[mode].key === 'gap' && (
+              {view === 'mode' && MODES[mode].key === 'gap' && (<>
                 <GapRadar />
-              )}
+                <GapScout />
+              </>)}
 
               {view === 'mode' && MODES[mode].key === 'all' && (
                 <AllBriefing onAsk={ask} />

@@ -83,6 +83,35 @@ def stores(dong: str, industry: str | None = None, limit: int = 1200) -> dict:
     return market_data.store_points(dong, industry, min(limit, 3000))
 
 
+@app.get("/api/v1/empty-spots")
+def empty_spots(industry: str, sido: str | None = None) -> dict:
+    """업종 → 동네 역탐색. 규모 대비 그 업종이 유독 적은 동네 순위.
+
+    입지 진단이 "동네를 정했을 때"라면 이것은 반대편 — 업종은 정했는데
+    어디로 갈지 모를 때의 도구입니다. 분포의 공백이지 수요 예측이 아닙니다.
+    """
+    from app.services import market_data
+
+    return market_data.empty_spots(industry, sido or None)
+
+
+@app.get("/api/v1/companions")
+def companions(industry: str, region: str | None = None) -> dict:
+    """궁합 업종 — 전국 분포에서 이 업종과 같이 다니는 업종.
+
+    region(동네 이름)을 주면 그 동네에 궁합 업종이 몇 곳인지까지 —
+    "보통 같이 있는데 여긴 없다"가 기회의 신호가 됩니다.
+    """
+    from app.services import market_data
+
+    dong_code = None
+    if region:
+        hit = market_data.find_dong(region)
+        if hit:
+            dong_code = hit["code"]
+    return market_data.companions(industry, dong_code)
+
+
 @app.get("/api/v1/nearby")
 async def nearby(lat: float, lng: float, q: str | None = None) -> dict:
     """지도에서 누른 자리 주변의 실제 가게 — 카카오 로컬 실시간 검색.
