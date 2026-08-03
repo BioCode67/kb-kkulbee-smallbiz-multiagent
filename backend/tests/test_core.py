@@ -508,3 +508,84 @@ def test_hot_spots_shape():
     assert shares == sorted(shares, reverse=True)
     for x in r["rows"]:
         assert x["stores"] >= 300 and x["actual"] >= 5
+
+
+# ── 혜택 서랍 — 전체 목록이 정직하게 걸러지고 줄 서는지 ──
+
+def _drawer(**kw):
+    """색인 수집일(2026-08-01) 언저리로 날짜를 고정해 돌립니다 —
+    CI가 언제 돌아도 open/마감 판정이 흔들리지 않게."""
+    from datetime import date
+    from app.services.funding_catalog import browse
+    return browse(today=date(2026, 8, 2), **kw)
+
+
+def test_catalog_shows_only_applicable():
+    """서랍의 약속 — '신청할 수 있는 것'만. 끝난 공고·지난 마감이 새면
+    사장님이 헛걸음합니다."""
+    r = _drawer(limit=50)
+    assert r["ok"] and r["total"] > 500          # 다섯 건이 아니라 전부
+    for it in r["items"]:
+        assert it["open_status"] in ("open", "rolling", "upcoming")
+        if it["open_status"] == "open" and it["days_left"] is not None:
+            assert it["days_left"] >= 0
+        assert it["url"].startswith("https://www.bizinfo.go.kr")
+    # 성격별 개수의 합 = 전체 (필터가 없을 때) — 칩 숫자가 거짓말하지 않게
+    assert sum(r["counts"]["funding"].values()) == r["total"]
+
+
+def test_catalog_paging_is_stable():
+    a = _drawer(limit=20)
+    b = _drawer(limit=20, offset=20)
+    assert len(a["items"]) == 20
+    assert {i["id"] for i in a["items"]}.isdisjoint({i["id"] for i in b["items"]})
+
+
+def test_catalog_region_filter():
+    r = _drawer(region="서울", limit=50)
+    for it in r["items"]:
+        assert not it["regions"] or any("서울" in x for x in it["regions"])
+    nation = _drawer(region="전국", limit=50)
+    assert all(not it["regions"] for it in nation["items"])
+    # 경북 전용 사업이 서울 서랍에 섞이면 안 됩니다
+    assert r["total"] < _drawer()["total"]
+
+
+def test_catalog_search_finds_words_and_admits_nothing():
+    hit = _drawer(q="소상공인")
+    assert hit["total"] > 0 and hit["sort"] == "relevance"
+    # 없는 낱말이면 억지로 채우지 않고 빈손이 맞는 답
+    assert _drawer(q="쀍쀓뛝")["total"] == 0
+
+
+def test_catalog_deadline_sort_orders_urgency():
+    r = _drawer(sort="deadline", limit=50)
+    ranks, last_days = [], -1
+    for it in r["items"]:
+        rank = (0 if it["open_status"] == "open" and it["days_left"] is not None
+                else 1 if it["open_status"] == "upcoming" else 2)
+        ranks.append(rank)
+        if rank == 0:
+            assert it["days_left"] >= last_days
+            last_days = it["days_left"]
+    assert ranks == sorted(ranks)                # 마감 있는 것 → 예정 → 상시
+
+
+def test_catalog_amount_sort_puts_biggest_first():
+    r = _drawer(sort="amount", limit=50)
+    amounts = [it["amount_krw"] for it in r["items"] if it["amount_krw"]]
+    assert amounts == sorted(amounts, reverse=True)
+    assert r["items"][0]["amount_krw"] is not None
+
+
+def test_catalog_fit_respects_profile():
+    """'내 조건 맞춤'의 약속 — 지역이 어긋나는 공고는 남지 않고,
+    남긴 것에는 왜 맞는지가 붙어 있어야 합니다."""
+    r = _drawer(my_region="서울 마포구 연남동", my_industry="카페",
+                fit_only=True, limit=50)
+    assert r["my_sido"] == "서울" and r["sort"] == "fit"
+    fits = [it["fit"] for it in r["items"]]
+    assert fits == sorted(fits, reverse=True)
+    for it in r["items"]:
+        assert not it["regions"] or any("서울" in x for x in it["regions"])
+        assert it["why"]                          # 근거 없는 맞춤은 없다

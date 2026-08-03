@@ -27,6 +27,7 @@ import WhatIf from '@/components/WhatIf';
 import BeeChatbot from '@/components/BeeChatbot';
 import SiteFooter from '@/components/SiteFooter';
 import HeroTicker from '@/components/HeroTicker';
+import FundingCatalog from '@/components/FundingCatalog';
 import FundingPlan from '@/components/FundingPlan';
 import ContractScan from '@/components/ContractScan';
 import GoldenTime from '@/components/GoldenTime';
@@ -710,6 +711,7 @@ export default function Page() {
 
               {view === 'mode' && MODES[mode].key === 'policy' && (<>
                 <FundingPlan region={shop?.region} industry={shop?.industry} />
+                <FundingCatalog region={shop?.region} industry={shop?.industry} />
                 <MoneyHub />
               </>)}
 

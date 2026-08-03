@@ -471,6 +471,28 @@ def funding_plan(payload: dict) -> dict:
                      "원리금균등 5년 가정입니다. 확약이 아닙니다.")}
 
 
+@app.get("/api/v1/catalog")
+def catalog(q: str = "", funding: str | None = None, category: str | None = None,
+            region: str | None = None, status: str | None = None,
+            smallbiz: bool = False, fit_only: bool = False,
+            my_region: str | None = None, my_industry: str | None = None,
+            sort: str = "auto", offset: int = 0, limit: int = 20) -> dict:
+    """혜택 서랍 — 신청할 수 있는 지원 전체를 거르고 줄 세워 봅니다.
+
+    자금 설계가 몇 건을 '골라 주는' 도구라면 이것은 '펼쳐 놓는' 도구입니다.
+    화면의 다섯 건이 전부가 아니라는 것 — 색인 900건 중 무엇이 있는지
+    사장님이 직접 검색·정렬하고, 내 조건(동네·업종)에 맞는 것만 남겨
+    볼 수 있습니다. 개수·마감일은 전부 색인 값 그대로입니다.
+    """
+    from app.services import funding_catalog
+
+    return funding_catalog.browse(q=q, funding=funding, category=category,
+                                  region=region, status=status,
+                                  smallbiz=smallbiz, fit_only=fit_only,
+                                  my_region=my_region, my_industry=my_industry,
+                                  sort=sort, offset=offset, limit=limit)
+
+
 @app.get("/api/v1/suggest")
 def suggest(q: str = "") -> dict:
     """입력 자동완성 — 실제 있는 동네·업종 이름만 제안합니다."""
