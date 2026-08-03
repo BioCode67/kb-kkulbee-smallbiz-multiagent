@@ -729,7 +729,7 @@ function RatesCard({ d }: { d: BankRates }) {
               </li>
             ))}
           </ul>
-          <a href="https://obank.kbstar.com/quics?page=C019327"
+          <a href="https://obank.kbstar.com/quics?page=C110260"
              target="_blank" rel="noreferrer"
              className="mt-2 inline-block text-[13px] font-bold text-kb-amber
                         underline-offset-2 hover:underline">

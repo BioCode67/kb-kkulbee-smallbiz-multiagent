@@ -24,7 +24,7 @@ from app.models.schemas import (
     TermEntry,
 )
 
-KB_APPLY_URL = "https://obank.kbstar.com/quics?page=C019327"
+KB_APPLY_URL = "https://obank.kbstar.com/quics?page=C110260"
 
 # 단정 표현 → 안전한 표현. 앞의 것부터 검사하므로 긴 표현을 먼저 둡니다.
 REWRITE: list[tuple[re.Pattern, str, str]] = [

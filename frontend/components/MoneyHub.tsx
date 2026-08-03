@@ -125,7 +125,7 @@ export default function MoneyHub() {
             {deps ? '공시 연결 대기 중입니다' : '불러오는 중입니다…'}
           </p>
         )}
-        <a href="https://obank.kbstar.com/quics?page=C019327"
+        <a href="https://obank.kbstar.com/quics?page=C110260"
            target="_blank" rel="noreferrer"
            className="mt-4 inline-block rounded-xl bg-kb-yellow px-4 py-2
                       text-[13.5px] font-bold text-kb-ink transition
