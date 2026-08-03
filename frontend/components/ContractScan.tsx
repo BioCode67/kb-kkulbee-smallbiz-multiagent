@@ -8,7 +8,7 @@
  * '서명 전 팁'을 붙입니다. 패턴이 실제 문장에 있어야만 알립니다.
  */
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface Finding {
   name: string; level: 'danger' | 'warn';
@@ -29,6 +29,41 @@ export default function ContractScan() {
   const [text, setText] = useState('');
   const [r, setR] = useState<Scan | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // 계약서 PDF를 그대로 받습니다 — 최신 pdf.js를 브라우저에서 돌려
+  // 텍스트를 뽑으므로 파일이 서버로 올라가지 않습니다(계약서는 민감
+  // 문서입니다). 스캔 이미지 PDF는 글자가 없어 정직하게 안내만 합니다.
+  const [fileBusy, setFileBusy] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const fromFile = useCallback(async (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      alert('PDF 파일만 읽을 수 있습니다. 한글(.hwp)은 PDF로 저장해 주세요.');
+      return;
+    }
+    setFileBusy(true);
+    try {
+      const pdfjs = await import('pdfjs-dist');
+      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+      const buf = await file.arrayBuffer();
+      const doc = await pdfjs.getDocument({ data: buf }).promise;
+      let text = '';
+      for (let i = 1; i <= Math.min(doc.numPages, 20); i++) {
+        const page = await doc.getPage(i);
+        const tc = await page.getTextContent();
+        text += tc.items.map((it) => ('str' in it ? it.str : '')).join(' ') + '\n';
+      }
+      const body = text.replace(/\s+/g, ' ').trim();
+      if (body.length < 30) {
+        alert('이 PDF에서 글자를 찾지 못했습니다 — 스캔 이미지본인 것 같습니다. 문구를 직접 붙여넣어 주세요.');
+        return;
+      }
+      setText(body.slice(0, 20000));
+      await run(body.slice(0, 20000));
+    } catch {
+      alert('PDF를 읽지 못했습니다. 문구를 직접 붙여넣어 주세요.');
+    } finally { setFileBusy(false); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const run = async (t?: string) => {
     const body = (t ?? text).trim();
@@ -56,12 +91,26 @@ export default function ContractScan() {
         10유형을 찾아 <b>근거 법과 함께</b> 짚어 드립니다.
       </p>
 
-      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
-        placeholder="계약서에서 걱정되는 부분을 그대로 붙여넣어 보세요 (30자 이상)"
-        className="mt-4 w-full resize-y rounded-xl bg-kb-ink/[.03] p-4 text-[14.5px]
-                   leading-relaxed text-kb-ink ring-1 ring-kb-ink/[.14]
-                   placeholder:text-kb-ink/40 focus:outline-none
-                   focus:ring-2 focus:ring-rose-300" />
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => {
+          e.preventDefault(); setDrag(false);
+          const f = e.dataTransfer.files?.[0];
+          if (f) fromFile(f);
+        }}
+        className={`mt-4 rounded-xl transition ${drag
+          ? 'ring-2 ring-rose-400 bg-rose-500/[.04]' : ''}`}
+      >
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
+          placeholder={fileBusy
+            ? 'PDF에서 계약 문구를 읽는 중입니다…'
+            : '계약서 문구를 붙여넣거나, 계약서 PDF 파일을 이 칸에 끌어다 놓아 보세요'}
+          className="w-full resize-y rounded-xl bg-kb-ink/[.03] p-4 text-[14.5px]
+                     leading-relaxed text-kb-ink ring-1 ring-kb-ink/[.14]
+                     placeholder:text-kb-ink/40 focus:outline-none
+                     focus:ring-2 focus:ring-rose-300" />
+      </div>
       <div className="mt-3 flex flex-wrap gap-2.5">
         <button onClick={() => run()} disabled={busy || !text.trim()}
           className="rounded-xl bg-rose-500 px-6 py-2.5 text-[15px] font-bold
@@ -69,6 +118,17 @@ export default function ContractScan() {
                      disabled:opacity-40">
           {busy ? '검사 중…' : '독소조항 검사하기'}
         </button>
+        <label className="cursor-pointer rounded-xl px-4 py-2.5 text-[13.5px]
+                          font-semibold text-kb-ink/62 ring-1 ring-kb-ink/[.14]
+                          hover:text-kb-ink">
+          📄 PDF 파일로 검사
+          <input type="file" accept=".pdf" className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) fromFile(f);
+              e.target.value = '';
+            }} />
+        </label>
         <button onClick={() => run(SAMPLE)}
           className="rounded-xl px-4 py-2.5 text-[13.5px] font-semibold
                      text-kb-ink/62 ring-1 ring-kb-ink/[.14] hover:text-kb-ink">
