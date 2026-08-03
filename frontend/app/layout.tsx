@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: DESC,
   // 파비콘도 꿀비입니다. 심사위원이 탭을 여러 개 열어 두었을 때 이 아이
   // 얼굴로 우리 화면을 찾게 됩니다.
-  icons: { icon: '/kkulbee.svg', apple: '/icon-192.png' },
+  icons: { icon: '/kb-badge.svg', apple: '/icon-192.png' },
   manifest: '/manifest.webmanifest',
   openGraph: {
     title: '꿀비 — 사장님 곁의 AI 비서',

@@ -207,6 +207,9 @@ export default function BeeCharacter3D({
 
       // 눈 — 얼굴 표면에 붙는 구체. 이것 하나로 '3D인가 그림인가'가 갈립니다.
       const eyes: import('three').Mesh[] = [];
+      // 캐치라이트도 함께 감겨야 합니다 — 눈을 감았는데 흰 광점만 떠
+      // 있으면 유령 눈이 됩니다(자는 모습 이상하다는 피드백의 정체).
+      const sparks: import('three').Mesh[] = [];
       for (const sx of [-1, 1]) {
         // '징그럽다'는 피드백의 주범은 과대한 눈 + 이중 광점이었습니다.
         // 눈을 한 단계 줄이고 광점을 하나만 둡니다 — 또렷함은 남고 부담이 빠집니다.
@@ -223,6 +226,7 @@ export default function BeeCharacter3D({
           new THREE.MeshBasicMaterial({ color: 0xffffff }));
         spark.position.set(sx * 0.29 - 0.06, 0.15, 1.31);
         head.add(spark);
+        sparks.push(spark);
 
         // 보조 광점 — 반짝임은 둘일 때 산다 ('예전이 낫다'는 피드백으로 복원)
         const spark2 = new THREE.Mesh(
@@ -230,6 +234,7 @@ export default function BeeCharacter3D({
           new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
         spark2.position.set(sx * 0.29 + 0.07, 0.0, 1.31);
         head.add(spark2);
+        sparks.push(spark2);
 
         // 볼터치 — 얼굴 구체 표면에 정확히 얹습니다.
         //
@@ -487,7 +492,10 @@ export default function BeeCharacter3D({
         // 투어 중에는 flyto 오버라이드 지점으로 '날아서' 이동합니다(러프).
         const rect = host.getBoundingClientRect();
         const k = (size * wpp()) / 5.0;
-        beeRoot.scale.setScalar(k);
+        // 투어 비행 중엔 반으로 줄어 지도를 가리지 않고, 이동 중에는
+        // 바닥 그림자를 끕니다(카드 위로 그림자가 지나가면 지저분합니다).
+        beeRoot.scale.setScalar(flyOverride ? k * 0.52 : k);
+        floor.visible = !flyOverride && !ball.on;
         const px = flyOverride ? flyOverride.x : rect.left + rect.width / 2;
         const py = flyOverride ? flyOverride.y : rect.top + rect.height / 2;
         // 시선 보정 — 오른쪽에 서 있으면 몸을 왼쪽(화면 중앙)으로 살짝
@@ -623,6 +631,12 @@ export default function BeeCharacter3D({
         eyes.forEach((eye) => {
           // 어지러울 때는 눈이 가늘어집니다 (@_@ 의 3D식 표현)
           eye.scale.y = 1.18 * Math.max(0.06, 1 - lidT) * (dizzy > 0 ? 0.4 : 1);
+        });
+        // 광점은 눈과 함께 줄어들다 감기면 사라집니다
+        const openK = Math.max(0.001, 1 - lidT * 1.15);
+        sparks.forEach((s) => {
+          s.scale.setScalar(openK);
+          s.visible = lidT < 0.85;
         });
 
         renderer.render(scene, camera);

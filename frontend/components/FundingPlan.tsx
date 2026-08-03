@@ -60,7 +60,8 @@ export default function FundingPlan({ region, industry }: {
   };
 
   return (
-    <section className="mt-8 w-full max-w-[1240px] rounded-2xl border-2
+    <section id="funding-plan"
+             className="mt-8 w-full max-w-[1240px] rounded-2xl border-2
                         border-kb-yellow/50 bg-white p-6
                         shadow-[0_20px_50px_-20px_rgba(224,144,0,.35)]">
       <div className="flex flex-wrap items-end justify-between gap-3">

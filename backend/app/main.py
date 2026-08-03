@@ -238,6 +238,17 @@ def contract_scan(payload: dict) -> dict:
     return cs.scan(str(payload.get("text", "")))
 
 
+@app.get("/api/v1/franchise")
+def franchise_lookup(brand: str) -> dict:
+    """가맹 브랜드 실측 조회 — 공정위 정보공개서 기반 공시.
+
+    계약서 신호등 옆에 서는 기능입니다: 서명 전에 이 브랜드가 실제로
+    몇 개이고, 1년 새 몇 곳이 문을 닫았고, 평균매출이 얼마인지.
+    """
+    from app.services import franchise
+    return franchise.search(brand)
+
+
 @app.post("/api/v1/golden-time")
 def golden_time(payload: dict) -> dict:
     """골든타임 — 권리의 마감일을 D-day로 계산.

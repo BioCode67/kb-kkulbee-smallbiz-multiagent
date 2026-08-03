@@ -31,6 +31,7 @@ import FundingPlan from '@/components/FundingPlan';
 import ContractScan from '@/components/ContractScan';
 import GoldenTime from '@/components/GoldenTime';
 import GapRadar from '@/components/GapRadar';
+import FranchiseCheck from '@/components/FranchiseCheck';
 import AllBriefing from '@/components/AllBriefing';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
@@ -667,6 +668,7 @@ export default function Page() {
 
               {view === 'mode' && MODES[mode].key === 'protection' && (<>
                 <ContractScan />
+                <FranchiseCheck />
                 <GoldenTime />
               </>)}
 

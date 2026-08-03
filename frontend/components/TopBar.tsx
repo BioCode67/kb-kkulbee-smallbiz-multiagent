@@ -74,14 +74,11 @@ export default function TopBar() {
              e.preventDefault();
              window.dispatchEvent(new CustomEvent('kkulbee:home'));
            }}>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px]
-                           bg-gradient-to-br from-[#FFD35C] to-[#F5B800]
-                           text-[15px] font-black tracking-[-0.04em] text-kb-ink
-                           shadow-[0_6px_14px_-4px_rgba(224,144,0,.5)]
-                           ring-1 ring-white/60 transition
-                           group-hover:scale-105">
-            KB
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/kb-badge.svg" alt="" width={36} height={36}
+               className="shrink-0 rounded-[10px]
+                          shadow-[0_6px_14px_-4px_rgba(224,144,0,.5)]
+                          transition group-hover:scale-105" />
           <span className="leading-none">
             <span className="block text-[19px] font-black tracking-[-0.02em] text-white">
               꿀비
@@ -103,10 +100,18 @@ export default function TopBar() {
               {label}
             </button>
           ))}
-          <button onClick={() => setDrawer(true)}
-                  className="rounded-lg px-3 py-1.5 text-[15px] text-white/80
-                             transition hover:bg-white/[.08] hover:text-kb-yellow">
-            금소법 검사기
+          {/* 시그니처 — '자금 설계사'로 직행. 금소법 검사기는 용어사전
+              느낌이라(사용자 피드백) 오른쪽 방패 아이콘으로 옮겼습니다. */}
+          <button
+            onClick={() => {
+              go(2);
+              setTimeout(() => document.getElementById('funding-plan')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 550);
+            }}
+            className="ml-1 rounded-lg bg-kb-yellow/[.14] px-3 py-1.5
+                       text-[15px] font-bold text-kb-yellow ring-1
+                       ring-kb-yellow/40 transition hover:bg-kb-yellow/[.22]">
+            💰 자금 설계사
           </button>
         </nav>
 
@@ -125,6 +130,13 @@ export default function TopBar() {
                     big ? 'bg-kb-yellow/[.25] text-kb-yellow'
                         : 'text-white/55 hover:text-white'}`}>
             가+
+          </button>
+          {/* 금소법 검사기 — 상시 접근은 유지하되 보조 자리로 */}
+          <button onClick={() => setDrawer(true)}
+                  title="소비자 보호 도구 — 금소법 표현 검사기·쉬운 용어"
+                  className="rounded-lg px-2 py-1.5 text-[16px] text-white/70
+                             transition hover:text-kb-yellow">
+            🛡
           </button>
           {/* 찜한 공고 — 담긴 게 있을 때만 숫자를 보입니다 */}
           <button onClick={() => setSavedOpen(true)}

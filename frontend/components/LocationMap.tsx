@@ -103,7 +103,9 @@ function LeafletMap({
         zoom: 7,
         zoomControl: true,
         attributionControl: false,
-        scrollWheelZoom: false,
+        // 휠 줌·(Shift+드래그) 영역 확대 — "드래그로 확대되면 좋겠다"는
+        // 피드백. 페이지 스크롤과의 충돌보다 탐색 자유가 우선입니다.
+        scrollWheelZoom: true,
       });
       mapRef.current = map as unknown as { remove: () => void };
       mapObjRef.current = map;
