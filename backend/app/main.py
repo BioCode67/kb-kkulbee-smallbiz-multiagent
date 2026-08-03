@@ -83,6 +83,23 @@ def stores(dong: str, industry: str | None = None, limit: int = 1200) -> dict:
     return market_data.store_points(dong, industry, min(limit, 3000))
 
 
+@app.get("/api/v1/nearby")
+async def nearby(lat: float, lng: float, q: str | None = None) -> dict:
+    """지도에서 누른 자리 주변의 실제 가게 — 카카오 로컬 실시간 검색.
+
+    점포 점(행안부 좌표)에는 상호명이 없어 "저 점이 무슨 가게인지"를
+    답하지 못했습니다. 클릭 지점 반경 350m를 카카오에서 조회해 이름·업종·
+    거리·카카오맵 링크로 답합니다. 키가 없으면 ok:False — 화면 패널이
+    빠질 뿐 지도는 그대로 돕니다.
+    """
+    from app.services import kakao_local
+
+    data = await kakao_local.nearby(lat, lng, q)
+    if not data:
+        return {"ok": False, "note": "카카오 로컬 검색을 쓸 수 없습니다."}
+    return data
+
+
 @app.get("/api/v1/integrations")
 def integrations() -> dict:
     """외부 연동 상태. 키를 넣은 뒤 여기서 켜졌는지 확인합니다."""

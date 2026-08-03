@@ -36,6 +36,9 @@ type KMap = { panTo: (c: KLatLng) => void; setLevel: (l: number, o?: object) => 
 interface KakaoNS {
   maps: {
     load: (cb: () => void) => void;
+    event: { addListener: (t: object, type: string,
+             cb: (e: { latLng: { getLat: () => number;
+                                 getLng: () => number } }) => void) => void };
     LatLng: new (lat: number, lng: number) => KLatLng;
     Map: new (el: HTMLElement, opts: object) => KMap;
     Circle: new (opts: object) => { setMap: (m: KMap | null) => void;
@@ -64,6 +67,10 @@ function loadSdk(): Promise<KakaoNS> {
   return sdkPromise;
 }
 
+interface NearPlace { name: string; category: string; dist: number | null;
+                      url: string; road: string; }
+interface Near { loading: boolean; query?: string; places?: NearPlace[]; }
+
 const TONE = (score: number) =>
   score >= 72 ? '#FFBC00' : score >= 58 ? '#FFD35C'
   : score >= 45 ? '#B9A88F' : '#8A7866';
@@ -82,6 +89,9 @@ export default function KakaoMap({
   const circlesRef = useRef<{ setOptions: (o: object) => void }[]>([]);
   const [touring, setTouring] = useState(false);
   const [speakOn, setSpeakOn] = useState(true);
+  // 지도를 누른 자리 주변의 실제 가게 — 카카오 로컬 실시간 검색
+  const [near, setNear] = useState<Near | null>(null);
+  const clickDotRef = useRef<{ setMap: (m: KMap | null) => void } | null>(null);
 
   useEffect(() => {
     if (!boxRef.current || !pins?.length || !KEY) return;
@@ -145,6 +155,30 @@ export default function KakaoMap({
         ov.setMap(map);
         cleanups.push(() => ov.setMap(null));
       });
+
+      // 지도를 누르면 그 자리 주변 실제 가게를 찾아 옵니다. 점(좌표)에는
+      // 상호명이 없어서, 이 클릭이 "저 점이 무슨 가게냐"의 답입니다.
+      kakao.maps.event.addListener(map, 'click', async (e) => {
+        const la = e.latLng.getLat(), lo = e.latLng.getLng();
+        clickDotRef.current?.setMap(null);
+        const dot = new kakao.maps.Circle({
+          center: new kakao.maps.LatLng(la, lo), radius: 16,
+          strokeWeight: 2, strokeColor: '#38322A', strokeOpacity: 0.85,
+          fillColor: '#FFBC00', fillOpacity: 0.35, zIndex: 6,
+        });
+        dot.setMap(map);
+        clickDotRef.current = dot;
+        setNear({ loading: true });
+        try {
+          const q = new URLSearchParams({ lat: String(la), lng: String(lo) });
+          if (industry) q.set('q', industry);
+          const r = await fetch(`/api/v1/nearby?${q}`);
+          const d = await r.json();
+          if (d.ok) setNear({ loading: false, query: d.query, places: d.places });
+          else setNear(null);
+        } catch { setNear(null); }
+      });
+      cleanups.push(() => clickDotRef.current?.setMap(null));
 
       // 도착 비행 — 카카오는 flyTo가 없어 panTo + 단계 줌으로 만듭니다.
       const to = new kakao.maps.LatLng(target.latitude, target.longitude);
@@ -236,9 +270,56 @@ export default function KakaoMap({
           </button>
         </div>
       </div>
+      {near && (
+        <div className="mt-3 rounded-xl border border-kb-ink/[.12] bg-white p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[14px] font-bold text-kb-ink">
+              누른 자리 주변 {near.query ?? '가게'}
+              <span className="ml-1.5 font-medium text-kb-ink/55">
+                — 카카오 실시간 검색 · 반경 350m · 가까운 순
+              </span>
+            </p>
+            <button onClick={() => { setNear(null);
+                                     clickDotRef.current?.setMap(null); }}
+              className="shrink-0 rounded-md px-2 py-0.5 text-[13px]
+                         text-kb-ink/55 transition hover:bg-kb-ink/[.05]">
+              닫기
+            </button>
+          </div>
+          {near.loading ? (
+            <p className="mt-2 text-[13.5px] text-kb-ink/55">찾는 중입니다…</p>
+          ) : (
+            <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+              {(near.places ?? []).map((p) => (
+                <li key={p.url + p.name}>
+                  <a href={p.url} target="_blank" rel="noreferrer"
+                     className="group flex items-baseline gap-2 rounded-lg px-2
+                                py-1 transition hover:bg-kb-yellow/[.1]">
+                    <span className="min-w-0 flex-1 truncate text-[13.5px]
+                                     font-semibold text-kb-ink/85
+                                     group-hover:text-kb-ink">
+                      {p.name}
+                      <span className="ml-1.5 font-normal text-kb-ink/52">
+                        {p.category}
+                      </span>
+                    </span>
+                    {p.dist != null && (
+                      <span className="shrink-0 text-[12.5px] text-kb-amber
+                                       [font-variant-numeric:tabular-nums]">
+                        {p.dist}m
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       <p className="mt-2 text-[12.5px] text-kb-ink/55">
         카카오 지도 · 빨간 점은 실제 {industry ?? '동종업종'} 점포
         {shops ? ` ${shops.total.toLocaleString()}곳` : ''} · 점수 칩은 비교 상권
+        · 지도를 누르면 그 자리 주변 가게 이름이 뜹니다
       </p>
     </div>
   );

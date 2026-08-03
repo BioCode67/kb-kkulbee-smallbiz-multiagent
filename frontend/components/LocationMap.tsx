@@ -74,6 +74,11 @@ function LeafletMap({
   // 시네마틱 투어 — 지도를 보면서 설명을 '듣는' 경험.
   // 카메라가 단계별로 움직이고, 각 단계의 캡션을 꿀비가 읽어 줍니다.
   const [tourStep, setTourStep] = useState<string | null>(null);
+  // 지도를 누른 자리 주변의 실제 가게 — 카카오 로컬 실시간 검색
+  const [near, setNear] = useState<{ loading: boolean; query?: string;
+    places?: { name: string; category: string; dist: number | null;
+               url: string }[] } | null>(null);
+  const clickDotRef = useRef<{ remove: () => void } | null>(null);
   const [touring, setTouring] = useState(false);
   const [speakOn, setSpeakOn] = useState(true);
   const heatRef = useRef<HeatLayer | null>(null);
@@ -166,6 +171,26 @@ function LeafletMap({
           { direction: 'top', offset: [0, -r], className: 'kb-tip' },
         );
         if (p.is_target) marker.openTooltip();
+      });
+
+      // 지도를 누르면 그 자리 주변 실제 가게를 찾아 옵니다. 점(좌표)에는
+      // 상호명이 없어서, 이 클릭이 "저 점이 무슨 가게냐"의 답입니다.
+      map.on('click', async (e: { latlng: { lat: number; lng: number } }) => {
+        const { lat, lng } = e.latlng;
+        clickDotRef.current?.remove();
+        clickDotRef.current = L.circleMarker([lat, lng], {
+          radius: 9, color: '#38322A', weight: 2, opacity: 0.85,
+          fillColor: '#FFBC00', fillOpacity: 0.35,
+        }).addTo(map);
+        setNear({ loading: true });
+        try {
+          const q = new URLSearchParams({ lat: String(lat), lng: String(lng) });
+          if (industry) q.set('q', industry);
+          const r = await fetch(`/api/v1/nearby?${q}`);
+          const d = await r.json();
+          if (d.ok) setNear({ loading: false, query: d.query, places: d.places });
+          else setNear(null);
+        } catch { setNear(null); }
       });
 
       // 도착 비행 — 전국 → 이 동네. 이후 투어가 이어받습니다.
@@ -330,10 +355,58 @@ function LeafletMap({
           ))}
       </div>
 
+      {near && (
+        <div className="mt-3 rounded-xl border border-kb-ink/[.12] bg-white p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[14px] font-bold text-kb-ink">
+              누른 자리 주변 {near.query ?? '가게'}
+              <span className="ml-1.5 font-medium text-kb-ink/55">
+                — 카카오 실시간 검색 · 반경 350m · 가까운 순
+              </span>
+            </p>
+            <button onClick={() => { setNear(null);
+                                     clickDotRef.current?.remove();
+                                     clickDotRef.current = null; }}
+              className="shrink-0 rounded-md px-2 py-0.5 text-[13px]
+                         text-kb-ink/55 transition hover:bg-kb-ink/[.05]">
+              닫기
+            </button>
+          </div>
+          {near.loading ? (
+            <p className="mt-2 text-[13.5px] text-kb-ink/55">찾는 중입니다…</p>
+          ) : (
+            <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+              {(near.places ?? []).map((p) => (
+                <li key={p.url + p.name}>
+                  <a href={p.url} target="_blank" rel="noreferrer"
+                     className="group flex items-baseline gap-2 rounded-lg px-2
+                                py-1 transition hover:bg-kb-yellow/[.1]">
+                    <span className="min-w-0 flex-1 truncate text-[13.5px]
+                                     font-semibold text-kb-ink/85
+                                     group-hover:text-kb-ink">
+                      {p.name}
+                      <span className="ml-1.5 font-normal text-kb-ink/52">
+                        {p.category}
+                      </span>
+                    </span>
+                    {p.dist != null && (
+                      <span className="shrink-0 text-[12.5px] text-kb-amber
+                                       [font-variant-numeric:tabular-nums]">
+                        {p.dist}m
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       {shops && shops.total > 0 && sameIndustryCount != null && (
         <p className="mt-2 text-[13.5px] leading-relaxed text-kb-ink/78">
           주황 점 하나가 실제 {industry ?? '동종업종'} 점포 한 곳입니다.
           몰려 있는 골목이 보이면 그곳이 이 동네의 경쟁 중심입니다.
+          지도를 누르면 그 자리 주변 가게 이름이 뜹니다.
         </p>
       )}
     </div>

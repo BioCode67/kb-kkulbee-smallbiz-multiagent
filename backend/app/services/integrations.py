@@ -50,6 +50,16 @@ def status() -> list[dict]:
             "apply": "data.seoul.go.kr → 인증키 신청(즉시 발급)",
         },
         {
+            "key": "kakao_local",
+            "name": "카카오 로컬 검색",
+            "env": "KAKAO_REST_API_KEY",
+            "configured": _has("KAKAO_REST_API_KEY"),
+            "enables": "지도를 누른 자리 주변 실제 가게(이름·업종·거리) 실시간 조회",
+            "without": "주변 가게 패널이 조용히 빠짐 — 지도는 그대로",
+            "where": "app/services/kakao_local.py",
+            "apply": "developers.kakao.com → 앱 생성 → REST API 키",
+        },
+        {
             "key": "kakao_map",
             "name": "카카오 지도 (JavaScript)",
             "env": "NEXT_PUBLIC_KAKAO_MAP_KEY",
