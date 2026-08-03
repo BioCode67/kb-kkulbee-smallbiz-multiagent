@@ -43,7 +43,7 @@ async def main() -> None:
         # 1) 다섯 갈래 전용 도구가 각자 페이지에 있는가
         tools = {"location": "근거 공개", "gap": "기회 업종 레이더",
                  "policy": "자금 설계사", "protection": "골든타임",
-                 "all": "한 번에 브리핑"}
+                 "trend": "업종 창업 흐름", "all": "한 번에 브리핑"}
         for mk, marker in tools.items():
             await pg.goto(f"{BASE}/?mode={mk}", wait_until="networkidle",
                           timeout=60000)
