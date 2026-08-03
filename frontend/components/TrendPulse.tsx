@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import SearchTrends from './SearchTrends';
 
 interface EconRegion { name: string; vals: (number | null)[]; yoy_pct: number | null; }
 interface Depth1 { quarter: string; national: number | null;
@@ -301,6 +302,7 @@ export default function TrendPulse() {
           {econ.note}
         </p>
       )}
+      <SearchTrends />
     </div>
   );
 }
