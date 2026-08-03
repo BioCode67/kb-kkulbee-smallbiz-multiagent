@@ -51,19 +51,86 @@ def api_key() -> str:
     return os.getenv("GEMINI_API_KEY", "").strip()
 
 
+# ── Groq 예비 엔진 ────────────────────────────────────────────────────────
+# Gemini 전 모델이 한도에 막히는 날(시연 날이 꼭 그런 날입니다)을 위한
+# 두 번째 심장입니다. OpenAI 호환 API라 메시지 형식만 바꿔 보냅니다.
+GROQ_BASE = "https://api.groq.com/openai/v1/chat/completions"
+
+
+def groq_key() -> str:
+    return os.getenv("GROQ_API_KEY", "").strip()
+
+
+def groq_model() -> str:
+    return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
+
+
+async def _groq(prompt: str, system: str | None, schema: dict | None,
+                max_tokens: int, temperature: float) -> str | dict | None:
+    key = groq_key()
+    if not key:
+        return None
+    msgs: list[dict] = []
+    if system:
+        msgs.append({"role": "system", "content": system})
+    p = prompt
+    if schema:
+        p += ("\n\n반드시 아래 JSON 스키마에 맞는 JSON 객체만 출력하라. "
+              "다른 말 금지:\n" + json.dumps(schema, ensure_ascii=False))
+    msgs.append({"role": "user", "content": p})
+    body: dict = {"model": groq_model(), "messages": msgs,
+                  "max_tokens": max_tokens, "temperature": temperature}
+    if schema:
+        body["response_format"] = {"type": "json_object"}
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            r = await client.post(GROQ_BASE, json=body, headers={
+                "Authorization": f"Bearer {key}"})
+        if r.status_code != 200:
+            _state["last_error"] = f"groq {r.status_code}"
+            return None
+        text = (r.json()["choices"][0]["message"]["content"] or "").strip()
+        if not text:
+            return None
+        if schema:
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError:
+                return None
+        return text
+    except (httpx.HTTPError, KeyError, ValueError, IndexError):
+        return None
+
+
 def model() -> str:
     return os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite").strip()
 
 
+# 무료 키는 모델별로 일일 쿼터가 따로 잡힙니다. 주력이 429로 막히면
+# 형제 모델로 넘어갑니다 — 시연 중 조용히 템플릿으로 떨어지는 것보다
+# 다른 모델이 답하는 편이 낫습니다(스몰토크 무응답 피드백의 근본 원인).
+def _model_chain() -> list[str]:
+    chain = [model(), "gemini-2.0-flash-lite", "gemini-2.0-flash",
+             "gemini-flash-lite-latest"]
+    out: list[str] = []
+    for m in chain:
+        if m and m not in out:
+            out.append(m)
+    return out
+
+
 def available() -> bool:
-    """지금 부를 수 있는가. 키가 있고, 쉬는 중이 아니어야 합니다."""
-    return bool(api_key()) and time.time() >= _state["blocked_until"]
+    """지금 부를 수 있는가 — Gemini가 쉬는 중이어도 Groq이 있으면 참."""
+    gem = bool(api_key()) and time.time() >= _state["blocked_until"]
+    return gem or bool(groq_key())
 
 
 def status() -> dict:
     return {
         "configured": bool(api_key()),
         "model": model() if api_key() else None,
+        "groq_configured": bool(groq_key()),
+        "groq_model": groq_model() if groq_key() else None,
         "available_now": available(),
         "calls": _state["calls"],
         "fails": _state["fails"],
@@ -107,22 +174,26 @@ async def generate(prompt: str, system: str | None = None, *,
         return None
 
     key = api_key()
-    url = f"{BASE}/{model()}:generateContent"
-    body = _payload(prompt, system, schema, max_tokens, temperature)
+    gem_ok = bool(key) and time.time() >= _state["blocked_until"]
 
-    for attempt in range(RETRY + 1):
+    for m in (_model_chain() if gem_ok else []):
+      url = f"{BASE}/{m}:generateContent"
+      body = _payload(prompt, system, schema, max_tokens, temperature)
+      if "2.5" not in m:
+          # thinkingConfig는 2.5 계열 전용 — 2.0에 보내면 400이 납니다.
+          body["generationConfig"].pop("thinkingConfig", None)
+      for attempt in range(RETRY + 1):
         try:
             async with httpx.AsyncClient(timeout=TIMEOUT) as client:
                 r = await client.post(url, json=body, headers={
                     "x-goog-api-key": key, "Content-Type": "application/json"})
             if r.status_code == 429 or r.status_code >= 500:
-                # 얼마나 쉬라는지 본문에 적혀 옵니다. 알려 준 만큼만 쉽니다.
-                hint = _RETRY_HINT.search(r.text)
-                wait = min(float(hint.group(1)) + 0.5, _COOLDOWN) if hint else _COOLDOWN
-                _state["blocked_until"] = time.time() + wait
+                # 이 모델 쿼터가 소진 — 다음 형제 모델로 넘어갑니다.
                 _state["fails"] += 1
-                _state["last_error"] = f"{r.status_code} · {wait:.0f}초 대기"
-                return None
+                _state["last_error"] = f"{m} {r.status_code}"
+                break
+            if r.status_code == 404:
+                break                      # 모델명 폐기 — 다음 모델로
             r.raise_for_status()
             data = r.json()
 
@@ -145,6 +216,16 @@ async def generate(prompt: str, system: str | None = None, *,
         except (httpx.HTTPError, KeyError, ValueError):
             if attempt >= RETRY:
                 _state["fails"] += 1
-                _state["blocked_until"] = time.time() + _COOLDOWN
-                return None
+                break                      # 이 모델 포기 — 다음 모델로
+
+    # Gemini 전 모델 실패(또는 휴식 중) — Groq이 이어받습니다.
+    out = await _groq(prompt, system, schema, max_tokens, temperature)
+    if out is not None:
+        _state["calls"] += 1
+        if gem_ok:
+            # Gemini 쪽만 잠시 쉬게 — Groq은 계속 씁니다.
+            _state["blocked_until"] = time.time() + _COOLDOWN
+        return out
+
+    _state["blocked_until"] = time.time() + _COOLDOWN
     return None

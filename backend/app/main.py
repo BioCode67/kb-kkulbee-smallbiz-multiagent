@@ -238,6 +238,37 @@ def contract_scan(payload: dict) -> dict:
     return cs.scan(str(payload.get("text", "")))
 
 
+@app.get("/api/v1/econ-trend")
+def econ_trend() -> dict:
+    """지역 경기 흐름 — 부동산원 소규모 상가 임대가격지수 최근 5분기."""
+    from app.services import rone
+    d = rone.index_trend() if rone.available() else None
+    if not d:
+        return {"ok": False, "reason": "부동산원 지수를 지금 불러오지 못했습니다"}
+    return {"ok": True, **d,
+            "note": ("한국부동산원 상업용부동산 임대동향조사 — 소규모 상가 "
+                     "임대가격지수(분기)입니다. 지수 상승은 그 지역 상가 "
+                     "자리 경쟁이 붙고 있다는 신호로만 읽어 주세요. 예측이 "
+                     "아닙니다.")}
+
+
+@app.get("/api/v1/industry-trend")
+def industry_trend_api() -> dict:
+    """업종 창업 흐름 — 공정위 가맹 통계 2개년 비교."""
+    from app.services import franchise
+    return franchise.industry_trend()
+
+
+@app.get("/api/v1/rates")
+async def rates_api() -> dict:
+    """은행 공시 금리 요약 — 자금 페이지 상시 패널용."""
+    from app.services import finlife
+    if not finlife.available():
+        return {"ok": False, "reason": "금융감독원 공시 키가 연결되지 않았습니다"}
+    d = await finlife.bank_rates()
+    return {"ok": bool(d), **(d or {})}
+
+
 @app.get("/api/v1/franchise")
 def franchise_lookup(brand: str) -> dict:
     """가맹 브랜드 실측 조회 — 공정위 정보공개서 기반 공시.

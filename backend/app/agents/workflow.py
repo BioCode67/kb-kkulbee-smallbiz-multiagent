@@ -107,6 +107,7 @@ class GraphState(TypedDict, total=False):
     motion: Annotated[str, _brighter]
     trace: Annotated[list, _merge]
     steps: Annotated[list, _merge]
+    composed_hint: str
 
 
 def _lap(t0: float, node: str, label: str, detail: str) -> dict:
@@ -350,9 +351,48 @@ def run_policy(state: GraphState) -> GraphState:
                            f"적합 {len(matches)}건 · 1위 {best.provider}")]}
 
 
+def _term_answer(q: str) -> tuple[str, str] | None:
+    """용어 질문("금소법이 뭐야?", "거치기간이 뭔가요")이면 사전에서 답을.
+
+    '뭐야'만 보고 자기소개를 하거나, protection으로 라우팅됐다고 분쟁
+    절차를 꺼내면 안 됩니다(사용자 신고 2건). 갈래와 무관하게 용어
+    질문은 용어 풀이가 정답입니다.
+    """
+    tm = re.search(r"([가-힣A-Za-z0-9]{2,15})\s*(?:이|가|이란|란)?"
+                   r"\s*(?:뭐야|뭔가요|무엇|뜻이)", q)
+    if not tm:
+        return None
+    from app.agents.guardrail_agent import TERMS
+    alias = {"금소법": "금융소비자보호법"}
+    # 탐욕 매칭이 조사까지 삼킵니다("금소법이") — 떼고 별칭을 봅니다.
+    raw_word = re.sub(r"(이|가)$", "", tm.group(1))
+    word = alias.get(raw_word, raw_word)
+    hit = next((t for t in TERMS if word in t.term or t.term in word), None)
+    if not hit:
+        return None
+    text = f"{hit.term} — {hit.easy}."
+    if hit.detail:
+        text += f" {hit.detail}"
+    if hit.caution:
+        text += f"\n주의할 점: {hit.caution}"
+    text += ("\n다른 용어는 화면 오른쪽 위 🛡 버튼의 '쉬운 용어'에서 "
+             "찾아볼 수 있습니다.")
+    return text, hit.term
+
+
 def run_protection(state: GraphState) -> GraphState:
     t0 = time.perf_counter()
     q = state["request"].message
+
+    term = _term_answer(q)
+    if term:
+        text, name = term
+        return {"parts": {"protection": text}, "composed_hint": "verbatim",
+                "motion": CharacterMotion.EXPLAINING.value,
+                "trace": [AgentKind.PROTECTION.value],
+                "steps": [_lap(t0, "protection", "권리 에이전트",
+                               f"용어사전에서 '{name}' 찾음")]}
+
     pack = guardrail_agent.build_protection(q, q)
     text = (f"{pack.dispute_summary} 아래에 4단계 절차와 준비 서류를 정리했습니다. "
             f"근거 규정은 {', '.join(pack.applicable_rules[:2])}입니다.")
@@ -365,16 +405,51 @@ def run_protection(state: GraphState) -> GraphState:
 
 
 def run_general(state: GraphState) -> GraphState:
+    """갈래 없는 대화 — LLM이 있으면 composer가 스몰토크로 응대하고,
+    없어도 질문 유형(인사·정체·능력)에 맞는 답이 나가야 합니다.
+    "누구야?"에 사용법 안내문이 나가면 대화가 안 되는 AI로 보입니다."""
     t0 = time.perf_counter()
-    text = ("소상공인 사장님을 위한 세 가지를 도와드립니다.\n"
-            "· 어디에 열지 — 상권 점수와 그 근거\n"
-            "· 자금을 어떻게 — 정책자금·KB 상품 매칭\n"
-            "· 억울한 일이 생겼을 때 — 분쟁 절차와 서류\n"
-            "예를 들어 “연남동에서 카페 열려는데 상권 어때?”처럼 물어봐 주세요.")
+    q = state["request"].message
+
+    term = _term_answer(q)
+    if term:
+        text, name = term
+        return {"parts": {"general": text}, "composed_hint": "verbatim",
+                "motion": CharacterMotion.EXPLAINING.value, "trace": [],
+                "steps": [_lap(t0, "general", "용어 풀이",
+                               f"용어사전에서 '{name}' 찾음")]}
+
+    if re.search(r"(누구|정체|이름이|(?:너|넌|네)가?\s*뭐)", q):
+        text = ("저는 꿀비입니다 — 소상공인 사장님을 돕는 멀티에이전트 AI "
+                "상담사입니다. 전국 점포 272만 개 실측과 정부 공고 900건으로 "
+                "입지·자금·권리 세 갈래를 함께 살핍니다. 모든 답은 "
+                "금융소비자보호법 표현 검사를 거쳐 나갑니다.\n"
+                "예를 들어 “연남동에서 카페 열려는데 상권 어때?”처럼 물어봐 주세요.")
+        kind = "정체 소개"
+    elif re.search(r"(뭘 해|무엇을 해|할 수 있|할수있|어떤 기능|뭐 해줄|뭐해줄)", q):
+        text = ("이런 것을 해드릴 수 있습니다.\n"
+                "· 입지 — 동네×업종 상권 점수와 근거, 부족한 업종 찾기, 두 동네 비교\n"
+                "· 자금 — 실공고 900건 매칭, 자금 조달 설계와 월 상환액, 은행 공시 금리\n"
+                "· 권리 — 분쟁 4단계, 계약서 독소조항 검사(PDF 가능), 가맹 브랜드 공시, "
+                "권리 마감 D-day\n"
+                "화면 배너에서 갈래를 골라도 되고, 평소 말로 물으셔도 됩니다.")
+        kind = "기능 소개"
+    elif re.search(r"(안녕|반가|하이|헬로|고마|감사)", q):
+        text = ("안녕하세요 사장님, 꿀비입니다. 가게 자리, 자금, 억울한 일 — "
+                "무엇이든 평소 말로 편하게 물어봐 주세요.\n"
+                "예: “장사가 안돼서 운영자금이 급해요”")
+        kind = "인사"
+    else:
+        text = ("소상공인 사장님을 위한 세 가지를 도와드립니다.\n"
+                "· 어디에 열지 — 상권 점수와 그 근거\n"
+                "· 자금을 어떻게 — 정책자금·KB 상품 매칭\n"
+                "· 억울한 일이 생겼을 때 — 분쟁 절차와 서류\n"
+                "예를 들어 “연남동에서 카페 열려는데 상권 어때?”처럼 물어봐 주세요.")
+        kind = "사용법 안내"
     return {"parts": {"general": text}, "motion": CharacterMotion.FLY_HAPPY.value,
             "trace": [],
             "steps": [_lap(t0, "general", "안내",
-                           "특정 갈래 없음 — 세 갈래 사용법 안내")]}
+                           f"갈래 없는 대화 → {kind}")]}
 
 
 async def attach_bank_rates(state: GraphState) -> dict | None:
@@ -409,7 +484,12 @@ async def run_guardrail(state: GraphState) -> GraphState:
     t0 = time.perf_counter()
     raw = _assemble(state.get("parts") or {})
     state["bank_rates"] = await attach_bank_rates(state)  # 키 없으면 None
-    text = await composer.compose(state["request"].message, dict(state), raw)
+    # 용어 풀이처럼 사전에서 그대로 나가야 하는 답은 LLM이 다시 쓰지
+    # 않습니다 — 스몰토크 페르소나가 자기소개를 앞에 붙였습니다.
+    if state.get("composed_hint") == "verbatim":
+        text = raw
+    else:
+        text = await composer.compose(state["request"].message, dict(state), raw)
     composed = "llm" if text != raw else "template"
 
     safe, report = guardrail_agent.apply(text)

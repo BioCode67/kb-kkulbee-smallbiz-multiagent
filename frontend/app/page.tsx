@@ -33,6 +33,8 @@ import GoldenTime from '@/components/GoldenTime';
 import GapRadar from '@/components/GapRadar';
 import FranchiseCheck from '@/components/FranchiseCheck';
 import AllBriefing from '@/components/AllBriefing';
+import TrendPulse from '@/components/TrendPulse';
+import ModeExtras from '@/components/ModeExtras';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -64,8 +66,8 @@ const MODES = [
     ],
   },
   {
-    key: 'policy', icon: 'coin', label: '자금 찾기',
-    desc: '정책자금·지원사업',
+    key: 'policy', icon: 'coin', label: '자금 설계',
+    desc: '정책자금·대출·조달 설계',
     placeholder: '상황을 그대로 말씀하세요 — 제도 이름은 몰라도 됩니다',
     samples: [
       '장사가 안돼서 운영자금이 급해요',
@@ -84,6 +86,16 @@ const MODES = [
     ],
   },
   {
+    key: 'trend', icon: 'pulse', label: '경기·트렌드',
+    desc: '뜨는 업종·지역 경기',
+    placeholder: '트렌드는 아래 패널에서 — 질문은 평소처럼 하셔도 됩니다',
+    samples: [
+      '요즘 카페 창업해도 괜찮을까? 연남동 기준으로 봐줘',
+      '치킨집 하려는데 성수동 상권 어때?',
+      '창업자금 5천만원 대출 알아보고 있어요',
+    ],
+  },
+  {
     key: 'all', icon: 'bee', label: '한 번에',
     desc: '자리도 돈도 같이',
     placeholder: '여러 가지를 한 문장에 물어보셔도 됩니다',
@@ -97,6 +109,7 @@ const MODES = [
 
 /** 배너 아이콘 — 이모지는 기기 글꼴에 따라 네모로 나오므로 SVG로 그립니다. */
 const MODE_TONE: Record<string, { bg: string; fg: string }> = {
+  pulse: { bg: 'bg-orange-500/[.12]', fg: '#E07B39' },
   pin: { bg: 'bg-amber-400/[.16]', fg: '#E09A00' },
   compass: { bg: 'bg-emerald-400/[.16]', fg: '#1E8E5A' },
   coin: { bg: 'bg-sky-400/[.16]', fg: '#0369A1' },
@@ -124,6 +137,9 @@ function ModeIcon({ name, on }: { name: string; on: boolean }) {
         <circle {...p} cx="12" cy="12" r="8.5" />
         <path {...p} d="M12 7.5v9M9.2 9.8c.6-.9 1.6-1.4 2.8-1.4 1.7 0 2.9.8 2.9 2s-1 1.7-2.9 2.1c-1.9.4-2.9 1-2.9 2.1s1.2 2 2.9 2c1.2 0 2.2-.5 2.8-1.4" />
       </>)}
+      {name === 'pulse' && (
+        <path {...p} d="M3 12h4l2.2-5.5 3.6 11 2.2-5.5H21" />
+      )}
       {name === 'shield' && (<>
         <path {...p} d="M12 3.5 5 6v5.2c0 4.3 2.9 7.6 7 9.3 4.1-1.7 7-5 7-9.3V6Z" />
         <path {...p} d="m8.8 12 2.2 2.2 4.2-4.4" />
@@ -160,14 +176,16 @@ const MODE_PROOF: Record<string, string[]> = {
   gap: ['점포 273만 개 실측', '업종 247종 구성 대조', '전국 같은 자로 비교'],
   policy: ['실제 접수 공고 900건', '검색 정확도 P@1 0.875', '전 항목 원문 링크'],
   protection: ['법조문 근거 인용', '독소조항 10유형 검사', '금소법 가드레일 통과'],
+  trend: ['부동산원 임대가격지수 분기 시계열', '공정위 가맹 개폐점 2개년 비교', '예측 아닌 공시만'],
   all: ['세 에이전트 동시 가동', '가드레일이 마지막 관문', '모든 답에 실측 로그'],
 };
 
 const MODE_EASY: Record<string, string> = {
   location: '동네 이름만 말씀하시면, 실제 가게 숫자로 그 자리가 어떤지 알려드립니다',
   gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드립니다',
-  policy: '사장님 상황에 맞는 정부 지원금을 찾아드립니다 — 제도 이름은 몰라도 됩니다',
+  policy: '정부 지원금을 찾고, 필요 금액의 조달을 설계하고, 금융상품까지 — 자금은 여기서 한 번에 봅니다',
   protection: '억울한 일이 생겼을 때, 어떤 순서로 해결하는지 알려드립니다',
+  trend: '어떤 업종이 늘고 줄었는지, 우리 지역 상가 경기가 어느 방향인지 — 공시 통계로 보여드립니다',
   all: '자리도, 돈도, 권리도 — 한 번에 함께 살펴드립니다',
 };
 
@@ -680,6 +698,14 @@ export default function Page() {
                 <AllBriefing onAsk={ask} />
               )}
 
+              {view === 'mode' && MODES[mode].key === 'trend' && (
+                <TrendPulse />
+              )}
+
+              {/* 갈래 공통 — 미리 보는 실제 화면·팁·출처 (페이지가 아래로
+                  더 길고 풍성하게, 사진 몇 장 더 — 사용자 피드백) */}
+              {view === 'mode' && <ModeExtras k={MODES[mode].key} />}
+
               {/* ── 질문 무대 — 액자 없이 열린 판. 가짜 브라우저 크롬(신호등)은
                   목업 냄새가 났고 흰 상자 속 흰 입력창은 흐릿했습니다.
                   배경 위에 바로, 대신 카드 하나하나의 대비를 올립니다. */}
@@ -695,7 +721,7 @@ export default function Page() {
                       다른 고민도 있으세요?
                     </p>
                   )}
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
                     {MODES.map((m, i) => {
                       const on = i === mode;
                       return (
@@ -824,6 +850,34 @@ export default function Page() {
               {/* ── 꿀벌 순찰 + 업종 컨베이어 — 내려도 살아 있는 화면 ── */}
               <BeePatrol />
               <IndustryBelt />
+
+              {/* ── 미리 보는 실제 화면 — 목업이 아니라 배포 중인 화면 ── */}
+              <div className="mt-14 w-full max-w-[1240px]">
+                <p className="text-center text-[13px] font-bold uppercase
+                              tracking-wider text-kb-ink/55">
+                  미리 보는 실제 화면
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  {([['/shots/map.jpg', '경쟁 점포 273만 개 중 우리 골목'],
+                     ['/shots/plan.jpg', '자금 조달 설계 — 이자 절감액까지'],
+                     ['/shots/contract.jpg', '계약서 PDF 넣으면 독소조항 빨간 펜'],
+                  ] as [string, string][]).map(([src, cap], i) => (
+                    <motion.figure key={src}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ delay: i * 0.12, duration: 0.5 }}
+                      className="overflow-hidden rounded-2xl border
+                                 border-kb-ink/[.1] bg-white shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={cap} loading="lazy"
+                           className="h-[220px] w-full object-cover object-top" />
+                      <figcaption className="px-3.5 py-2.5 text-[13px]
+                                             text-kb-ink/72">{cap}</figcaption>
+                    </motion.figure>
+                  ))}
+                </div>
+              </div>
 
               {/* ── 무엇이 다른가 ── */}
               <div className="mb-20 mt-14 grid w-full max-w-[1240px] gap-5

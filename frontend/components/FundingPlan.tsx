@@ -9,7 +9,7 @@
  * 모든 칸에 공고 원문 링크 — 지어낸 숫자가 없습니다.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Step {
   name: string; funding_type: string; bucket: 'grant' | 'guar' | 'loan';
@@ -44,6 +44,15 @@ export default function FundingPlan({ region, industry }: {
   const [bench, setBench] = useState(6.5);     // 시중 금리 '가정' — 직접 바꿔 봄
   const [plan, setPlan] = useState<Plan | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // 금융상품 추천(공시) — 설계와 별개로 페이지에 상시. 융자를 알아보는
+  // 사장님이 실행 창구(은행)의 지금 금리를 함께 보게 합니다.
+  const [rates, setRates] = useState<{ ok: boolean; kb?: { rate_avg: number };
+    low?: number; high?: number; n_banks?: number;
+    kb_products?: { name: string; rate_avg: number }[]; note?: string } | null>(null);
+  useEffect(() => {
+    fetch('/api/v1/rates').then((r) => r.json()).then(setRates).catch(() => {});
+  }, []);
 
   const run = async (benchPct?: number) => {
     if (busy) return;
@@ -223,6 +232,32 @@ export default function FundingPlan({ region, industry }: {
       )}
       {plan && !plan.ok && (
         <p className="mt-3 text-[13.5px] text-rose-700">{plan.reason}</p>
+      )}
+      {/* 금융상품 추천 — 금감원 공시 + KB 공시 상품 (키 없으면 숨김) */}
+      {rates?.ok && (
+        <div className="mt-5 rounded-xl bg-kb-yellow/[.08] p-4 ring-1
+                        ring-kb-yellow/40">
+          <p className="text-[14.5px] font-bold text-kb-ink">
+            🏦 지금 은행 공시 금리
+            <span className="ml-2 font-semibold text-kb-ink/62">
+              개인신용대출 평균 {rates.low}%~{rates.high}% ({rates.n_banks}개 은행)
+            </span>
+          </p>
+          {(rates.kb_products?.length ?? 0) > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {rates.kb_products!.map((p) => (
+                <li key={p.name}
+                    className="rounded-full bg-white px-3 py-1.5 text-[13px]
+                               font-semibold text-kb-ink ring-1 ring-kb-ink/[.1]">
+                  KB {p.name} <b className="text-kb-amber">평균 {p.rate_avg}%</b>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2 text-[12px] leading-relaxed text-kb-ink/60">
+            {rates.note}
+          </p>
+        </div>
       )}
     </section>
   );
