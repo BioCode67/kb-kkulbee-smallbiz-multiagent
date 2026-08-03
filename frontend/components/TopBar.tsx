@@ -14,10 +14,9 @@ import ProtectionDrawer from './ProtectionDrawer';
 import SavedDrawer from './SavedDrawer';
 import { loadSaved, onSavedChange } from '@/lib/saved';
 
-/** page.tsx의 MODES 순서 그대로 — 인덱스로 통신합니다.
- *  '한 번에'는 홈 배너에 이미 있어 상단에서는 뺐고(사용자 피드백),
- *  그 자리에 다른 데 없는 킬러 기능(금소법 검사기)을 둡니다. */
-const NAV = ['입지 진단', '기회 업종', '자금 찾기', '권리 지키기'];
+/** page.tsx의 MODES와 이름·순서 동일(사용자 피드백: 상·하단 통일).
+ *  '한 번에'만 상단에서 제외 — 홈 배너에 이미 있습니다. */
+const NAV = ['입지 진단', '기회 업종', '자금 설계', '권리 지키기', '경기·트렌드'];
 
 export default function TopBar() {
   // 큰글씨 모드 — 소상공인의 큰 축은 중장년입니다. 돋보기 없이 읽히는
@@ -100,13 +99,7 @@ export default function TopBar() {
               {label}
             </button>
           ))}
-          {/* 자금 설계사는 '자금 찾기'와 같은 페이지라 중복(사용자
-              피드백) — 그 자리에 새 갈래 '경기·트렌드'를 둡니다. */}
-          <button onClick={() => go(4)}
-                  className="rounded-lg px-3 py-1.5 text-[15px] text-white/80
-                             transition hover:bg-white/[.08] hover:text-kb-yellow">
-            경기·트렌드
-          </button>
+
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">

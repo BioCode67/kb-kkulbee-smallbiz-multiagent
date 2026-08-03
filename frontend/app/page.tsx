@@ -65,8 +65,8 @@ const MODES = [
     ],
   },
   {
-    key: 'policy', icon: 'coin', label: '자금 찾기',
-    desc: '정책자금·지원사업',
+    key: 'policy', icon: 'coin', label: '자금 설계',
+    desc: '정책자금·대출·조달 설계',
     placeholder: '상황을 그대로 말씀하세요 — 제도 이름은 몰라도 됩니다',
     samples: [
       '장사가 안돼서 운영자금이 급해요',
@@ -182,7 +182,7 @@ const MODE_PROOF: Record<string, string[]> = {
 const MODE_EASY: Record<string, string> = {
   location: '동네 이름만 말씀하시면, 실제 가게 숫자로 그 자리가 어떤지 알려드립니다',
   gap: '이 동네에 아직 없는 가게, 이미 많은 가게를 찾아드립니다',
-  policy: '사장님 상황에 맞는 정부 지원금을 찾아드립니다 — 제도 이름은 몰라도 됩니다',
+  policy: '정부 지원금을 찾고, 필요 금액의 조달을 설계하고, 금융상품까지 — 자금은 여기서 한 번에 봅니다',
   protection: '억울한 일이 생겼을 때, 어떤 순서로 해결하는지 알려드립니다',
   trend: '어떤 업종이 늘고 줄었는지, 우리 지역 상가 경기가 어느 방향인지 — 공시 통계로 보여드립니다',
   all: '자리도, 돈도, 권리도 — 한 번에 함께 살펴드립니다',
