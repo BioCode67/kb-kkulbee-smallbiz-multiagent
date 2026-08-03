@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: 헬스체크 두드리기
         run: |
-          URL="${{ vars.SERVICE_URL || 'https://kb-kkulbee.onrender.com' }}/api/v1/health"
+          URL="${{ vars.SERVICE_URL || 'https://kb-kkulbee-smallbiz-multiagent.onrender.com' }}/api/v1/health"
           for i in 1 2 3; do
             code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 90 "$URL" || echo 000)
             echo "시도 $i — HTTP $code"
