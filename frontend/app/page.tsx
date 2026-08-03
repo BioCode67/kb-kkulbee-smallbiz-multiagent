@@ -577,6 +577,33 @@ export default function Page() {
                     )}
                   </motion.div>
 
+                  {/* 실행 마일스톤 배지 — 화면 안의 주장(실측·가드레일)이 화면
+                      밖에서도 걸어온 길임을 보여줍니다. SW 출원·현장 검증·기관
+                      협력. 문구는 docs/STRATEGY.md와 함께 관리합니다. */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.28 }}
+                    className="mt-4 flex flex-wrap items-center justify-center gap-2
+                               lg:justify-start"
+                  >
+                    {['SW 저작권 출원 완료',
+                      '대구·경산 소상공인 현장 검증 완료',
+                      '지역 소상공인지원센터 협업 추진 중'].map((t) => (
+                      <span key={t}
+                        className="inline-flex items-center gap-1.5 rounded-full
+                                   border border-kb-amber/25 bg-kb-yellow/[.14] px-3
+                                   py-1.5 text-[12.5px] font-semibold text-kb-amber">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             aria-hidden>
+                          <path d="M20 6L9 17l-5-5" stroke="currentColor"
+                                strokeWidth="3" strokeLinecap="round"
+                                strokeLinejoin="round" />
+                        </svg>
+                        {t}
+                      </span>
+                    ))}
+                  </motion.div>
+
                   {/* 곧 마감 공고가 흐릅니다 — 묻기 전에도 살아 있는 화면 */}
                   <HeroTicker />
                 </div>

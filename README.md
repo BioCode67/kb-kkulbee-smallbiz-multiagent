@@ -45,6 +45,33 @@ Pick 2 최적 입지 × Pick 3 소상공인 금융 × Pick 4 소비자 보호
 
 ---
 
+## 화면 밖에서도 검증했습니다 — 실행 마일스톤
+
+> 상세 기준·표기 원칙은 [docs/STRATEGY.md](docs/STRATEGY.md)
+
+- **SW 저작권 출원 완료** — 한국저작권위원회 SW(컴퓨터프로그램) 저작권 출원
+  완료, 등록 절차 진행 중. 출원 대상: '3D Spatial Agent + SHAP XAI Factor
+  Scoring Multi-Agent Architecture'. 등록 완료 후 소상공인 지원기관 무상
+  보급의 법적 기반입니다.
+- **대구·경산 소상공인 현장 검증 완료** — 신전떡볶이 동성로점 · 105번 ·
+  단디휘트니스 계양점에서 현장 UX 테스트·인터뷰. 정책자금 신청의 복잡함과
+  상권 변화가 가장 큰 고민임을 확인하고, 벤토 그리드 생성형 UI와 3D
+  마스코트 상호작용을 현장 피드백으로 다듬었습니다.
+- **지역 소상공인지원센터 협업 추진 중** — ⭐ 소상공인시장진흥공단
+  대구경북지역본부(대구북부/경산센터) 연계 Pilot 추진, 대구광역시
+  소상공인광역지원센터(대구신용보증재단) 실증 협력 협의, 경북경산
+  소상공인지원센터 대학가 상권 검증 — 양주시·동대문구 등 전국 센터로
+  접촉 확대 중.
+
+<p align="center">
+  <img src="docs/field/sinjeon_dongseongro.jpg" height="150" alt="현장 검증 — 신전떡볶이 동성로점">
+  <img src="docs/field/105beon.jpg" height="150" alt="현장 검증 — 105번(동성로)">
+  <img src="docs/field/dandy_fitness.jpg" height="150" alt="현장 검증 — 단디휘트니스 계양점">
+  <img src="docs/field/semas_daegu_north.jpg" height="150" alt="소상공인시장진흥공단 대구북부센터 방문">
+</p>
+
+---
+
 ## 실행
 
 ```bash
