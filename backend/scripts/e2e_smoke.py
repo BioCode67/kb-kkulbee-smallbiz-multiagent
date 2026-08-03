@@ -86,7 +86,14 @@ async def main() -> None:
         else:
             log("찜 버튼", False)
 
-        # 5) 모바일 — 가로 오버플로 0
+        # 5) 지도 클릭이 부르는 주변 가게 API — 카카오 로컬 실검색
+        rr = await pg.request.get(
+            BASE + "/api/v1/nearby?lat=37.5622&lng=126.9255&q=%EC%B9%B4%ED%8E%98")
+        dd = await rr.json()
+        log("주변 가게 API", bool(dd.get("ok")) and len(dd.get("places", [])) > 0,
+            f"{len(dd.get('places', []))}곳")
+
+        # 6) 모바일 — 가로 오버플로 0
         pm = await b.new_page(viewport={"width": 390, "height": 844})
         await pm.goto(BASE + "/", wait_until="networkidle", timeout=60000)
         await pm.evaluate("localStorage.setItem('kkulbee:onboarded','1')")
