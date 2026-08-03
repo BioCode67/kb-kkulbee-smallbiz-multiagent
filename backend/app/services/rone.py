@@ -21,6 +21,7 @@ import httpx
 BASE = "https://www.reb.or.kr/r-one/openapi/SttsApiTblData.do"
 STATBL_SMALL_SHOP = "T248223134698125"
 STATBL_INDEX_TS = "TT246323134644307"   # 소규모 상가 임대가격지수(시계열)
+STATBL_VACANCY = "T241833134686576"     # 소규모 상가 공실률(2024Q3~)
 CACHE_TTL = 86400
 _CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                            "data", "rone_cache.json")
@@ -187,7 +188,7 @@ def _fetch_index() -> dict | None:
             series.setdefault(full, {})[x["WRTTIME_IDTFR_ID"]] = round(v, 2)
     if not series:
         return None
-    quarters = sorted({q for s in series.values() for q in s})[-5:]
+    quarters = sorted({q for s in series.values() for q in s})[-8:]
     regions = []
     for name, s in series.items():
         vals = [s.get(q) for q in quarters]
@@ -230,3 +231,62 @@ def index_trend() -> dict | None:
             except OSError:
                 pass
     return data
+
+
+def _latest_depth1(statbl: str) -> dict | None:
+    """표 하나에서 최신 분기의 전국·시도 값만. (공실률 등 소형 표)"""
+    key = api_key()
+    if not key:
+        return None
+    rows: list[dict] = []
+    try:
+        for page in (1, 2, 3):
+            r = httpx.get(BASE, params={
+                "KEY": key, "Type": "json", "pIndex": page, "pSize": 1000,
+                "STATBL_ID": statbl, "DTACYCLE_CD": "QY"}, timeout=30)
+            r.raise_for_status()
+            body = r.json().get("SttsApiTblData")
+            chunk = body[1].get("row", []) if body else []
+            if not chunk:
+                break
+            rows += chunk
+            if len(chunk) < 1000:
+                break
+    except (httpx.HTTPError, ValueError, KeyError, IndexError):
+        return None
+    if not rows:
+        return None
+    latest = max(x["WRTTIME_IDTFR_ID"] for x in rows)
+    out = {"quarter": quarter_label(latest), "national": None, "sido": {}}
+    for x in rows:
+        if x["WRTTIME_IDTFR_ID"] != latest or ">" in x.get("CLS_FULLNM", ""):
+            continue
+        v = x.get("DTA_VAL")
+        if not isinstance(v, (int, float)):
+            continue
+        if x["CLS_FULLNM"] == "전국":
+            out["national"] = round(v, 1)
+        else:
+            out["sido"][x["CLS_FULLNM"]] = round(v, 1)
+    return out if out["sido"] else None
+
+
+def vacancy_latest() -> dict | None:
+    """시도별 소규모 상가 공실률(최신 분기) — 하루 캐시."""
+    now = time.time()
+    with _lock:
+        if _idx_mem.get("vac_at", 0) > now - CACHE_TTL:
+            return _idx_mem.get("vac")
+    data = _latest_depth1(STATBL_VACANCY)
+    with _lock:
+        _idx_mem.update({"vac_at": now, "vac": data})
+    return data
+
+
+def rents_by_sido() -> dict | None:
+    """시도별 소규모 상가 임대료(최신 분기) — rent_for와 같은 캐시."""
+    d = _data()
+    if not d:
+        return None
+    return {"quarter": d["quarter"], "national": d["national"],
+            "sido": d["sido"]}

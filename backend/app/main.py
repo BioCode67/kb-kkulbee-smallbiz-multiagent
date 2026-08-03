@@ -238,18 +238,29 @@ def contract_scan(payload: dict) -> dict:
     return cs.scan(str(payload.get("text", "")))
 
 
+@app.get("/api/v1/deposits")
+async def deposits_api() -> dict:
+    """예금·적금 공시 Top — 자금 페이지 상시 패널용."""
+    from app.services import finlife
+    d = await finlife.deposit_rates()
+    return {"ok": bool(d), **(d or {})}
+
+
 @app.get("/api/v1/econ-trend")
 def econ_trend() -> dict:
-    """지역 경기 흐름 — 부동산원 소규모 상가 임대가격지수 최근 5분기."""
+    """지역 경기 종합 — 임대가격지수(8분기)·공실률·시도 임대료 한 상."""
     from app.services import rone
-    d = rone.index_trend() if rone.available() else None
-    if not d:
+    if not rone.available():
+        return {"ok": False, "reason": "부동산원 키가 연결되지 않았습니다"}
+    idx = rone.index_trend()
+    if not idx:
         return {"ok": False, "reason": "부동산원 지수를 지금 불러오지 못했습니다"}
-    return {"ok": True, **d,
-            "note": ("한국부동산원 상업용부동산 임대동향조사 — 소규모 상가 "
-                     "임대가격지수(분기)입니다. 지수 상승은 그 지역 상가 "
-                     "자리 경쟁이 붙고 있다는 신호로만 읽어 주세요. 예측이 "
-                     "아닙니다.")}
+    return {"ok": True, **idx,
+            "vacancy": rone.vacancy_latest(),
+            "rents": rone.rents_by_sido(),
+            "note": ("한국부동산원 상업용부동산 임대동향조사(소규모 상가) — "
+                     "임대가격지수·공실률·임대료 공시입니다. 지수 상승은 자리 "
+                     "경쟁의 신호로만 읽어 주세요. 예측이 아닙니다.")}
 
 
 @app.get("/api/v1/industry-trend")

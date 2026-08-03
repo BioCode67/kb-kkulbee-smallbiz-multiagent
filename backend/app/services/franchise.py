@@ -221,7 +221,24 @@ def industry_trend(k: int = 6) -> dict:
     # 트렌드로 읽으면 오독입니다 — 제외하고 그 사실을 각주에 남깁니다.
     items = [x for x in items if x["pct"] is not None and abs(x["pct"]) <= 65]
     items.sort(key=lambda x: -(x["delta"]))
+    # 뜨는 브랜드 — 업종이 아니라 브랜드 단위로 1년 새 가맹점이 가장
+    # 많이 는 곳. 신규 등록 브랜드(전년 0)는 성장으로 오독되므로 제외.
+    prev_by = { _norm(r.get("brandNm","")): int(r.get("frcsCnt") or 0)
+                for r in prev }
+    hot = []
+    for r in d["rows"]:
+        nm = _norm(r.get("brandNm",""))
+        b = prev_by.get(nm)
+        cur = int(r.get("frcsCnt") or 0)
+        if not b or cur < 100:
+            continue
+        hot.append({"brand": r.get("brandNm"),
+                    "industry": f"{r.get('indutyLclasNm','')}·{r.get('indutyMlsfcNm','')}",
+                    "stores": cur, "delta": cur - b})
+    hot.sort(key=lambda x: -x["delta"])
+
     result = {"ok": True, "yr": d["yr"], "prev_yr": prev_yr,
+            "hot_brands": hot[:6],
             "rising": items[:k],
             "falling": sorted(items, key=lambda x: x["delta"])[:k],
             "note": (f"공정거래위원회 가맹사업 통계 — {prev_yr}→{d['yr']}년 "

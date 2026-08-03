@@ -164,3 +164,71 @@ async def bank_rates() -> dict | None:
         except OSError:
             pass
     return data
+
+
+# ── 예금·적금 공시 — 여유자금을 굴릴 자리도 공시로 ────────────────────────
+_DEP_CACHE: dict = {}
+
+
+async def _fetch_products(endpoint: str) -> list[dict] | None:
+    """정기예금/적금 공시. 12개월 기준 최고우대금리로 접습니다."""
+    key = api_key()
+    if not key:
+        return None
+    rows: list[dict] = []
+    try:
+        async with httpx.AsyncClient(timeout=12) as client:
+            for page in (1, 2):
+                r = await client.get(f"{BASE}/{endpoint}.json", params={
+                    "auth": key, "topFinGrpNo": BANK_GROUP, "pageNo": page})
+                r.raise_for_status()
+                body = r.json().get("result", {})
+                base = {(b["fin_co_no"], b["fin_prdt_cd"]):
+                        (b["kor_co_nm"], b["fin_prdt_nm"])
+                        for b in body.get("baseList", [])}
+                for o in body.get("optionList", []):
+                    if str(o.get("save_trm")) != "12":
+                        continue
+                    nm = base.get((o.get("fin_co_no"), o.get("fin_prdt_cd")))
+                    rate = _f(o.get("intr_rate2")) or _f(o.get("intr_rate"))
+                    if nm and rate:
+                        rows.append({"bank": nm[0], "product": nm[1],
+                                     "rate": rate})
+                if page >= int(body.get("max_page_no", 1)):
+                    break
+    except (httpx.HTTPError, ValueError, KeyError):
+        return None
+    # 상품별 최고 금리 → 은행 중복은 최고 1개만 남겨 다양하게
+    rows.sort(key=lambda x: -x["rate"])
+    seen: set[str] = set()
+    out = []
+    for r in rows:
+        if r["bank"] in seen:
+            continue
+        seen.add(r["bank"])
+        out.append(r)
+    return out or None
+
+
+async def deposit_rates() -> dict | None:
+    """예금·적금 12개월 최고우대금리 Top — KB는 따로 표시."""
+    if not available():
+        return None
+    now = time.time()
+    if _DEP_CACHE.get("at", 0) > now - CACHE_TTL:
+        return _DEP_CACHE.get("data")
+    dep = await _fetch_products("depositProductsSearch")
+    sav = await _fetch_products("savingProductsSearch")
+    data = None
+    if dep or sav:
+        def pack(rows):
+            if not rows:
+                return {"top": [], "kb": None}
+            return {"top": rows[:5],
+                    "kb": next((r for r in rows if "국민" in r["bank"]), None)}
+        data = {"deposit": pack(dep), "saving": pack(sav),
+                "note": ("금융감독원 「금융상품 한눈에」 공시 — 12개월, 최고 "
+                         "우대금리 기준입니다. 우대 조건은 상품마다 다르니 "
+                         "가입 전 확인하세요.")}
+    _DEP_CACHE.update({"at": now, "data": data})
+    return data

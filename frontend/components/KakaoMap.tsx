@@ -31,13 +31,16 @@ interface Props {
 /* 카카오 SDK 타입 최소 선언 — 전체 타입 패키지는 과합니다 */
 type KLatLng = object;
 type KMap = { panTo: (c: KLatLng) => void; setLevel: (l: number, o?: object) => void;
-              setCenter: (c: KLatLng) => void };
+              setCenter: (c: KLatLng) => void;
+              setBounds: (b: object, ...pad: number[]) => void };
 interface KakaoNS {
   maps: {
     load: (cb: () => void) => void;
     LatLng: new (lat: number, lng: number) => KLatLng;
     Map: new (el: HTMLElement, opts: object) => KMap;
-    Circle: new (opts: object) => { setMap: (m: KMap | null) => void };
+    Circle: new (opts: object) => { setMap: (m: KMap | null) => void;
+                                    setOptions: (o: object) => void };
+    LatLngBounds: new () => { extend: (p: KLatLng) => void };
     CustomOverlay: new (opts: object) => { setMap: (m: KMap | null) => void };
   };
 }
@@ -73,6 +76,10 @@ export default function KakaoMap({
   const kakaoRef = useRef<KakaoNS | null>(null);
   const [shops, setShops] = useState<{ total: number; shown: number } | null>(null);
   const [tourStep, setTourStep] = useState<string | null>(null);
+  // 점 ↔ 열지도 — Leaflet 판과 같은 토글. 카카오엔 히트맵이 없어
+  // 반투명 큰 원을 겹쳐 밀집을 보입니다(값을 지어내지 않는 시각화).
+  const [heat, setHeat] = useState(false);
+  const circlesRef = useRef<{ setOptions: (o: object) => void }[]>([]);
   const [touring, setTouring] = useState(false);
   const [speakOn, setSpeakOn] = useState(true);
 
@@ -104,13 +111,18 @@ export default function KakaoMap({
           if (r.ok && !disposed) {
             const data = await r.json();
             setShops({ total: data.total, shown: data.shown });
+            circlesRef.current = [];
             (data.points as [number, number][]).forEach(([la, lo]) => {
+              // 반지름은 미터 단위 — 7m는 화려한 카카오 타일 위에서
+              // 보이지 않았습니다(사용자 신고). 12m + 흰 테두리로.
               const c = new kakao.maps.Circle({
                 center: new kakao.maps.LatLng(la, lo),
-                radius: 7, strokeWeight: 0,
-                fillColor: '#FF7A59', fillOpacity: 0.7,
+                radius: 12, strokeWeight: 1.5, strokeColor: '#ffffff',
+                strokeOpacity: 0.9, fillColor: '#FF3B1F', fillOpacity: 0.9,
+                zIndex: 5,
               });
               c.setMap(map);
+              circlesRef.current.push(c);
               cleanups.push(() => c.setMap(null));
             });
           }
@@ -137,12 +149,21 @@ export default function KakaoMap({
       // 도착 비행 — 카카오는 flyTo가 없어 panTo + 단계 줌으로 만듭니다.
       const to = new kakao.maps.LatLng(target.latitude, target.longitude);
       setTimeout(() => { map.setCenter(to); map.setLevel(8, { animate: true }); }, 350);
-      setTimeout(() => map.setLevel(5, { animate: true }), 1100);
-      setTimeout(() => map.setLevel(3, { animate: true }), 1800);
+      setTimeout(() => { map.panTo(to); map.setLevel(5, { animate: true }); }, 1200);
+      setTimeout(() => { map.panTo(to); map.setLevel(3, { animate: true }); }, 2000);
     })();
 
     return () => { disposed = true; cleanups.forEach((f) => f()); };
   }, [pins, dongCode, industryCode, onFallback]);
+
+  // 열지도 토글 — 원들의 옵션만 바꿉니다(다시 그리지 않음)
+  const applyHeat = (on: boolean) => {
+    setHeat(on);
+    circlesRef.current.forEach((c) => c.setOptions(on
+      ? { radius: 45, strokeWeight: 0, fillColor: '#FF3B1F', fillOpacity: 0.09 }
+      : { radius: 12, strokeWeight: 1.5, strokeColor: '#ffffff',
+          strokeOpacity: 0.9, fillColor: '#FF3B1F', fillOpacity: 0.9 }));
+  };
 
   const speak = (t: string) => {
     if (!speakOn || typeof speechSynthesis === 'undefined') return;
@@ -158,17 +179,23 @@ export default function KakaoMap({
     setTouring(true);
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const step = (t: string) => { setTourStep(t); speak(t); };
+    const center = new kakao.maps.LatLng(target.latitude, target.longitude);
     try {
       step(`${target.name}입니다`);
-      map.setCenter(new kakao.maps.LatLng(target.latitude, target.longitude));
-      map.setLevel(3, { animate: true }); await wait(2600);
+      map.panTo(center); map.setLevel(4, { animate: true }); await wait(2400);
       if (shops && shops.total > 0) {
-        step(`주황 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
-        map.setLevel(2, { animate: true }); await wait(3000);
+        step(`빨간 점 하나가 실제 ${industry ?? '동종업종'} 한 곳 — 모두 ${shops.total}곳입니다`);
+        map.panTo(center); map.setLevel(2, { animate: true }); await wait(3000);
+        step('열지도로 보면 경쟁이 몰린 골목이 드러납니다');
+        applyHeat(true); await wait(2800);
+        applyHeat(false);
       }
       if (pins.length > 1) {
         step('옆 동네와 나란히 놓고 봐야 이 점수의 높낮이가 읽힙니다');
-        map.setLevel(6, { animate: true }); await wait(3200);
+        const b = new kakao.maps.LatLngBounds();
+        pins.forEach((p) => b.extend(new kakao.maps.LatLng(p.latitude, p.longitude)));
+        map.setBounds(b, 40); await wait(3200);
+        map.panTo(center); map.setLevel(3, { animate: true });
       }
       step('구석구석은 직접 움직여 보세요 — 건물 이름까지 보입니다');
       await wait(2200);
@@ -195,6 +222,12 @@ export default function KakaoMap({
                        disabled:opacity-60">
             {touring ? '투어 중…' : '▶ 지도 투어'}
           </button>
+          <button onClick={() => applyHeat(!heat)}
+            className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
+                        transition ${heat ? 'bg-kb-ink text-white'
+                                          : 'bg-white text-kb-ink/78'}`}>
+            {heat ? '점으로' : '열지도'}
+          </button>
           <button onClick={() => setSpeakOn((v) => !v)}
             className={`rounded-lg px-2.5 py-1.5 text-[13.5px] font-semibold shadow
                         transition ${speakOn ? 'bg-white text-kb-ink'
@@ -204,7 +237,7 @@ export default function KakaoMap({
         </div>
       </div>
       <p className="mt-2 text-[12.5px] text-kb-ink/55">
-        카카오 지도 · 주황 점은 실제 {industry ?? '동종업종'} 점포
+        카카오 지도 · 빨간 점은 실제 {industry ?? '동종업종'} 점포
         {shops ? ` ${shops.total.toLocaleString()}곳` : ''} · 점수 칩은 비교 상권
       </p>
     </div>

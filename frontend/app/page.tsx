@@ -35,6 +35,7 @@ import FranchiseCheck from '@/components/FranchiseCheck';
 import AllBriefing from '@/components/AllBriefing';
 import TrendPulse from '@/components/TrendPulse';
 import ModeExtras from '@/components/ModeExtras';
+import MoneyHub from '@/components/MoneyHub';
 import type { CharacterMotion, ChatResponse } from '@/lib/types';
 
 /**
@@ -638,6 +639,9 @@ export default function Page() {
                       ))}
                     </div>
 
+                    {/* 경기·트렌드는 도구가 주인공 — 답 못 하는 예상
+                        질문이 헷갈림만 만듭니다(사용자 피드백). */}
+                    {MODES[mode].key !== 'trend' && (<>
                     <motion.div layoutId="askbox" transition={SPRING}
                                 id="ask" className="mt-6">
                       <AskBox value={input} onChange={setInput}
@@ -673,6 +677,7 @@ export default function Page() {
                         </button>
                       ))}
                     </motion.div>
+                    </>)}
                   </div>
                   <div className="hidden shrink-0 justify-self-center md:block">
                     <BeeStage motion={mood} size={300} speech={speech} />
@@ -680,9 +685,10 @@ export default function Page() {
                 </div>
               )}
 
-              {view === 'mode' && MODES[mode].key === 'policy' && (
+              {view === 'mode' && MODES[mode].key === 'policy' && (<>
                 <FundingPlan region={shop?.region} industry={shop?.industry} />
-              )}
+                <MoneyHub />
+              </>)}
 
               {view === 'mode' && MODES[mode].key === 'protection' && (<>
                 <ContractScan />
