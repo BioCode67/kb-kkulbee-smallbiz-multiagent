@@ -1253,6 +1253,7 @@ function Thinking() {
   const done = STEPS.filter((s) => ms >= s.at).length;
 
   return (
+    <div>
     <div className="surface-1 mt-6 p-5">
       <ol className="space-y-3">
         {STEPS.map((s, i) => {
@@ -1289,6 +1290,26 @@ function Thinking() {
           );
         })}
       </ol>
+    </div>
+    {/* 답이 설 자리 미리보기 — 로딩 중 화면 아래가 통째로 비지 않게.
+        가짜 내용이 아니라 '빈 카드 골격'임이 보이는 스켈레톤입니다. */}
+    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="surface-1 p-5"
+             style={{ animationDelay: `${i * 0.15}s` }}>
+          <div className="h-4 w-1/2 animate-pulse rounded bg-kb-ink/[.08]" />
+          <div className="mt-3.5 h-3 w-full animate-pulse rounded bg-kb-ink/[.05]" />
+          <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-kb-ink/[.05]" />
+          <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-kb-ink/[.05]" />
+          <div className="mt-4 h-20 animate-pulse rounded-xl bg-kb-yellow/[.10]" />
+        </div>
+      ))}
+    </div>
+    <p className="mt-4 text-center text-[13px] leading-relaxed text-kb-ink/55">
+      답변 카드가 이 자리에 채워집니다 — 근거는 전부 실측입니다:
+      행정안전부 인허가 점포 272만 개 · 기업마당 공고 900건 ·
+      금융감독원 금리 공시 · R-ONE 임대시장 · 공정거래위원회 가맹 통계
+    </p>
     </div>
   );
 }

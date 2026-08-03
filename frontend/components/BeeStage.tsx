@@ -48,7 +48,10 @@ export default function BeeStage({ motion, size, speech, className = '' }: Props
       // 밖(모바일 결과 화면 — 클램프 때문에 말풍선만 상단에 남아
       // 본문·지도를 가리며 따라다녔음).
       const out = r.bottom < 56 || r.top > window.innerHeight;
-      if (r.width < 8 || h.offsetParent === null || out) {
+      // 스크롤을 내리면 말풍선은 접습니다 — 무대(aside)가 sticky라 말풍선이
+      // 화면을 따라 내려오는데, 본문을 읽는 중에 계속 따라붙으면 방해입니다.
+      const scrolled = window.scrollY > 120;
+      if (r.width < 8 || h.offsetParent === null || out || scrolled) {
         b.style.display = 'none';
         return;
       }
